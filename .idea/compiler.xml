@@ -3,20 +3,28 @@
   <component name="CompilerConfiguration">
     <annotationProcessing>
       <profile default="true" name="Default" enabled="true" />
-      <profile name="Annotation profile for hello-cafe-api" enabled="true">
+      <profile name="Maven default annotation processors profile" enabled="true">
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <processorPath useClasspath="false">
-          <entry name="$USER_HOME$/maven-repo/org/projectlombok/lombok/unknown/lombok-unknown.jar" />
-        </processorPath>
-        <module name="hello-cafe-api" />
+        <module name="hello-cafe-common" />
+        <module name="hello-cafe-server" />
+        <module name="hello-cafe-pojo" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="pojo" target="1.8" />
+      <module name="server" target="1.8" />
+    </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
-      <module name="hello-cafe-api" options="-parameters" />
+      <module name="hello-cafe-api" options="" />
+      <module name="hello-cafe-common" options="-parameters" />
+      <module name="hello-cafe-pojo" options="-parameters" />
+      <module name="hello-cafe-server" options="-parameters" />
+      <module name="pojo" options="" />
+      <module name="server" options="" />
     </option>
   </component>
 </project>

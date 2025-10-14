@@ -1,11 +1,10 @@
-package com.yuan.hellocafeapi.controller;
+package com.yuan.hellocafeserver;
 
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class PingController {
-
     @GetMapping("/ping")
     public String ping() {
         return "pong";

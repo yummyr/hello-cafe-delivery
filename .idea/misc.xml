@@ -5,7 +5,20 @@
     <option name="originalFiles">
       <list>
         <option value="$PROJECT_DIR$/hello-cafe-api/pom.xml" />
+        <option value="$PROJECT_DIR$/hello-cafe-api/common/pom.xml" />
+        <option value="$PROJECT_DIR$/hello-cafe-api/pojo/pom.xml" />
+        <option value="$PROJECT_DIR$/hello-cafe-api/server/pom.xml" />
+        <option value="$PROJECT_DIR$/hello-cafe-api/hello-cafe-common/pom.xml" />
+        <option value="$PROJECT_DIR$/hello-cafe-api/hello-cafe-pojo/pom.xml" />
+        <option value="$PROJECT_DIR$/hello-cafe-api/hello-cafe-server/pom.xml" />
       </list>
+    </option>
+    <option name="ignoredFiles">
+      <set>
+        <option value="$PROJECT_DIR$/hello-cafe-api/common/pom.xml" />
+        <option value="$PROJECT_DIR$/hello-cafe-api/pojo/pom.xml" />
+        <option value="$PROJECT_DIR$/hello-cafe-api/server/pom.xml" />
+      </set>
     </option>
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_20" default="true" project-jdk-name="zulu-20" project-jdk-type="JavaSDK">
