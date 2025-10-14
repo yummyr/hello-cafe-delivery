@@ -1,0 +1,41 @@
+
+server:
+  port: 8080
+spring:
+  profiles:
+    active: dev
+  main:
+    allow-circular-references: true
+  datasource:
+    druid:
+      driver-class-name: ${hello-cafe.datasource.driver-class-name}
+      url: jdbc:mysql://${hello-cafe.datasource.host}:${hello-cafe.datasource.port}/${hello-cafe.datasource.database}?serverTimezone=UTC&useSSL=false&characterEncoding=utf8
+      username: ${hello-cafe.datasource.username}
+      password: ${hello-cafe.datasource.password}
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+      show-sql: true
+      properties:
+        hibernate:
+          format_sql: true
+
+  security:
+    user:
+      name: admin
+      password: admin123
+
+logging:
+  level:
+    com:
+      hello-cafe:
+        mapper: DEBUG
+        service: DEBUG
+        controller: DEBUG
+
+hello-cafe:
+  jwt:
+    admin-secret-key: adminitcast
+    admin-ttl: 7200000 # 2 hours in milliseconds
+    admin-token-name: admin_token
