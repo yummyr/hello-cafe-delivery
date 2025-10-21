@@ -1,47 +1,54 @@
-package com.yuan.hellocafeserver.service.impl;
+package com.yuan.service.impl;
 
+import com.yuan.constant.PasswordConstant;
+import com.yuan.dto.EmployeeDTO;
 import com.yuan.entity.Employee;
-import com.yuan.hellocafeserver.repository.EmployeeRepository;
-import com.yuan.hellocafeserver.service.EmployeeService;
+import com.yuan.repository.EmployeeRepository;
+import com.yuan.result.Result;
+import com.yuan.service.EmployeeService;
+import com.yuan.constant.StatusConstant;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
+@Slf4j
 public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
-    @Autowired
-    public EmployeeServiceImpl(EmployeeRepository employeeRepository) {
-        this.employeeRepository = employeeRepository;
+    @Override
+    public void saveEmployee(EmployeeDTO dto) {
+        Employee employee = new Employee(dto.getId(), dto.getName(), dto.getUsername(),
+                passwordEncoder.encode(PasswordConstant.DEFAULT_PASSWORD), dto.getPhone(),
+                dto.getGender(), StatusConstant.ENABLE, LocalDateTime.now(), LocalDateTime.now());
+        employeeRepository.save(employee);
     }
 
     @Override
-    public Employee saveEmployee(Employee employee) {
-        return employeeRepository.save(employee);
-    }
-
-    @Override
-    public Employee updateEmployee(Long id, Employee employee) {
-        Optional<Employee> existing = employeeRepository.findById(id);
-        if (existing.isEmpty()) {
-            throw new RuntimeException("Employee not found with id: " + id);
+    public Result<Employee> updateEmployee(EmployeeDTO dto) {
+        Employee existing = (Employee) employeeRepository.findByUsername(dto.getUsername()).orElse(null);
+        if (existing == null) {
+            return Result.error("Username not exists");
         }
-        Employee old = existing.get();
-        old.setName(employee.getName());
-        old.setUsername(employee.getUsername());
-        old.setPassword(employee.getPassword());
-        old.setPhone(employee.getPhone());
-        old.setGender(employee.getGender());
-        old.setStatus(employee.getStatus());
-        old.setUpdateTime(employee.getUpdateTime());
-        return employeeRepository.save(old);
+
+        Employee employee = new Employee(dto.getId(), dto.getName(), dto.getUsername(),
+                existing.getPassword(), dto.getPhone(), dto.getGender(), existing.getStatus(), existing.getCreateTime(), LocalDateTime.now());
+
+        employeeRepository.save(employee);
+        return Result.success(employee);
     }
+
 
     @Override
     public void deleteEmployee(Long id) {
@@ -58,4 +65,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     public List<Employee> getAllEmployees() {
         return employeeRepository.findAll();
     }
+
+
 }

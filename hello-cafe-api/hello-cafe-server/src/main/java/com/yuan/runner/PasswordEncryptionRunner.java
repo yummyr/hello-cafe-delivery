@@ -1,4 +1,10 @@
+package com.yuan.runner;
+
+import com.yuan.repository.EmployeeRepository;
+import com.yuan.repository.UserRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.CommandLineRunner;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -11,21 +17,21 @@ public class PasswordEncryptionRunner implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // 1️⃣ 加密所有 employee 密码
+        // 1. encode all employee password
         employeeRepository.findAll().forEach(emp -> {
-            if (!emp.getPassword().startsWith("$2a$")) { // 说明还没加密
+            if (!emp.getPassword().startsWith("$2a$")) { // if not encoded
                 emp.setPassword(passwordEncoder.encode(emp.getPassword()));
                 employeeRepository.save(emp);
-                System.out.println("🔐 Encrypted employee: " + emp.getUsername());
+                System.out.println("Encrypted employee: " + emp.getUsername());
             }
         });
 
-        // 2️⃣ 加密所有 user 密码
+        // 2. encode all user password
         userRepository.findAll().forEach(user -> {
             if (!user.getPassword().startsWith("$2a$")) {
                 user.setPassword(passwordEncoder.encode(user.getPassword()));
                 userRepository.save(user);
-                System.out.println("🔐 Encrypted user: " + user.getUsername());
+                System.out.println("Encrypted user: " + user.getUsername());
             }
         });
     }

@@ -1,13 +1,17 @@
-package com.yuan.hellocafeserver.service;
+package com.yuan.service;
 
+import com.yuan.dto.EmployeeDTO;
 import com.yuan.entity.Employee;
+import com.yuan.result.Result;
 
 import java.util.List;
 
 public interface EmployeeService {
-    Employee saveEmployee(Employee employee);
-    Employee updateEmployee(Long id, Employee employee);
+    void saveEmployee(EmployeeDTO employee);
+    Result<Employee> updateEmployee(EmployeeDTO dto);
     void deleteEmployee(Long id);
     Employee getEmployeeById(Long id);
     List<Employee> getAllEmployees();
+
+
 }
