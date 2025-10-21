@@ -1,4 +1,4 @@
-package com.yuan.config;
+package com.yuan.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;

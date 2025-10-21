@@ -1,17 +1,24 @@
-package com.yuan.hellocafeserver.repository;
+package com.yuan.repository;
 
 
 import com.yuan.entity.Employee;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
 
 /**
  * Repository interface for Employee entity.
  * Provides CRUD operations using Spring Data JPA.
  */
 @Repository
-public interface EmployeeRepository extends JpaRepository<Employee, Long> {
 
-    // You can define custom queries later, e.g.
-    // Optional<Employee> findByUsername(String username);
+public interface EmployeeRepository extends JpaRepository<Employee, Long> {
+    Optional<Employee> findByUsername(String username);
+    Optional<Employee> findEmployeesById(Long id);
+
+    boolean existsById(Long id);
+
+
 }

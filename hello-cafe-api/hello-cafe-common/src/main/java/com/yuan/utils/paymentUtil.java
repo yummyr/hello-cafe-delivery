@@ -1,2 +1,4 @@
-package com.yuan.utils;public class paymentUtil {
+package com.yuan.utils;
+
+public class paymentUtil {
 }

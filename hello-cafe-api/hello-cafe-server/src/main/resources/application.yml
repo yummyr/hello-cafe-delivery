@@ -6,12 +6,12 @@ spring:
     active: dev
   main:
     allow-circular-references: true
+
   datasource:
-    druid:
-      driver-class-name: ${hello-cafe.datasource.driver-class-name}
-      url: jdbc:mysql://${hello-cafe.datasource.host}:${hello-cafe.datasource.port}/${hello-cafe.datasource.database}?serverTimezone=UTC&useSSL=false&characterEncoding=utf8
-      username: ${hello-cafe.datasource.username}
-      password: ${hello-cafe.datasource.password}
+    driver-class-name: ${hello-cafe.datasource.driver-class-name}
+    url: jdbc:mysql://${hello-cafe.datasource.host}:${hello-cafe.datasource.port}/${hello-cafe.datasource.database}?serverTimezone=UTC&useSSL=false&characterEncoding=utf8
+    username: ${hello-cafe.datasource.username}
+    password: ${hello-cafe.datasource.password}
 
   jpa:
     hibernate:
@@ -36,6 +36,10 @@ logging:
 
 hello-cafe:
   jwt:
-    admin-secret-key: adminitcast
+    admin-secret-key: "my-super-secret-key-for-jwt-token-generation-256"
     admin-ttl: 7200000 # 2 hours in milliseconds
     admin-token-name: admin_token
+
+    user-secret-key: "user-secret-key-for-jwt-token-generation-here-256"
+    user-ttl: 604800000
+    user-token-name: user_token

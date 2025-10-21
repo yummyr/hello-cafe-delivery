@@ -1,7 +1,10 @@
-package com.yuan.hellocafeserver.controller;
+package com.yuan.controller;
 
-import com.yuan.hellocafeserver.service.EmployeeService;
+import com.yuan.dto.EmployeeDTO;
+import com.yuan.result.Result;
+import com.yuan.service.EmployeeService;
 import com.yuan.entity.Employee;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -11,8 +14,9 @@ import java.util.List;
 /**
  * REST controller for managing employees.
  */
+@Slf4j
 @RestController
-@RequestMapping("/api/employees")
+@RequestMapping("/api/admin/employees")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
@@ -25,10 +29,10 @@ public class EmployeeController {
 
     // Create
     @PostMapping
-    public Employee createEmployee(@RequestBody Employee employee) {
-        employee.setCreateTime(LocalDateTime.now());
-        employee.setUpdateTime(LocalDateTime.now());
-        return employeeService.saveEmployee(employee);
+    public Result addEmployee(@RequestBody EmployeeDTO dto) {
+        log.info("add employee dt :{}", dto.toString());
+        employeeService.saveEmployee(dto);
+        return Result.success();
     }
 
     // Read all
@@ -45,9 +49,9 @@ public class EmployeeController {
 
     // Update
     @PutMapping("/{id}")
-    public Employee updateEmployee(@PathVariable Long id, @RequestBody Employee employee) {
-        employee.setUpdateTime(LocalDateTime.now());
-        return employeeService.updateEmployee(id, employee);
+    public Result updateEmployee(@RequestBody EmployeeDTO dto) {
+        employeeService.updateEmployee(dto);
+        return Result.success();
     }
 
     // Delete
