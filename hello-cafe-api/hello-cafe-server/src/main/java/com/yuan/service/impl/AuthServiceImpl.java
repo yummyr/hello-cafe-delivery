@@ -121,7 +121,8 @@ public class AuthServiceImpl implements AuthService {
         claims.put("id", employee.getId());
         claims.put("username", employee.getUsername());
         claims.put("role", "employee");
-        claims.put("name", employee.getName());
+        claims.put("tokenType","employee");
+        // claims.put("name", employee.getName());
 
         return JwtUtil.createJWT(
                 jwtProperties.getAdminSecretKey(),
@@ -138,6 +139,7 @@ public class AuthServiceImpl implements AuthService {
         claims.put("id", user.getId());
         claims.put("username", user.getUsername());
         claims.put("role", "customer");
+        claims.put("tokenType","customer");
 
         return JwtUtil.createJWT(
                 jwtProperties.getUserSecretKey(),

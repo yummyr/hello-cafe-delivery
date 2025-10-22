@@ -17,6 +17,7 @@ import java.util.List;
 @Slf4j
 @RestController
 @RequestMapping("/api/admin/employees")
+@CrossOrigin(origins = "http://localhost:5173")
 public class EmployeeController {
 
     private final EmployeeService employeeService;
@@ -32,13 +33,15 @@ public class EmployeeController {
     public Result addEmployee(@RequestBody EmployeeDTO dto) {
         log.info("add employee dt :{}", dto.toString());
         employeeService.saveEmployee(dto);
-        return Result.success();
+        return Result.success(dto.getUsername());
     }
 
     // Read all
     @GetMapping
-    public List<Employee> getAllEmployees() {
-        return employeeService.getAllEmployees();
+    public Result getAllEmployees() {
+
+        List<Employee> employeeList = employeeService.getAllEmployees();
+        return Result.success(employeeList);
     }
 
     // Read by ID

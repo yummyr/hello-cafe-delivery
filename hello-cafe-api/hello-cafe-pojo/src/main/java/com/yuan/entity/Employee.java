@@ -47,4 +47,10 @@ public class Employee implements Serializable {
 
     @Column(name = "update_time")
     private LocalDateTime updateTime;
+
+    @Column(name = "create_user")
+    private Long createUser;
+
+    @Column(name = "update_user")
+    private Long updateUser;
 }

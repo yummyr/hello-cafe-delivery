@@ -1,6 +1,7 @@
 package com.yuan.service.impl;
 
 import com.yuan.constant.PasswordConstant;
+import com.yuan.context.UserContext;
 import com.yuan.dto.EmployeeDTO;
 import com.yuan.entity.Employee;
 import com.yuan.repository.EmployeeRepository;
@@ -28,11 +29,13 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final BCryptPasswordEncoder passwordEncoder;
 
     @Override
-    public void saveEmployee(EmployeeDTO dto) {
+    public Result saveEmployee(EmployeeDTO dto) {
         Employee employee = new Employee(dto.getId(), dto.getName(), dto.getUsername(),
                 passwordEncoder.encode(PasswordConstant.DEFAULT_PASSWORD), dto.getPhone(),
-                dto.getGender(), StatusConstant.ENABLE, LocalDateTime.now(), LocalDateTime.now());
+                dto.getGender(), StatusConstant.ENABLE, LocalDateTime.now(), LocalDateTime.now(),
+                UserContext.getCurrentUserId(), UserContext.getCurrentUserId());
         employeeRepository.save(employee);
+        return Result.success(employee);
     }
 
     @Override
@@ -43,7 +46,8 @@ public class EmployeeServiceImpl implements EmployeeService {
         }
 
         Employee employee = new Employee(dto.getId(), dto.getName(), dto.getUsername(),
-                existing.getPassword(), dto.getPhone(), dto.getGender(), existing.getStatus(), existing.getCreateTime(), LocalDateTime.now());
+                existing.getPassword(), dto.getPhone(), dto.getGender(), existing.getStatus(), existing.getCreateTime(),
+                LocalDateTime.now(), existing.getCreateUser(), UserContext.getCurrentUserId());
 
         employeeRepository.save(employee);
         return Result.success(employee);

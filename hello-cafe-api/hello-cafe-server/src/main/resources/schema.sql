@@ -15,7 +15,9 @@ CREATE TABLE IF NOT EXISTS employee
     gender      VARCHAR(10),
     status      INT COMMENT '1 active, 0 inactive',
     create_time DATETIME,
-    update_time DATETIME
+    update_time DATETIME,
+    create_user BIGINT COMMENT  'who create this employee',
+    update_user BIGINT COMMENT  'last one update this employee'
 );
 
 CREATE TABLE IF NOT EXISTS category
