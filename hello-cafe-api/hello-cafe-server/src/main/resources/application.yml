@@ -30,16 +30,16 @@ logging:
   level:
     com:
       hello-cafe:
-        mapper: DEBUG
+        repository: DEBUG
         service: DEBUG
         controller: DEBUG
 
 hello-cafe:
   jwt:
-    admin-secret-key: "my-super-secret-key-for-jwt-token-generation-256"
-    admin-ttl: 7200000 # 2 hours in milliseconds
+    admin-secret-key: mySuperSecretKeyForAdmin1234567890
+    admin-ttl: 86400000 # 24 hours in milliseconds
     admin-token-name: admin_token
 
-    user-secret-key: "user-secret-key-for-jwt-token-generation-here-256"
-    user-ttl: 604800000
+    user-secret-key: mySuperSecretKeyForUser1234567890
+    user-ttl: 86400000 # 24 hours in milliseconds
     user-token-name: user_token

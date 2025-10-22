@@ -1,57 +1,42 @@
 package com.yuan.controller;
 
-import com.yuan.entity.Shop;
+
+import com.yuan.result.Result;
 import com.yuan.service.ShopService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:5173")
+@RequestMapping("/api/shop/status")
+@Slf4j
 public class ShopController {
 
     private final ShopService shopService;
 
-    /**
-     * user end：get shop status
-     * GET /user/shop/status
-     */
-    @GetMapping("/user/shop/status")
-    public ResponseEntity<Map<String, Object>> getShopStatus() {
-        Shop shop = shopService.getShopStatus();
-
-        Map<String, Object> response = new HashMap<>();
-        response.put("code", 200);
-        response.put("data", shop.getStatus());
-        response.put("msg", "success");
-
-        return ResponseEntity.ok(response);
+    @GetMapping
+    public Result getShopStatus() {
+        Integer status = shopService.getShopStatus();
+        return Result.success(status);
     }
 
-    /**
-     * admin api: update shop status
-     * POST /api/business/status
-     */
-    @PostMapping("/api/business/status")
-    public ResponseEntity<Map<String, Object>> updateShopStatus(@RequestBody Map<String, Integer> req) {
-        Integer status = req.get("status");
-        if (status == null || (status != 0 && status != 1)) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "code", 400,
-                    "msg", "Invalid status value (must be 0 or 1)"
-            ));
+    @PutMapping
+    public Result updateShopStatus(@RequestBody Map<String, Integer> req) {
+        try {
+            Integer status = req.get("status");
+            if (status == null || (status != 0 && status != 1)) {
+                return Result.error("Invalid status value (must be 0 or 1)");
+            }
+
+            shopService.updateShopStatus(status);
+
+            return Result.success(status);
+        } catch (Exception e) {
+            return Result.error(e.getMessage());
         }
-
-        Shop updated = shopService.updateShopStatus(status);
-
-        return ResponseEntity.ok(Map.of(
-                "code", 200,
-                "data", updated.getStatus(),
-                "msg", "Shop status updated successfully"
-        ));
     }
 }

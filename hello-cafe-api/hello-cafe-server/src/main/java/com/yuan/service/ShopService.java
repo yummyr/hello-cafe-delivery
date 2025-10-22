@@ -1,8 +1,11 @@
 package com.yuan.service;
 
 import com.yuan.entity.Shop;
+import jakarta.persistence.criteria.CriteriaBuilder;
+
+import java.util.Optional;
 
 public interface ShopService {
-    Shop getShopStatus();
-    Shop updateShopStatus(Integer status);
+    Integer getShopStatus();
+    void updateShopStatus(Integer status);
 }

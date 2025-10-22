@@ -7,7 +7,7 @@ import com.yuan.result.Result;
 import java.util.List;
 
 public interface EmployeeService {
-    void saveEmployee(EmployeeDTO employee);
+    Result saveEmployee(EmployeeDTO employee);
     Result<Employee> updateEmployee(EmployeeDTO dto);
     void deleteEmployee(Long id);
     Employee getEmployeeById(Long id);
