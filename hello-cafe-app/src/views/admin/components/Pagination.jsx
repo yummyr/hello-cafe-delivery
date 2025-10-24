@@ -28,25 +28,32 @@ function Pagination({
   // --- generate page numbers with ellipsis logic ---
   const getPageNumbers = () => {
     const pages = [];
-    const maxVisible = 5; // number of buttons visible before ellipsis
+    const maxVisible = 5; // number of page buttons visible (excluding ellipsis)
 
-    if (totalPages <= maxVisible + 2) {
+    if (totalPages <= maxVisible) {
+      // 如果总页数小于等于 maxVisible，显示所有页码
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      if (currentPage <= maxVisible) {
-        pages.push(...Array.from({ length: maxVisible }, (_, i) => i + 1));
+      // 计算左右两侧应该显示的页码数量
+      const leftCount = Math.floor((maxVisible - 1) / 2);
+      const rightCount = maxVisible - 1 - leftCount;
+
+      if (currentPage <= leftCount + 1) {
+        // 当前页靠近开头：显示前 maxVisible 页，然后省略号和最后一页
+        for (let i = 1; i <= maxVisible-1; i++) pages.push(i);
         pages.push("…", totalPages);
-      } else if (currentPage >= totalPages - maxVisible + 1) {
+      } else if (currentPage >= totalPages - rightCount) {
+        // 当前页靠近结尾：显示第一页，省略号，最后 maxVisible 页
         pages.push(1, "…");
-        pages.push(
-          ...Array.from(
-            { length: maxVisible },
-            (_, i) => totalPages - maxVisible + 1 + i
-          )
-        );
-      } else {
+        for (let i = totalPages - maxVisible + 2; i <= totalPages; i++)
+          pages.push(i);
+      } 
+      else {
+        // 当前页在中间：显示第一页，省略号，当前页及前后各一页，省略号，最后一页
         pages.push(1, "…");
-        pages.push(currentPage - 1, currentPage, currentPage + 1);
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+        pages.push(i);
+      }
         pages.push("…", totalPages);
       }
     }
@@ -96,7 +103,7 @@ function Pagination({
             </span>
           ) : (
             <button
-              key={num}
+              key={i}
               onClick={() => onPageChange(num)}
               className={`px-3 py-1 rounded-md ${
                 currentPage === num

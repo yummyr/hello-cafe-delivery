@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
 import axios from "axios";
 import AdminLayout from "../layouts/AdminLayout";
+import api from "../../../api";
 
 function AnalyticsPage() {
   const [data, setData] = useState([]);
@@ -14,7 +15,7 @@ function AnalyticsPage() {
   useEffect(() => {
     const fetchAnalytics = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/api/admin/analytics");
+        const res = await api.get("admin/analytics");
         setData(res.data.trends);
         setTodayStats(res.data.today);
       } catch (err) {

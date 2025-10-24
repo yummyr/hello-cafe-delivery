@@ -1,11 +1,17 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../layouts/AdminLayout";
-import axios from "axios";
+import Pagination from "../components/Pagination";
+import api from "../../../api";
 
 const CategoriesPage = () => {
   const [categories, setCategories] = useState([]);
   const [filterName, setFilterName] = useState("");
   const [filterType, setFilterType] = useState("");
+  const [sortField, setSortField] = useState("sort");
+  const [sortOrder, setSortOrder] = useState("asc");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -15,9 +21,10 @@ const CategoriesPage = () => {
   const fetchCategories = async () => {
     setLoading(true);
     try {
-      // Example API endpoint
-      const res = await axios.get("http://localhost:8080/api/categories");
-      setCategories(res.data || []);
+      const res = await api.get("/admin/categories");
+      console.log("categories response data: ", res.data);
+
+      setCategories(res.data.data || []);
     } catch (err) {
       console.error("❌ Failed to load categories:", err);
     } finally {
@@ -33,6 +40,16 @@ const CategoriesPage = () => {
     setCategories(filtered);
   };
 
+  // sort + pagination
+  const sorted = [...categories].sort((a, b) => {
+    const fieldA = a[sortField]?.toString().toLowerCase();
+    const fieldB = b[sortField]?.toString().toLowerCase();
+    return sortOrder === "asc"
+      ? fieldA.localeCompare(fieldB)
+      : fieldB.localeCompare(fieldA);
+  });
+
+  const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
   const handleDelete = (id) => {
     if (window.confirm("Are you sure you want to delete this category?")) {
       setCategories(categories.filter((c) => c.id !== id));
@@ -42,7 +59,9 @@ const CategoriesPage = () => {
   const handleDisable = (id) => {
     setCategories((prev) =>
       prev.map((c) =>
-        c.id === id ? { ...c, status: c.status === "Active" ? "Disabled" : "Active" } : c
+        c.id === id
+          ? { ...c, status: c.status === "Active" ? "Disabled" : "Active" }
+          : c
       )
     );
   };
@@ -50,12 +69,16 @@ const CategoriesPage = () => {
   return (
     <AdminLayout>
       <div className="p-8 bg-[#f8f4ef] min-h-screen">
-        <h1 className="text-2xl font-bold text-[#4b3b2b] mb-6">Category Management</h1>
+        <h1 className="text-2xl font-bold text-[#4b3b2b] mb-6">
+          Category Management
+        </h1>
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-4 mb-6">
           <div>
-            <label className="block text-sm text-gray-700 mb-1">Category Name:</label>
+            <label className="block text-sm text-gray-700 mb-1">
+              Category Name:
+            </label>
             <input
               type="text"
               placeholder="Enter category name"
@@ -66,7 +89,9 @@ const CategoriesPage = () => {
           </div>
 
           <div>
-            <label className="block text-sm text-gray-700 mb-1">Category Type:</label>
+            <label className="block text-sm text-gray-700 mb-1">
+              Category Type:
+            </label>
             <select
               value={filterType}
               onChange={(e) => setFilterType(e.target.value)}
@@ -122,22 +147,31 @@ const CategoriesPage = () => {
                   </td>
                 </tr>
               ) : (
-                categories.map((cat) => (
+                paginated.map((cat) => (
                   <tr key={cat.id} className="hover:bg-[#f9f6f2]">
                     <td className="py-3 px-4 border-b">{cat.name}</td>
                     <td className="py-3 px-4 border-b">{cat.type}</td>
-                    <td className="py-3 px-4 border-b">{cat.sort || "-"}</td>
                     <td className="py-3 px-4 border-b">
-                      <span
-                        className={`inline-block w-2 h-2 rounded-full mr-2 ${
-                          cat.status === "Active" ? "bg-green-500" : "bg-gray-400"
-                        }`}
-                      />
-                      {cat.status}
+                      {cat.sort || "-"}
                     </td>
-                    <td className="py-3 px-4 border-b">{cat.updatedAt || "—"}</td>
+                    <td className="py-3 px-4 border-b ">
+                      {cat.status === 1 ? (
+                        <span className="p-1 text-[#a04a03] bg-[#e9c9ae] font-medium">
+                          Active
+                        </span>
+                      ) : (
+                        <span className="p-1 text-gray-400 font-medium">
+                          Inactive
+                        </span>
+                      )}
+                    </td>
+                    <td className="py-3 px-4 border-b items-center justify-center">
+                      {cat.updateTime || "—"}
+                    </td>
                     <td className="py-3 px-4 border-b text-center space-x-3">
-                      <button className="text-[#007bff] hover:underline">Edit</button>
+                      <button className="text-[#007bff] hover:underline">
+                        Edit
+                      </button>
                       <button
                         onClick={() => handleDelete(cat.id)}
                         className="text-[#e74c3c] hover:underline"
@@ -156,6 +190,19 @@ const CategoriesPage = () => {
               )}
             </tbody>
           </table>
+          <div>
+            <Pagination
+              totalItems={categories.length}
+              pageSize={pageSize}
+              currentPage={page}
+              onPageChange={(p) => setPage(p)}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setPage(1); // reset to first page
+              }}
+              showInfo={true}
+            />
+          </div>
         </div>
       </div>
     </AdminLayout>

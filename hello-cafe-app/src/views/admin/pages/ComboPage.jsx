@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { PlusCircle, X } from "lucide-react";
 import AdminLayout from "../layouts/AdminLayout";
+import api from "../../../api";
 
 function ComboPage() {
   const [combos, setCombos] = useState([]);
@@ -19,7 +20,7 @@ function ComboPage() {
   useEffect(() => {
     const fetchCombos = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/api/admin/combos");
+        const res = await api.get("admin/combos");
         setCombos(res.data);
       } catch (err) {
         console.error("❌ Failed to fetch combos:", err);
@@ -49,7 +50,7 @@ function ComboPage() {
       formData.append("active", newCombo.active ? 1 : 0);
       if (newCombo.image) formData.append("image", newCombo.image);
 
-      const res = await axios.post("http://localhost:8080/api/admin/combos", formData, {
+      const res = await api.post("admin/combos", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

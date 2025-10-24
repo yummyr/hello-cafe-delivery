@@ -1,19 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { Coffee, User } from "lucide-react";
-import axios from "axios";
+import api from "../../../api";
+import {tokenManager} from "../../../utils/tokenManager";
+import { isTokenExpired } from "../../../utils/tokenUtils";
 
 function AdminTopBar({ onLogout }) {
-  const [status, setStatus] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [username, setUsername] = useState("Admin");
+  const [shopState, setShopState] = useState({
+    status: null, // 'open' or 'closed'
+    loading: false,
+    error: null,
+  });
+  const [username, setUsername] = useState("");
   const [initialized, setInitialized] = useState(false);
+   const [tokenStatus, setTokenStatus] = useState({
+    isValid: true,
+    lastRefresh: null,
+  });
 
-  // initilize AdminTopBar
+  // Initialize AdminTopBar
   useEffect(() => {
     try {
-      console.log(" AdminTopBar initializing...");
+      console.log("AdminTopBar initializing...");
 
-      // get username from localStorage
+      // Check if token is valid
+      const token = localStorage.getItem("token");
+      if (!token || isTokenExpired(token)) {
+        console.warn("No valid token found, redirecting to login...");
+        handleTokenExpired();
+        return;
+      }
+
+
+      // Get username from localStorage
       const storedUsername = localStorage.getItem("username");
       console.log("Found username:", storedUsername);
 
@@ -24,13 +42,15 @@ function AdminTopBar({ onLogout }) {
       ) {
         setUsername(storedUsername);
       } else {
-        // get username from reponse data
+        // Get username from response data
         try {
           const loginResponse = localStorage.getItem("loginResponse");
           if (loginResponse) {
             const parsed = JSON.parse(loginResponse);
             if (parsed.data && parsed.data.username) {
               setUsername(parsed.data.username);
+              // Also save to localStorage for future use
+              localStorage.setItem("username", parsed.data.username);
             }
           }
         } catch (parseError) {
@@ -38,25 +58,64 @@ function AdminTopBar({ onLogout }) {
         }
       }
 
+       // Initialize token manager
+      tokenManager.init(handleTokenExpired);
+      setTokenStatus({ isValid: true, lastRefresh: Date.now() });
+
       setInitialized(true);
-      console.log(" AdminTopBar initialized successfully");
+      console.log("AdminTopBar initialized successfully");
     } catch (error) {
       console.error("AdminTopBar initialization failed:", error);
-      setUsername("Admin");
+      // setUsername("Admin");
       setInitialized(true);
     }
+    // Cleanup on unmount
+    return () => {
+      tokenManager.cleanup();
+    };
   }, []);
 
-  // fetch business status
+    // Handle token expiration
+  const handleTokenExpired = () => {
+    console.log("Token expired or invalid, logging out...");
+    localStorage.clear();
+    if (onLogout) {
+      onLogout();
+    } else {
+      window.location.href = "/login";
+    }
+  };
+
+  // Fetch shop status
   const fetchStatus = async () => {
     try {
       console.log("Fetching shop status...");
-      const res = await axios.get("http://localhost:8080/user/shop/status");
+      const res = await api.get("/shop/status");
       console.log("Shop status response:", res.data);
-      setStatus(res.data.data === 1 ? "open" : "closed");
+
+      if (res.data.code === 1) {
+        setShopState((prev) => ({
+          ...prev,
+          status: res.data.data === 1 ? "open" : "closed",
+          error: null,
+        }));
+      } else {
+        throw new Error(res.data.msg || "Failed to fetch status");
+      }
     } catch (err) {
       console.error("Failed to fetch shop status:", err);
-      setStatus("closed"); // default status is closed
+
+       // If error is due to authentication, handle it
+      if (err.response?.status === 401) {
+        handleTokenExpired();
+        return;
+      }
+
+      setShopState((prev) => ({
+        ...prev,
+        status: "closed", // default status
+        error: err.response?.data?.msg || err.message,
+      }));
     }
   };
 
@@ -66,32 +125,78 @@ function AdminTopBar({ onLogout }) {
     }
   }, [initialized]);
 
-  // toggle business status
+  // Toggle shop status
   const toggleStatus = async () => {
-    if (status === null || !initialized) return;
+    if (shopState.status === null || shopState.loading) return;
 
-    const newStatus = status === "open" ? "closed" : "open";
-    setStatus(newStatus);
-    setLoading(true);
+    const newStatus = shopState.status === "open" ? "closed" : "open";
+    const statusValue = newStatus === "open" ? 1 : 0;
+
+    // Optimistic update
+    setShopState((prev) => ({
+      ...prev,
+      status: newStatus,
+      loading: true,
+      error: null,
+    }));
 
     try {
-      await axios.post("http://localhost:8080/api/business/status", {
-        status: newStatus === "open" ? 1 : 0,
+      const response = await api.put("/shop/status", {
+        status: statusValue,
       });
-      console.log("Status updated to:", newStatus);
+
+      console.log("Status update response:", response.data);
+
+      if (response.data.code === 1) {
+       
+        const serverStatus = response.data.data === 1 ? "open" : "closed";
+        setShopState((prev) => ({
+          ...prev,
+          status: serverStatus,
+          loading: false,
+          error: null,
+        }));
+        console.log("Status updated successfully to:", serverStatus);
+      } else {
+        throw new Error(response.data.msg || "Update failed");
+      }
     } catch (err) {
       console.error("Failed to update status:", err);
-      alert("Failed to update status on server.");
-      // rollback business status
-      setStatus(status);
-    } finally {
-      setLoading(false);
+
+      if (err.response?.status === 401) {
+        handleTokenExpired();
+        return;
+      }
+
+      // Rollback status on error
+      setShopState((prev) => ({
+        ...prev,
+        status: shopState.status, // Revert to original status
+        loading: false,
+        error: err.response?.data?.msg || err.message,
+      }));
+
+      // Show error message
+      const errorMessage =
+        err.response?.data?.msg || "Failed to update status on server";
+      alert(`Fail to update status: ${errorMessage}`);
+    }
+  };
+
+  // Manual token refresh
+  const handleManualRefresh = async () => {
+    console.log("Manual token refresh triggered");
+    const success = await tokenManager.refreshToken();
+    if (success) {
+      setTokenStatus({ isValid: true, lastRefresh: Date.now() });
+      alert("Token refreshed successfully");
+    } else {
+      alert("Failed to refresh token");
+      handleTokenExpired();
     }
   };
 
   // Handle logout button click
-  // If logout handler is provided from parent component, call it directly
-  // If no handler is provided, log a warning to the console
   const handleLogoutClick = () => {
     if (onLogout) {
       onLogout();
@@ -100,7 +205,7 @@ function AdminTopBar({ onLogout }) {
     }
   };
 
-  // if fail to initialize, rendering loading
+  // If fail to initialize, render loading
   if (!initialized) {
     return (
       <header className="w-full bg-[#f5c16c] flex justify-between items-center px-8 py-4 shadow-md">
@@ -115,38 +220,59 @@ function AdminTopBar({ onLogout }) {
     );
   }
 
+  // Get button display text
+  const getButtonText = () => {
+    if (shopState.loading) return "Updating...";
+    if (shopState.status === null) return "Loading...";
+    return shopState.status.toUpperCase();
+  };
+
+  // Get button styles
+  const getButtonStyles = () => {
+    const baseStyles =
+      "ml-2 px-3 py-1 text-sm font-medium rounded-md transition-all duration-200";
+
+    if (shopState.loading || shopState.status === null) {
+      return `${baseStyles} bg-gray-400 text-gray-600 cursor-not-allowed`;
+    }
+
+    return shopState.status === "open"
+      ? `${baseStyles} bg-[#4b3b2b] text-white hover:bg-[#3a2f24] cursor-pointer`
+      : `${baseStyles} bg-gray-300 text-gray-800 hover:bg-gray-400 cursor-pointer`;
+  };
+
   return (
     <header className="w-full bg-[#f5c16c] flex justify-between items-center px-8 py-4 shadow-md">
       {/* Left: Brand logo + name */}
       <div className="flex items-center gap-3">
-        <div className="w-10 h-10 bg-[#8d6e52] rounded-full flex items-center justify-center">
-          <span className="text-white font-bold text-sm">HC</span>
-        </div>
+        <img
+          src="/assets/logo.png"
+          alt="logo"
+          className="w-10 h-10 bg-[#8d6e52] rounded-full flex items-center justify-center"
+        />
+
         <h1 className="font-semibold text-lg text-[#4b3b2b]">Hello Café</h1>
       </div>
 
-      {/* Business status display */}
+      {/* Shop status display */}
       <div className="flex items-center gap-2 ml-4">
         <Coffee className="text-[#4b3b2b] w-6 h-6" />
         <span className="font-semibold text-lg text-[#4b3b2b]">
-          Business Status
+          Shop Status:
         </span>
 
         <button
           onClick={toggleStatus}
-          disabled={loading || status === null}
-          className={`ml-2 px-3 py-1 text-sm font-medium rounded-md transition-all duration-200 ${
-            status === "open"
-              ? "bg-[#4b3b2b] text-white hover:bg-[#3a2f24]"
-              : "bg-gray-300 text-gray-800 hover:bg-gray-400"
-          }`}
+          disabled={shopState.loading || shopState.status === null}
+          className={getButtonStyles()}
         >
-          {loading
-            ? "Updating..."
-            : status === null
-            ? "Loading..."
-            : status.toUpperCase()}
+          {getButtonText()}
         </button>
+
+        {/* Error display (optional) */}
+        {shopState.error && (
+          <span className="text-red-600 text-sm ml-2">({shopState.error})</span>
+        )}
       </div>
 
       {/* Right: Admin controls */}

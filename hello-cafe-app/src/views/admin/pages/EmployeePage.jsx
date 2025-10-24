@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../layouts/AdminLayout";
 import Pagination from "../components/Pagination";
-import { Edit, Ban, Check, X } from "lucide-react";
-import axios from "axios";
+import { Edit, Ban, Check, X, Trash2 } from "lucide-react";
+import api from "../../../api";
 
 function EmployeePage() {
   const [employees, setEmployees] = useState([]);
@@ -14,6 +14,7 @@ function EmployeePage() {
   // modal states
   const [showModal, setShowModal] = useState(false);
   const [formData, setFormData] = useState({
+    id: null,
     username: "",
     name: "",
     phone: "",
@@ -24,13 +25,38 @@ function EmployeePage() {
 
   // fetch employee list
   const fetchEmployees = async () => {
-    const res = await axios.get("http://localhost:8080/api/admin/employees");
-    setEmployees(res.data.data || res.data);
+    try {
+      const res = await api.get("/admin/employees");
+      setEmployees(res.data.data);
+    } catch (error) {
+      console.log("Try to fetch employees list but error happened :{}", error);
+      setEmployees([]);
+    }
   };
 
+  // excute when employee login successfully
   useEffect(() => {
     fetchEmployees();
   }, []);
+
+  const deleteEmployees = async (id) => {
+    if (
+      !window.confirm("Are you sure to delete employee whose id is " + id + "?")
+    )
+      return;
+    try {
+      await api.delete(`/admin/employees/${id}`);
+      await fetchEmployees();
+    } catch (err) {
+      console.log(
+        "Fail to delete employee, id is " +
+          id +
+          "error message is: " +
+          err.getMessage()
+      );
+    }
+  };
+
 
   // sort + pagination
   const sorted = [...employees].sort((a, b) => {
@@ -50,9 +76,12 @@ function EmployeePage() {
 
   // open modal for add or edit
   const openModal = (employee = null) => {
+    console.log("employee is :", employee);
+
     if (employee) {
       setEditing(true);
       setFormData({
+        id: employee.id,
         username: employee.username,
         name: employee.name,
         phone: employee.phone,
@@ -80,20 +109,17 @@ function EmployeePage() {
     try {
       if (editing) {
         // update
-        await axios.put(
-          `http://localhost:8080/api/admin/employees/${formData.id}`,
-          formData
-        );
+        await api.put(`/admin/employees/${formData.id}`, formData);
         alert("Employee updated successfully!");
       } else {
         // add
-        await axios.post("http://localhost:8080/api/admin/employees", formData);
+        await api.post("/admin/employees", formData);
         alert("Employee added successfully!");
       }
       setShowModal(false);
       await fetchEmployees();
     } catch (err) {
-      console.error("❌ Error saving employee:", err);
+      console.error("Fail to save employee, error message:", err);
       setError("Server error, please try again.");
     }
   };
@@ -102,12 +128,17 @@ function EmployeePage() {
   const toggleStatus = async (id) => {
     if (!window.confirm("Are you sure to change employee status?")) return;
     try {
-      await axios.patch(
-        `http://localhost:8080/api/admin/employees/${id}/status`
+      const res = await api.put(`/admin/employees/${id}/status`);
+      console.log(
+        "try to change employee status, id is: " +
+          id +
+          "response data is " +
+          res.data.data
       );
+
       await fetchEmployees();
     } catch (err) {
-      console.error("❌ Failed to toggle status:", err);
+      console.error("Failed to toggle status, error message:", err);
     }
   };
 
@@ -152,7 +183,9 @@ function EmployeePage() {
         <tbody>
           {paginated.map((emp) => (
             <tr key={emp.id} className="border-b hover:bg-[#f8f4ef] transition">
-              <td className="py-3 px-4">{emp.id}</td>
+              <td className="py-3 px-4">
+                <button onClick={() => getEmpInfo(emp.id)}>{emp.id}</button>
+              </td>
               <td className="py-3 px-4">{emp.name}</td>
               <td className="py-3 px-4">{emp.username}</td>
               <td className="py-3 px-4">{emp.phone}</td>
@@ -187,6 +220,15 @@ function EmployeePage() {
                     <Check className="w-4 h-4" />
                   )}
                 </button>
+
+                <button
+                  onClick={() => deleteEmployees(emp.id)}
+                  className="text-red-600 hover:text-red-800 p-1"
+                  title="Delete employee"
+                >
+                  {" "}
+                  <Trash2 size={16} />
+                </button>
               </td>
             </tr>
           ))}
@@ -205,7 +247,6 @@ function EmployeePage() {
         }}
         showInfo={true}
       />
-
       {/* modal form */}
       {showModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
@@ -240,7 +281,7 @@ function EmployeePage() {
                 required
                 className="w-full border rounded px-3 py-2"
               />
-           
+
               <input
                 type="tel"
                 name="phone"
