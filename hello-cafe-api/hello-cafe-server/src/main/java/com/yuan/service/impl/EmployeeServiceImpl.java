@@ -11,14 +11,13 @@ import com.yuan.constant.StatusConstant;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +26,7 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     private final EmployeeRepository employeeRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+
 
     @Override
     public Result saveEmployee(EmployeeDTO dto) {
@@ -61,8 +61,9 @@ public class EmployeeServiceImpl implements EmployeeService {
 
     @Override
     public Employee getEmployeeById(Long id) {
-        return employeeRepository.findById(id)
+        Employee employee = employeeRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+        return employee;
     }
 
     @Override
@@ -70,5 +71,25 @@ public class EmployeeServiceImpl implements EmployeeService {
         return employeeRepository.findAll();
     }
 
+    @Override
+    public void updateEmployeeStatus(Long id) {
+        try {
+            Employee employee = employeeRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+            Integer status = employee.getStatus();
+            Integer newStatus = (status == 1) ? 0 : 1;
+            employee.setStatus(newStatus);
+            employee.setUpdateTime(LocalDateTime.now());
+            employee.setUpdateUser(UserContext.getCurrentUserId());
 
-}
+            employeeRepository.save(employee);
+
+        }catch (Exception e){
+            log.info("Try to update employee status but failed, error :{}", e.getMessage());
+
+        }
+    }
+
+    }
+
+

@@ -13,10 +13,9 @@ import java.util.Optional;
  * Provides CRUD operations using Spring Data JPA.
  */
 @Repository
-
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Optional<Employee> findByUsername(String username);
-    Optional<Employee> findEmployeesById(Long id);
+    Optional<Employee> findById(Long id);
 
     boolean existsById(Long id);
 

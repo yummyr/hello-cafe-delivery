@@ -1,4 +1,5 @@
 import axios from "axios";
+import { isTokenExpired } from "../utils/tokenUtils";
 
 const api = axios.create({
   baseURL: "http://localhost:8080/api", //  backend API base URL
@@ -8,42 +9,88 @@ const api = axios.create({
   },
 });
 
-
 // add inteceptor to avoid duplicate request
 const pendingRequests = new Map();
 
-api.interceptors.request.use(config => {
-  // check post and put request only
-  if (config.method?.toLowerCase() === 'post' || config.method?.toLowerCase() === 'put') {
-    const requestKey = `${config.method}-${config.url}-${JSON.stringify(config.data)}`;
-    
-    if (pendingRequests.has(requestKey)) {
-      const cancelToken = pendingRequests.get(requestKey);
-      cancelToken.cancel('Duplicate request cancelled');
+api.interceptors.request.use(
+  (config) => {
+    //initilize headers
+    if (!config.headers) {
+      config.headers = {};
     }
-    
-    const source = axios.CancelToken.source();
-    config.cancelToken = source.token;
-    pendingRequests.set(requestKey, source);
+    // add Token to request headers
+    const token = localStorage.getItem("token");
+    if (token) {
+      // Check if token is expired before sending request
+      if (isTokenExpired(token)) {
+        console.warn("Token is expired, redirecting to login...");
+        localStorage.clear();
+        window.location.href = "/login";
+        return Promise.reject(new Error("Token expired"));
+      }
+
+      config.headers["Authorization"] = `Bearer ${token}`;
+      console.log("🟢 Token attached:", config.headers["Authorization"]);
+    } else {
+      console.warn("⚠️ No token found");
+    }
+
+    console.log("🟢 Axios final headers before send:", config.headers);
+
+    // avoid duplicate request（only for POST / PUT）
+    if (
+      config.method?.toLowerCase() === "post" ||
+      config.method?.toLowerCase() === "put"
+    ) {
+      const requestKey = `${config.method}-${config.url}-${JSON.stringify(
+        config.data
+      )}`;
+
+      // if same request exists, cancel pre request
+      if (pendingRequests.has(requestKey)) {
+        const cancelToken = pendingRequests.get(requestKey);
+        cancelToken.cancel("Duplicate request cancelled");
+      }
+
+      const source = axios.CancelToken.source();
+      config.cancelToken = source.token;
+      pendingRequests.set(requestKey, source);
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
   }
-  
-  return config;
-});
+);
 
 api.interceptors.response.use(
-  response => {
+  (response) => {
     // clear post and put request
-    if (response.config.method?.toLowerCase() === 'post' || response.config.method?.toLowerCase() === 'put') {
-      const requestKey = `${response.config.method}-${response.config.url}-${JSON.stringify(response.config.data)}`;
+    if (
+      response.config.method?.toLowerCase() === "post" ||
+      response.config.method?.toLowerCase() === "put"
+    ) {
+      const requestKey = `${response.config.method}-${
+        response.config.url
+      }-${JSON.stringify(response.config.data)}`;
       pendingRequests.delete(requestKey);
     }
     return response;
   },
-  error => {
+  (error) => {
+    if (error.response?.status === 401) {
+      // if token expired, clear local storage and nav to login
+      console.error('Unauthorized access - token invalid or expired');
+      localStorage.removeItem("token");
+      window.location.href = "/login";
+    }
     if (axios.isCancel(error)) {
-      console.log('Request cancelled:', error.message);
+      console.log("Request cancelled:", error.message);
     } else if (error.config) {
-      const requestKey = `${error.config.method}-${error.config.url}-${JSON.stringify(error.config.data)}`;
+      const requestKey = `${error.config.method}-${
+        error.config.url
+      }-${JSON.stringify(error.config.data)}`;
       pendingRequests.delete(requestKey);
     }
     return Promise.reject(error);

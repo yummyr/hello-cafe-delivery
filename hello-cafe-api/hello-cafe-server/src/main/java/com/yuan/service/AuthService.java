@@ -1,5 +1,6 @@
 package com.yuan.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yuan.dto.LoginRequestDTO;
 import com.yuan.dto.LoginResponseDTO;
 import com.yuan.dto.RegisterRequestDTO;
@@ -19,6 +20,5 @@ public interface AuthService {
    Result<User> registerUser(RegisterRequestDTO registerRequest);
 
 
-
-
+    LoginResponseDTO refreshToken(String oldToken) throws JsonProcessingException;
 }

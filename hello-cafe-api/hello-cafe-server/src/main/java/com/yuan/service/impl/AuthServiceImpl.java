@@ -11,7 +11,9 @@ import com.yuan.repository.UserRepository;
 import com.yuan.result.Result;
 import com.yuan.service.AuthService;
 import com.yuan.utils.JwtUtil;
+import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -24,13 +26,14 @@ import java.util.Map;
  */
 @Service
 @RequiredArgsConstructor
-@lombok.extern.slf4j.Slf4j
+@Slf4j
 public class AuthServiceImpl implements AuthService {
 
     private final EmployeeRepository employeeRepository;
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtProperties jwtProperties;
+
 
     @Override
     public LoginResponseDTO login(LoginRequestDTO req) {
@@ -88,7 +91,7 @@ public class AuthServiceImpl implements AuthService {
 
         String token = generateEmployeeToken(employee);
 
-        return buildLoginResponse(employee.getUsername(), "employee", token, jwtProperties.getAdminTtl());
+        return new LoginResponseDTO(token, jwtProperties.getAdminTtl(), employee.getUsername(), "employee");
     }
 
     /**
@@ -110,7 +113,7 @@ public class AuthServiceImpl implements AuthService {
 
         String token = generateCustomerToken(user);
 
-        return buildLoginResponse(user.getUsername(), "customer", token, jwtProperties.getUserTtl());
+        return new LoginResponseDTO(token, jwtProperties.getUserTtl(), user.getUsername(), "customer");
     }
 
     /**
@@ -121,8 +124,7 @@ public class AuthServiceImpl implements AuthService {
         claims.put("id", employee.getId());
         claims.put("username", employee.getUsername());
         claims.put("role", "employee");
-        claims.put("tokenType","employee");
-        // claims.put("name", employee.getName());
+        claims.put("tokenType", "employee");
 
         return JwtUtil.createJWT(
                 jwtProperties.getAdminSecretKey(),
@@ -139,27 +141,13 @@ public class AuthServiceImpl implements AuthService {
         claims.put("id", user.getId());
         claims.put("username", user.getUsername());
         claims.put("role", "customer");
-        claims.put("tokenType","customer");
+        claims.put("tokenType", "customer");
 
         return JwtUtil.createJWT(
                 jwtProperties.getUserSecretKey(),
                 jwtProperties.getUserTtl(),
                 claims
         );
-    }
-
-    /**
-     * build login response dto
-     */
-    private LoginResponseDTO buildLoginResponse(String username, String role, String token, Long expiresIn) {
-        LoginResponseDTO response = new LoginResponseDTO();
-        response.setUsername(username);
-        response.setRole(role);
-        response.setToken(token);
-        response.setExpiresIn(expiresIn);
-
-        log.info("Login successful for: {}, role: {}", username, role);
-        return response;
     }
 
     @Override
@@ -175,5 +163,63 @@ public class AuthServiceImpl implements AuthService {
         log.info("newUser: {}", newUser);
         userRepository.save(newUser);
         return Result.success(newUser);
+    }
+
+    /**
+     * Refresh token - extend expiration time for active users
+     */
+    public LoginResponseDTO refreshToken(String oldToken) {
+        Claims claims = null;
+        String secretKey = null;
+        Long ttl = null;
+        // try to parse using admin key
+        try {
+            claims = JwtUtil.parseJWT(jwtProperties.getAdminSecretKey(), oldToken);
+            secretKey = jwtProperties.getAdminSecretKey();
+            ttl = jwtProperties.getAdminTtl();
+        } catch (Exception e) {
+            log.debug("Failed to parse with admin key: {}", e.getMessage());
+        }
+
+        // try to parse using user key
+        if (claims == null) {
+            try {
+                claims = JwtUtil.parseJWT(jwtProperties.getUserSecretKey(), oldToken);
+                secretKey = jwtProperties.getUserSecretKey();
+            } catch (Exception e) {
+                log.debug("Failed to parse with user key: {}", e.getMessage());
+            }
+        }
+
+        // Extract user information from claims
+        Long id = claims.get("id", Long.class);
+        String username = claims.get("username", String.class);
+        String role = claims.get("role", String.class);
+
+        if (id == null || username == null || role == null) {
+            throw new RuntimeException("Invalid token claims");
+        }
+
+        // Verify user still exists in database
+        if ("employee".equals(role)) {
+            Employee employee = employeeRepository.findById(id).orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+            ;
+
+        } else if ("customer".equals(role)) {
+            User user = userRepository.findById(id).orElseThrow(() -> new RuntimeException("Customer not found with id: " + id));
+        }
+
+        // Create new token with same claims but extended expiration
+        Map<String, Object> newClaims = new HashMap<>();
+        newClaims.put("id", id);
+        newClaims.put("username", username);
+        newClaims.put("role", role);
+        String newToken = JwtUtil.createJWT(secretKey, ttl, newClaims);
+
+
+        log.info("Token refreshed for user: {} (role: {})", username, role);
+
+        // Return response with new token
+        return new LoginResponseDTO(newToken, ttl, username, role);
     }
 }

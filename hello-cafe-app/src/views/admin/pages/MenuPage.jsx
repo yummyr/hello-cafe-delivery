@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { PlusCircle, X } from "lucide-react";
 import AdminLayout from "../layouts/AdminLayout";
+import api from "../../../api";
 
 function MenuPage() {
   const [menuItems, setMenuItems] = useState([]);
@@ -19,7 +20,7 @@ function MenuPage() {
   useEffect(() => {
     const fetchMenu = async () => {
       try {
-        const res = await axios.get("http://localhost:8080/api/admin/menu");
+        const res = await api.get("admin/menu");
         setMenuItems(res.data);
       } catch (err) {
         console.error("❌ Failed to fetch menu items:", err);
@@ -49,7 +50,7 @@ function MenuPage() {
       formData.append("active", newItem.active ? 1 : 0);
       if (newItem.image) formData.append("image", newItem.image);
 
-      const res = await axios.post("http://localhost:8080/api/admin/menu", formData, {
+      const res = await api.post("admin/menu", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 

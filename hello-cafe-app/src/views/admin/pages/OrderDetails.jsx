@@ -1,13 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import api from "../../../api";
 
 function OrderDetailPage() {
   const { id } = useParams();
   const [order, setOrder] = useState(null);
 
   useEffect(() => {
-    axios.get(`http://localhost:8080/api/admin/orders/${id}`)
+    api.get(`admin/orders/${id}`)
       .then(res => setOrder(res.data))
       .catch(err => console.error("❌ Failed to fetch order detail:", err));
   }, [id]);

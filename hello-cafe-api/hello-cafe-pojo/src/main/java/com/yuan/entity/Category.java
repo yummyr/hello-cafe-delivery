@@ -22,7 +22,7 @@ public class Category implements Serializable {
     private Integer type; // 1: menu category, 2: combo category
 
     @Column
-    private Integer sort;
+    private Integer sort; // keyword using to sort display
 
     @Column
     private Integer status; // 1 active, 0 inactive

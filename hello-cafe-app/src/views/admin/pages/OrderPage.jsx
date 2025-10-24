@@ -2,13 +2,14 @@ import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
+import api from "../../../api";
 
 function OrdersPage() {
   const [orders, setOrders] = useState([]);
   const navigate = useNavigate();
 
   useEffect(() => {
-    axios.get("http://localhost:8080/api/admin/orders")
+    api.get("admin/orders")
       .then(res => setOrders(res.data))
       .catch(err => console.error("❌ Failed to fetch orders:", err));
   }, []);

@@ -8,7 +8,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -44,10 +43,13 @@ public class EmployeeController {
         return Result.success(employeeList);
     }
 
+
     // Read by ID
     @GetMapping("/{id}")
-    public Employee getEmployeeById(@PathVariable Long id) {
-        return employeeService.getEmployeeById(id);
+    public Result getEmployeeById(@PathVariable Long id) {
+        Employee employee = employeeService.getEmployeeById(id);
+        log.info(String.valueOf(employee));
+        return Result.success(employee);
     }
 
     // Update
@@ -57,9 +59,16 @@ public class EmployeeController {
         return Result.success();
     }
 
+    // Update employee status
+    @PutMapping("/{id}/status")
+    public Result updateEmployeeStatus(@PathVariable Long id){
+        employeeService.updateEmployeeStatus(id);
+        return Result.success(id);
+    }
     // Delete
     @DeleteMapping("/{id}")
-    public void deleteEmployee(@PathVariable Long id) {
+    public Result deleteEmployee(@PathVariable Long id) {
         employeeService.deleteEmployee(id);
+        return Result.success(id);
     }
 }
