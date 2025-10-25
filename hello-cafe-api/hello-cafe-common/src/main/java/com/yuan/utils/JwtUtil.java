@@ -14,8 +14,6 @@ import java.util.Map;
 
 @Slf4j
 public class JwtUtil {
-
-
     /**
      * generate JWT token
      *
@@ -28,7 +26,6 @@ public class JwtUtil {
         try {
             long nowMillis = System.currentTimeMillis();
             Date now = new Date(System.currentTimeMillis());
-
             SecretKey key = getSecretKey(secretKey);
 
             return Jwts.builder()
@@ -42,7 +39,6 @@ public class JwtUtil {
         }
     }
 
-
     /**
      * parse JWT token
      *
@@ -53,8 +49,6 @@ public class JwtUtil {
     public static Claims parseJWT(String secretKey, String token) {
         try {
             SecretKey key = getSecretKey(secretKey);
-            System.out.println("Parsing token with key: " + secretKey);
-            System.out.println("Token (first 20 chars): " + token.substring(0, Math.min(20, token.length())));
 
             return Jwts.parserBuilder()
                     .setSigningKey(key)

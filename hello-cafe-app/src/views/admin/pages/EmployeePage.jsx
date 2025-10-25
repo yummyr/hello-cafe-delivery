@@ -1,15 +1,16 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import AdminLayout from "../layouts/AdminLayout";
 import Pagination from "../components/Pagination";
 import { Edit, Ban, Check, X, Trash2 } from "lucide-react";
 import api from "../../../api";
 
 function EmployeePage() {
+  const [editing, setEditing] = useState(false);
+  const [error, setError] = useState("");
   const [employees, setEmployees] = useState([]);
-  const [sortField, setSortField] = useState("name");
-  const [sortOrder, setSortOrder] = useState("asc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // modal states
   const [showModal, setShowModal] = useState(false);
@@ -20,8 +21,6 @@ function EmployeePage() {
     phone: "",
     gender: "m",
   });
-  const [editing, setEditing] = useState(false);
-  const [error, setError] = useState("");
 
   // fetch employee list
   const fetchEmployees = async () => {
@@ -57,21 +56,63 @@ function EmployeePage() {
     }
   };
 
-
   // sort + pagination
+  // sort by updateTime des order
   const sorted = [...employees].sort((a, b) => {
-    const fieldA = a[sortField]?.toString().toLowerCase();
-    const fieldB = b[sortField]?.toString().toLowerCase();
-    return sortOrder === "asc"
-      ? fieldA.localeCompare(fieldB)
-      : fieldB.localeCompare(fieldA);
+    const fieldA = a["updateTime"]?.toString().toLowerCase();
+    const fieldB = b["updateTime"]?.toString().toLowerCase();
+    return fieldB.localeCompare(fieldA);
   });
 
   const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
+  const handleEmpNameInput = (e) => {
+    setSearchInput(e.target.value);
+  };
 
   // handle form input
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setSearchTerm(value);
+
+    if (value.trim() === "") {
+      fetchEmployees();
+    }
+  };
+  const handleSearch = () => {
+    if (searchTerm.trim() === "") {
+      fetchEmployees();
+    } else {
+      handleEmpSearch(searchTerm);
+    }
+  };
+
+  // handle Emp name fuzzy search
+  const handleEmpSearch = async (empName) => {
+    if (!empName || empName.trim() === "") {
+      await fetchEmployees();
+      return;
+    }
+
+    try {
+      const res = await api.get(`/admin/employees/search/${empName}`);
+
+      setEmployees(res.data.data);
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.log("Search request was cancelled");
+        return;
+      }
+      console.error("Search failed:", error);
+      alert(
+        `Fail to find ${empName}, error: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+      await fetchEmployees();
+    }
   };
 
   // open modal for add or edit
@@ -135,7 +176,6 @@ function EmployeePage() {
           "response data is " +
           res.data.data
       );
-
       await fetchEmployees();
     } catch (err) {
       console.error("Failed to toggle status, error message:", err);
@@ -156,17 +196,34 @@ function EmployeePage() {
         >
           + Add Employee
         </button>
-
-        <select
-          value={sortField}
-          onChange={(e) => setSortField(e.target.value)}
-          className="border border-gray-300 rounded px-2 py-1"
-        >
-          <option value="name">Sort by Name</option>
-          <option value="updateTime">Sort by Update Time</option>
-        </select>
       </div>
 
+      <div className="flex justify-start items-center mb-4">
+        <input
+          value={searchTerm}
+          onChange={handleInputChange}
+          className="
+                      w-64
+                      h-10
+                      px-4
+                      leading-10
+                      rounded-md
+                      border border-gray-300
+                      text-gray-700
+                      placeholder-gray-400
+                      focus:outline-none
+                      focus:ring-2 focus:ring-amber-400
+                    "
+          type="text"
+          placeholder="Employee Name"
+        />
+        <button
+          onClick={handleSearch}
+          className="bg-[#b08968] text-white mx-5 px-4 py-2 rounded-md hover:bg-[#8d6e52]"
+        >
+          Search
+        </button>
+      </div>
       {/* employee table */}
       <table className="w-full bg-white rounded-xl shadow">
         <thead>
@@ -177,6 +234,7 @@ function EmployeePage() {
             <th className="py-3 px-4">Phone</th>
             <th className="py-3 px-4">Gender</th>
             <th className="py-3 px-4">Status</th>
+            <th className="py-3 px-4">Last Update Time</th>
             <th className="py-3 px-4 text-center">Actions</th>
           </tr>
         </thead>
@@ -198,6 +256,10 @@ function EmployeePage() {
                 ) : (
                   <span className="text-gray-500">Disabled</span>
                 )}
+              </td>
+              <td className="py-3 px-4">
+                {new Date(emp.updateTime).toLocaleDateString()}{" "}
+                {new Date(emp.updateTime).toLocaleTimeString()}
               </td>
               <td className="py-3 px-4 text-center flex justify-center gap-3">
                 <button

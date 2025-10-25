@@ -6,8 +6,6 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.cors.CorsConfigurationSource;
 
-import java.util.List;
-
 @Configuration
 public class GlobalCorsConfig {
 
@@ -18,7 +16,7 @@ public class GlobalCorsConfig {
         config.setAllowCredentials(true);
         config.addAllowedOriginPattern("*");
         config.addAllowedMethod("*");
-        config.addAllowedHeader("*");           // ✅ 必须有这行！
+        config.addAllowedHeader("*");
         config.addExposedHeader("Authorization");
         config.addExposedHeader("Content-Type");
 

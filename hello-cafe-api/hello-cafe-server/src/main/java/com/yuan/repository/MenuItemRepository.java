@@ -1,19 +1,16 @@
 package com.yuan.repository;
 
-import com.yuan.entity.Category;
 import com.yuan.entity.MenuItem;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
-import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CategoryRepository extends JpaRepository<Category ,Long> {
+public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
+    @Query(value = "select * from menu_item where name = :name", nativeQuery = true)
+    Optional<MenuItem> findByName(@Param("name")String name);
 
-    List<Category> findAll();
-    @Query(value = "select * from category where name = :name", nativeQuery = true)
-    Optional<Category> findByName(@Param("name")String name);
 }
