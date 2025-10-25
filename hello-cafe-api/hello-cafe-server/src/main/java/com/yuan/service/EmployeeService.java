@@ -16,4 +16,6 @@ public interface EmployeeService {
 
 
     void updateEmployeeStatus(Long id);
+
+    List<Employee> getEmployeesByName(String name);
 }

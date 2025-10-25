@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import AdminLayout from "../layouts/AdminLayout";
 import Pagination from "../components/Pagination";
 import api from "../../../api";
+import { Edit, Ban, Check, X, Trash2 } from "lucide-react";
+import defaultNoImg from "/assets/default-no-img.png";
 
 const CategoriesPage = () => {
   const [categories, setCategories] = useState([]);
@@ -11,8 +13,20 @@ const CategoriesPage = () => {
   const [sortOrder, setSortOrder] = useState("asc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
+  const [error, setError] = useState("");
+
+  const [menuItem, setMenuItem] = useState({
+    name: "",
+    price: "",
+    type: 0,
+    image: "",
+    description: "",
+  });
 
   const [loading, setLoading] = useState(false);
+  // modal states
+  const [showMenuItemModal, setShowMenuItemModal] = useState(false);
+  const [showComboItemModal, setShowComboItemModal] = useState(false);
 
   useEffect(() => {
     fetchCategories();
@@ -66,6 +80,47 @@ const CategoriesPage = () => {
     );
   };
 
+  // handle form input
+  const handlMenuItemChange = (e) => {
+    const value =
+      e.target.name === "type" ? parseInt(e.target.value) : e.target.value;
+    setMenuItem({ ...menuItem, [e.target.name]: value });
+  };
+
+  // handle image file input change
+  const handleImgChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      setPreview(URL.createObjectURL(file));
+    } else {
+      setPreview(defaultNoImg);
+    }
+  };
+  const hanleAddMenuItem = async (e) => {
+    e.preventDefault();
+    setError("");
+    try {
+      console.log(menuItem);
+
+      const res = await api.put("/admin/categories/menu_item", menuItem);
+
+      console.log("Try to add one menu item", res.data.data);
+
+      alert("Add one menu item successfully!");
+      setShowMenuItemModal(false);
+
+      await fetchCategories();
+    } catch (error) {
+      console.log(
+        "fail to add menu item, error message is:" + error.getMessage
+      );
+    }
+  };
+
+  const hanleAddComboItem= async(e)=>{
+    e.preventDefault();
+    setError("");
+  }
   return (
     <AdminLayout>
       <div className="p-8 bg-[#f8f4ef] min-h-screen">
@@ -73,6 +128,22 @@ const CategoriesPage = () => {
           Category Management
         </h1>
 
+        <div className="pb-3 ">
+          <div className="flex gap-3 justify-flex ">
+            <button
+              onClick={() => setShowMenuItemModal(true)}
+              className="bg-[#4b3b2b] text-white px-4 py-2 rounded-md hover:bg-[#3a2f24] transition"
+            >
+              + Add Menu Item Category
+            </button>
+            <button
+              onClick={() => setShowComboItemModal(true)}
+              className="bg-[#b08968] text-white px-4 py-2 rounded-md hover:bg-[#8d6e52] transition"
+            >
+              + Add Combo Item Category
+            </button>
+          </div>
+        </div>
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-4 mb-6">
           <div>
@@ -105,19 +176,10 @@ const CategoriesPage = () => {
 
           <button
             onClick={handleSearch}
-            className="bg-[#4b3b2b] text-white px-5 py-2 rounded-md hover:bg-[#3a2f24] transition"
+            className="bg-[#8a6949] text-white px-5 py-2 rounded-md hover:bg-[#3a2f24] transition"
           >
             Search
           </button>
-
-          <div className="flex gap-3 ml-auto">
-            <button className="bg-[#4b3b2b] text-white px-4 py-2 rounded-md hover:bg-[#3a2f24] transition">
-              + Add Dish Category
-            </button>
-            <button className="bg-[#b08968] text-white px-4 py-2 rounded-md hover:bg-[#8d6e52] transition">
-              + Add Combo Category
-            </button>
-          </div>
         </div>
 
         {/* Table */}
@@ -126,7 +188,7 @@ const CategoriesPage = () => {
             <thead className="bg-[#f0e8df] text-[#4b3b2b]">
               <tr>
                 <th className="py-3 px-4 border-b">Name</th>
-                <th className="py-3 px-4 border-b">Type</th>
+                <th className="py-3 px-4 border-b ">Type</th>
                 <th className="py-3 px-4 border-b">Sort Order</th>
                 <th className="py-3 px-4 border-b">Status</th>
                 <th className="py-3 px-4 border-b">Updated At</th>
@@ -151,9 +213,7 @@ const CategoriesPage = () => {
                   <tr key={cat.id} className="hover:bg-[#f9f6f2]">
                     <td className="py-3 px-4 border-b">{cat.name}</td>
                     <td className="py-3 px-4 border-b">{cat.type}</td>
-                    <td className="py-3 px-4 border-b">
-                      {cat.sort || "-"}
-                    </td>
+                    <td className="py-3 px-4 border-b">{cat.sort || "-"}</td>
                     <td className="py-3 px-4 border-b ">
                       {cat.status === 1 ? (
                         <span className="p-1 text-[#a04a03] bg-[#e9c9ae] font-medium">
@@ -169,7 +229,7 @@ const CategoriesPage = () => {
                       {cat.updateTime || "—"}
                     </td>
                     <td className="py-3 px-4 border-b text-center space-x-3">
-                      <button className="text-[#007bff] hover:underline">
+                      <button className="text-[#665201] hover:underline">
                         Edit
                       </button>
                       <button
@@ -205,6 +265,162 @@ const CategoriesPage = () => {
           </div>
         </div>
       </div>
+      {/*Menu item modal form */}
+      {showMenuItemModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-[400px] relative">
+
+            <form onSubmit={hanleAddMenuItem} className="space-y-4">
+              <input
+                type="text"
+                name="name"
+                value={menuItem.name}
+                onChange={handlMenuItemChange}
+                placeholder="menu item name"
+                required
+                className="w-full border rounded px-3 py-2"
+              />
+              <input
+                type="text"
+                name="price"
+                value={menuItem.price}
+                onChange={handlMenuItemChange}
+                placeholder="Price"
+                required
+                className="w-full border rounded px-3 py-2"
+              />
+              <p>Item Type</p>
+              <select
+                name="type"
+                value={menuItem.type}
+                onChange={handlMenuItemChange}
+                required
+                className="w-full border rounded px-3 py-2"
+              >
+                <option value="1">Coffee</option>
+                <option value="2">Sandwichs</option>
+                <option value="3">Burgers</option>
+                <option value="4">Tarts</option>
+              </select>
+
+              <input
+                type="text"
+                name="description"
+                value={menuItem.description}
+                onChange={handlMenuItemChange}
+                placeholder="Description"
+                className="w-full border rounded px-3 py-2"
+              />
+              <p>Upload menu item image below</p>
+              <input
+                id="avatar"
+                name="avatar"
+                type="file"
+                accept="image/*"
+                onChange={handleImgChange}
+                className="text-sm text-gray-600"
+              />
+
+              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowMenuItemModal(false)}
+                  className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-[#b08968] text-white rounded-md hover:bg-[#8d6e52]"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+        {/*Combo item modal form */}
+      {showComboItemModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-xl shadow-lg p-6 w-[400px] relative">
+
+            <form onSubmit={hanleAddComboItem} className="space-y-4">
+              <input
+                type="text"
+                name="name"
+                value={menuItem.name}
+                onChange={handlMenuItemChange}
+                placeholder="menu item name"
+                required
+                className="w-full border rounded px-3 py-2"
+              />
+              <input
+                type="text"
+                name="price"
+                value={menuItem.price}
+                onChange={handlMenuItemChange}
+                placeholder="Price"
+                required
+                className="w-full border rounded px-3 py-2"
+              />
+              <p>Item Type</p>
+              <select
+                name="type"
+                value={menuItem.type}
+                onChange={handlMenuItemChange}
+                required
+                className="w-full border rounded px-3 py-2"
+              >
+                <option value="1">Coffee</option>
+                <option value="2">Sandwichs</option>
+                <option value="3">Burgers</option>
+                <option value="4">Tarts</option>
+              </select>
+
+              <input
+                type="text"
+                name="description"
+                value={menuItem.description}
+                onChange={handlMenuItemChange}
+                placeholder="Description"
+                className="w-full border rounded px-3 py-2"
+              />
+              <p>Upload menu item image below</p>
+              <input
+                id="avatar"
+                name="avatar"
+                type="file"
+                accept="image/*"
+                onChange={handleImgChange}
+                className="text-sm text-gray-600"
+              />
+
+              {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+
+              <div className="flex justify-end gap-2 mt-4">
+                <button
+                  type="button"
+                  onClick={() => setShowComboItemModal(false)}
+                  className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+            
+                  className="px-4 py-2 bg-[#b08968] text-white rounded-md hover:bg-[#8d6e52]"
+                >
+                  Save
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </AdminLayout>
   );
 };

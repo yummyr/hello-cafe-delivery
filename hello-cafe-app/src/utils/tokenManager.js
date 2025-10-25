@@ -1,6 +1,6 @@
 import api from "../api";
 const TOKEN_REFRESH_INTERVAL = 25 * 60 * 1000; // 25 minutes (if token expires in 30 min)
-const ACTIVITY_TIMEOUT = 30 * 60 * 1000; // 30 minutes of inactivity
+const ACTIVITY_TIMEOUT = 60 * 60 * 1000; // 60 minutes of inactivity
 
 class TokenManager {
   constructor() {

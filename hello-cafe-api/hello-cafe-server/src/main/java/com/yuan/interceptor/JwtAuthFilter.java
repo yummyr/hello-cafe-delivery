@@ -1,4 +1,4 @@
-package com.yuan.config;
+package com.yuan.interceptor;
 
 import com.yuan.context.UserContext;
 import com.yuan.properties.JwtProperties;
@@ -35,7 +35,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
         try {
             String authHeader = request.getHeader("Authorization");
-            // log.info("Auth header: {}", authHeader);
+            log.info("Auth header: {}", authHeader);
             if (authHeader != null && authHeader.startsWith("Bearer ")) {
                 String token = authHeader.substring(7);
 
@@ -47,18 +47,13 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     String username = claims.get("username", String.class);
                     String role = claims.get("role", String.class);
 
-                    log.info("JWT解析结果 - userId: {}, username: {}, role: {}",
-                            userId, username, role);
-
                     if (userId != null) {
                         UserContext.setCurrentUserId(userId);
                         // log.debug("Set current userId in context: {}", userId);
-
                         setAuthentication(username, role, userId);
                     }
                 }
             }
-
             // continue next filter
             filterChain.doFilter(request, response);
         } finally {
@@ -70,27 +65,26 @@ public class JwtAuthFilter extends OncePerRequestFilter {
      * parse token based on secretKey type: adminSecretKey || userSecretKey
      */
     private Claims parseClaimsSafely(String token) {
+        Claims claims = null;
         // try to parse using admin key
         try {
-            Claims claims = JwtUtil.parseJWT(jwtProperties.getAdminSecretKey(), token);
-            log.debug("Successfully parsed with admin key");
-            return claims;
+            claims = JwtUtil.parseJWT(jwtProperties.getAdminSecretKey(), token);
         } catch (Exception e) {
             log.debug("Failed to parse with admin key: {}", e.getMessage());
         }
 
         // try to parse using user key
-        try {
-            Claims claims = JwtUtil.parseJWT(jwtProperties.getUserSecretKey(), token);
-            log.debug("Successfully parsed with user key");
-            return claims;
-        } catch (Exception e) {
-            log.debug("Failed to parse with user key: {}", e.getMessage());
+        if (claims == null) {
+            try {
+                claims = JwtUtil.parseJWT(jwtProperties.getUserSecretKey(), token);
+            } catch (Exception e) {
+                log.debug("Failed to parse with user key: {}", e.getMessage());
+            }
         }
-
-        log.warn("fail to parse token using both adminSecretKey and userSecretKey");
-        return null;
+        // log.info("JwtAuthFilter.java claims:{}",claims);
+        return claims;
     }
+
     private void setAuthentication(String username, String role, Long userId) {
         if (username != null && role != null) {
             // add prefix for role as Spring Security requirement
@@ -115,7 +109,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
             // log.info("set security context: username={}, role={}, authority={}", username, role, authority);
-        }else {
+        } else {
             log.warn("fail to set security context: username={}, role={}", username, role);
         }
     }

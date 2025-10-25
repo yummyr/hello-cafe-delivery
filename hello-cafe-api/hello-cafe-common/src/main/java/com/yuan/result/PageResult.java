@@ -13,9 +13,7 @@ import java.util.List;
 public class PageResult implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private Long total;
+    private long total;
     private List records;
-
-
 
 }

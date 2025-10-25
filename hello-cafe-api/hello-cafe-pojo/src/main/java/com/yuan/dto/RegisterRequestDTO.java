@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 @AllArgsConstructor
 @Component
 public class RegisterRequestDTO {
+    private static final long serialVersionUID = 1L;
     private String name;
     private String email;
     private String username;

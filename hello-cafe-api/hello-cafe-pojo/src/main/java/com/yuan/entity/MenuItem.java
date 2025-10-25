@@ -1,13 +1,17 @@
 package com.yuan.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @Entity
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "menu_item")
 public class MenuItem implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -44,5 +48,7 @@ public class MenuItem implements Serializable {
 
     @Column(name = "update_employee")
     private Long updateEmployee;
+
+
 }
 

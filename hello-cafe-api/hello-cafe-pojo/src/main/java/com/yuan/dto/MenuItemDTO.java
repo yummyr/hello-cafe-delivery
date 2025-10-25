@@ -1,24 +1,24 @@
 package com.yuan.dto;
 
+import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
 
-/**
- * DTO returned after successful login.
- */
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Component
-public class LoginResponseDTO implements Serializable {
+public class MenuItemDTO implements Serializable {
     private static final long serialVersionUID = 1L;
-    private String token;
-    private long expiresIn;
-    private String username;
-    private String role;
+    private Long id;
+    private String name;
+    private Double price;
+    private Integer type;
+    private  String image;
+    private  String description;
+
 }
