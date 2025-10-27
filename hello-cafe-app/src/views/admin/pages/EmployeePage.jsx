@@ -11,6 +11,7 @@ function EmployeePage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [searchTerm, setSearchTerm] = useState("");
+  const [total, setTotal] = useState(0);
 
   // modal states
   const [showModal, setShowModal] = useState(false);
@@ -23,19 +24,22 @@ function EmployeePage() {
   });
 
   // fetch employee list
-  const fetchEmployees = async () => {
+  const fetchEmployees = async (page = 1, pageSize = 5) => {
     try {
-      const res = await api.get("/admin/employees");
-      setEmployees(res.data.data);
+      const res = await api.get("/admin/employees/page", {
+        params: { page, pageSize },
+      });
+      setEmployees(res.data.data.records);
+      setTotal(res.data.data.total);
     } catch (error) {
-      console.log("Try to fetch employees list but error happened :{}", error);
+      console.log("Error fetching employees ", error);
       setEmployees([]);
     }
   };
 
   // excute when employee login successfully
   useEffect(() => {
-    fetchEmployees();
+    fetchEmployees(page, pageSize);
   }, []);
 
   const deleteEmployees = async (id) => {
@@ -45,7 +49,7 @@ function EmployeePage() {
       return;
     try {
       await api.delete(`/admin/employees/${id}`);
-      await fetchEmployees();
+      await fetchEmployees(page, pageSize);
     } catch (err) {
       console.log(
         "Fail to delete employee, id is " +
@@ -54,19 +58,6 @@ function EmployeePage() {
           err.getMessage()
       );
     }
-  };
-
-  // sort + pagination
-  // sort by updateTime des order
-  const sorted = [...employees].sort((a, b) => {
-    const fieldA = a["updateTime"]?.toString().toLowerCase();
-    const fieldB = b["updateTime"]?.toString().toLowerCase();
-    return fieldB.localeCompare(fieldA);
-  });
-
-  const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
-  const handleEmpNameInput = (e) => {
-    setSearchInput(e.target.value);
   };
 
   // handle form input
@@ -78,12 +69,12 @@ function EmployeePage() {
     setSearchTerm(value);
 
     if (value.trim() === "") {
-      fetchEmployees();
+      fetchEmployees(page, pageSize);
     }
   };
   const handleSearch = () => {
     if (searchTerm.trim() === "") {
-      fetchEmployees();
+      fetchEmployees(page, pageSize);
     } else {
       handleEmpSearch(searchTerm);
     }
@@ -92,14 +83,17 @@ function EmployeePage() {
   // handle Emp name fuzzy search
   const handleEmpSearch = async (empName) => {
     if (!empName || empName.trim() === "") {
-      await fetchEmployees();
+      await fetchEmployees(page, pageSize);
       return;
     }
-
+    const name = empName;
     try {
-      const res = await api.get(`/admin/employees/search/${empName}`);
-
-      setEmployees(res.data.data);
+      const res = await api.get(`/admin/employees/page`, {
+        params: { page, pageSize, name },
+      });
+  
+      setTotal(res.data.data.total);
+      setEmployees(res.data.data.records);
     } catch (error) {
       if (error.name === "AbortError") {
         console.log("Search request was cancelled");
@@ -111,7 +105,7 @@ function EmployeePage() {
           error.response?.data?.message || error.message
         }`
       );
-      await fetchEmployees();
+      await fetchEmployees(page, pageSize);
     }
   };
 
@@ -158,7 +152,7 @@ function EmployeePage() {
         alert("Employee added successfully!");
       }
       setShowModal(false);
-      await fetchEmployees();
+      await fetchEmployees(page, pageSize);
     } catch (err) {
       console.error("Fail to save employee, error message:", err);
       setError("Server error, please try again.");
@@ -176,7 +170,7 @@ function EmployeePage() {
           "response data is " +
           res.data.data
       );
-      await fetchEmployees();
+      await fetchEmployees(page, pageSize);
     } catch (err) {
       console.error("Failed to toggle status, error message:", err);
     }
@@ -239,11 +233,9 @@ function EmployeePage() {
           </tr>
         </thead>
         <tbody>
-          {paginated.map((emp) => (
+          {employees.map((emp) => (
             <tr key={emp.id} className="border-b hover:bg-[#f8f4ef] transition">
-              <td className="py-3 px-4">
-                <button onClick={() => getEmpInfo(emp.id)}>{emp.id}</button>
-              </td>
+              <td className="py-3 px-4">{emp.id}</td>
               <td className="py-3 px-4">{emp.name}</td>
               <td className="py-3 px-4">{emp.username}</td>
               <td className="py-3 px-4">{emp.phone}</td>
@@ -299,13 +291,16 @@ function EmployeePage() {
 
       {/* pagination */}
       <Pagination
-        totalItems={employees.length}
+        totalItems={total}
         pageSize={pageSize}
         currentPage={page}
-        onPageChange={(p) => setPage(p)}
+        onPageChange={(p) => {
+          setPage(p);
+          fetchEmployees(p, pageSize);
+        }}
         onPageSizeChange={(size) => {
           setPageSize(size);
-          setPage(1); // reset to first page
+          setPage(1, size); // reset to first page
         }}
         showInfo={true}
       />

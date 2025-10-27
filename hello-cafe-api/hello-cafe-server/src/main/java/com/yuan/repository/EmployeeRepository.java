@@ -3,6 +3,8 @@ package com.yuan.repository;
 
 import com.yuan.entity.Employee;
 import jakarta.transaction.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -18,7 +20,8 @@ import java.util.Optional;
 @Repository
 public interface EmployeeRepository extends JpaRepository<Employee, Long> {
     Optional<Employee> findByUsername(String username);
+
     Optional<Employee> findById(Long id);
-    boolean existsById(Long id);
-    List<Employee> findByNameContaining(String name);
+
+    Page<Employee> findByNameContaining(String name, Pageable pageable);
 }

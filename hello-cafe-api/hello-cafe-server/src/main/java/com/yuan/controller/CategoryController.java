@@ -1,9 +1,10 @@
 package com.yuan.controller;
 
+import com.yuan.dto.CategoryPageQueryDTO;
 import com.yuan.dto.MenuItemDTO;
 import com.yuan.entity.Category;
 import com.yuan.entity.MenuItem;
-import com.yuan.repository.CategoryRepository;
+import com.yuan.result.PageResult;
 import com.yuan.result.Result;
 import com.yuan.service.CategoryService;
 import com.yuan.service.MenuItemService;
@@ -12,27 +13,29 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @RestController
 @Slf4j
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/categories")
 public class CategoryController {
-    private final CategoryRepository categoryRepository;
     private final MenuItemService menuItemService;
     private final CategoryService categoryService;
 
-
-    @GetMapping
-    public Result getAllCategories() {
+    @GetMapping("/page")
+    public Result getCategories(CategoryPageQueryDTO dto) {
         try {
-            List<Category> categoryList = categoryRepository.findAll();
-            return Result.success(categoryList);
+            PageResult pageResult = categoryService.page(dto);
+            return Result.success(pageResult);
         } catch (Exception e) {
-
             return Result.error(e.getMessage());
         }
+    }
+
+
+    @DeleteMapping("/{id}")
+    public Result<Long> deleteEmployee(@PathVariable Long id) {
+        categoryService.deleteEmployee(id);
+        return Result.success(id);
     }
 
     @PutMapping("/menu_item")
