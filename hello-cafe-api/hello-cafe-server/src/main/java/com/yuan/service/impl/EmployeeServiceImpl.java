@@ -1,21 +1,24 @@
 package com.yuan.service.impl;
 
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Sort;
 import com.yuan.constant.PasswordConstant;
 import com.yuan.context.UserContext;
 import com.yuan.dto.EmployeeDTO;
+import com.yuan.dto.EmployeePageQueryDTO;
 import com.yuan.entity.Employee;
 import com.yuan.repository.EmployeeRepository;
-import com.yuan.result.Result;
+import com.yuan.result.PageResult;
 import com.yuan.service.EmployeeService;
 import com.yuan.constant.StatusConstant;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
-
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -29,20 +32,19 @@ public class EmployeeServiceImpl implements EmployeeService {
 
 
     @Override
-    public Result saveEmployee(EmployeeDTO dto) {
+    public void saveEmployee(EmployeeDTO dto) {
         Employee employee = new Employee(dto.getId(), dto.getName(), dto.getUsername(),
                 passwordEncoder.encode(PasswordConstant.DEFAULT_PASSWORD), dto.getPhone(),
                 dto.getGender(), StatusConstant.ENABLE, LocalDateTime.now(), LocalDateTime.now(),
                 UserContext.getCurrentUserId(), UserContext.getCurrentUserId());
         employeeRepository.save(employee);
-        return Result.success(employee);
     }
 
     @Override
-    public Result<Employee> updateEmployee(EmployeeDTO dto) {
+    public Employee updateEmployee(EmployeeDTO dto) {
         Employee existing = (Employee) employeeRepository.findByUsername(dto.getUsername()).orElse(null);
         if (existing == null) {
-            return Result.error("Username not exists");
+            throw new IllegalArgumentException("Username not exists");
         }
 
         Employee employee = new Employee(dto.getId(), dto.getName(), dto.getUsername(),
@@ -50,7 +52,7 @@ public class EmployeeServiceImpl implements EmployeeService {
                 LocalDateTime.now(), existing.getCreateUser(), UserContext.getCurrentUserId());
 
         employeeRepository.save(employee);
-        return Result.success(employee);
+        return employee;
     }
 
 
@@ -84,16 +86,36 @@ public class EmployeeServiceImpl implements EmployeeService {
 
             employeeRepository.save(employee);
 
-        }catch (Exception e){
+        } catch (Exception e) {
             log.info("Try to update employee status but failed, error :{}", e.getMessage());
 
         }
     }
 
+
+    /**
+     * employee page query --- Pageable pagination interceptor
+     *
+     * @param dto
+     * @return
+     */
     @Override
-    public List<Employee> getEmployeesByName(String name) {
-        List<Employee> byNameContaining = employeeRepository.findByNameContaining(name);
-        return byNameContaining;
+    public PageResult page(EmployeePageQueryDTO dto) {
+        if (dto == null) {
+            dto = new EmployeePageQueryDTO();
+        }
+
+        Pageable pageable = PageRequest.of(dto.getPage() - 1, dto.getPageSize(),
+                Sort.by(Sort.Direction.DESC, "updateTime"));
+        Page<Employee> page;
+
+        if (dto.getName() == null || dto.getName().trim().isEmpty()) {
+            page = employeeRepository.findAll(pageable);
+        } else {
+            page = employeeRepository.findByNameContaining(dto.getName(), pageable);
+        }
+
+        return new PageResult(page.getTotalElements(), page.getContent());
     }
 
 }

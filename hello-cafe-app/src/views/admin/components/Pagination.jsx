@@ -23,6 +23,7 @@ function Pagination({
 }) {
   const totalPages = Math.ceil(totalItems / pageSize);
   const [inputPage, setInputPage] = useState("");
+
   if (totalPages <= 1 && !showInfo) return null; // hide if only one page
 
   // --- generate page numbers with ellipsis logic ---
@@ -31,29 +32,29 @@ function Pagination({
     const maxVisible = 5; // number of page buttons visible (excluding ellipsis)
 
     if (totalPages <= maxVisible) {
-      // 如果总页数小于等于 maxVisible，显示所有页码
+      // if totalPages is less than or equal to maxVisible，display all pages
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
-      // 计算左右两侧应该显示的页码数量
+      // calculate page count on left side and right side
       const leftCount = Math.floor((maxVisible - 1) / 2);
       const rightCount = maxVisible - 1 - leftCount;
 
       if (currentPage <= leftCount + 1) {
-        // 当前页靠近开头：显示前 maxVisible 页，然后省略号和最后一页
-        for (let i = 1; i <= maxVisible-1; i++) pages.push(i);
+        // current page close to start, display pages before maxVisible, then ..., then the last page
+        for (let i = 1; i <= maxVisible - 1; i++) pages.push(i);
         pages.push("…", totalPages);
       } else if (currentPage >= totalPages - rightCount) {
-        // 当前页靠近结尾：显示第一页，省略号，最后 maxVisible 页
+        // current page close to end, display the first page, then ..., then pages after maxVisible
         pages.push(1, "…");
         for (let i = totalPages - maxVisible + 2; i <= totalPages; i++)
           pages.push(i);
-      } 
-      else {
-        // 当前页在中间：显示第一页，省略号，当前页及前后各一页，省略号，最后一页
+      } else {
+        // current page in the middle, display the first page, then ...,
+        // then current page and the page before and after current, then ..., then the last page
         pages.push(1, "…");
         for (let i = currentPage - 1; i <= currentPage + 1; i++) {
-        pages.push(i);
-      }
+          pages.push(i);
+        }
         pages.push("…", totalPages);
       }
     }

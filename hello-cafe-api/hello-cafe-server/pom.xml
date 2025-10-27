@@ -89,6 +89,7 @@
             <scope>runtime</scope>
         </dependency>
 
+
         <dependency>
             <groupId>com.yuan</groupId>
             <artifactId>hello-cafe-common</artifactId>

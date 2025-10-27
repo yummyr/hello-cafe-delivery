@@ -9,11 +9,11 @@ const CategoriesPage = () => {
   const [categories, setCategories] = useState([]);
   const [filterName, setFilterName] = useState("");
   const [filterType, setFilterType] = useState("");
-  const [sortField, setSortField] = useState("sort");
-  const [sortOrder, setSortOrder] = useState("asc");
+  const [total, setTotal] = useState(0);
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const [menuItem, setMenuItem] = useState({
     name: "",
@@ -23,50 +23,81 @@ const CategoriesPage = () => {
     description: "",
   });
 
-  const [loading, setLoading] = useState(false);
   // modal states
   const [showMenuItemModal, setShowMenuItemModal] = useState(false);
   const [showComboItemModal, setShowComboItemModal] = useState(false);
 
   useEffect(() => {
-    fetchCategories();
+    fetchCategories(page, pageSize);
   }, []);
 
-  const fetchCategories = async () => {
+  const fetchCategories = async (page = 1, pageSize = 5) => {
     setLoading(true);
     try {
-      const res = await api.get("/admin/categories");
-      console.log("categories response data: ", res.data);
+      const res = await api.get("/admin/categories/page", {
+        params: { page, pageSize },
+      });
+      console.log("categories response data: ", res.data.data.records);
 
-      setCategories(res.data.data || []);
+      setCategories(res.data.data.records || []);
+      setTotal(res.data.data.total);
     } catch (err) {
       console.error("❌ Failed to load categories:", err);
+      setCategories([]);
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSearch = () => {
-    // You can add search logic here
-    const filtered = categories.filter((c) =>
-      c.name.toLowerCase().includes(filterName.toLowerCase())
-    );
-    setCategories(filtered);
+  const handleSearch = async (filterName) => {
+    if (!filterName || filterName.trim() === "") {
+      await fetchCategories(page, pageSize);
+      return;
+    }
+    const name = filterName;
+  
+    try {
+      const res = await api.get("/admin/categories/page", {
+        params: {
+          page,
+          pageSize,
+          name,
+        },
+      });
+   
+      setTotal(res.data.data.total);
+      setCategories(res.data.data.records);
+    } catch (error) {
+      if (error.name === "AbortError") {
+        console.log("Search request was cancelled");
+        return;
+      }
+      console.error("Search failed:", error);
+      alert(
+        `Fail to find ${filterName}, error: ${
+          error.response?.data?.message || error.message
+        }`
+      );
+      await fetchCategories(page, pageSize);
+    }
   };
 
-  // sort + pagination
-  const sorted = [...categories].sort((a, b) => {
-    const fieldA = a[sortField]?.toString().toLowerCase();
-    const fieldB = b[sortField]?.toString().toLowerCase();
-    return sortOrder === "asc"
-      ? fieldA.localeCompare(fieldB)
-      : fieldB.localeCompare(fieldA);
-  });
-
-  const paginated = sorted.slice((page - 1) * pageSize, page * pageSize);
-  const handleDelete = (id) => {
+  const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this category?")) {
-      setCategories(categories.filter((c) => c.id !== id));
+      try {
+        api.delete(`/admin/categories/${id}`);
+      } catch (error) {
+        if (error.name === "AbortError") {
+          console.log("Search request was cancelled");
+          return;
+        }
+        alert(
+          `Fail to delete ${id}, error: ${
+            error.response?.data?.message || error.message
+          }`
+        );
+        await fetchCategories(page, pageSize);
+      }
     }
   };
 
@@ -117,10 +148,10 @@ const CategoriesPage = () => {
     }
   };
 
-  const hanleAddComboItem= async(e)=>{
+  const hanleAddComboItem = async (e) => {
     e.preventDefault();
     setError("");
-  }
+  };
   return (
     <AdminLayout>
       <div className="p-8 bg-[#f8f4ef] min-h-screen">
@@ -175,7 +206,7 @@ const CategoriesPage = () => {
           </div>
 
           <button
-            onClick={handleSearch}
+            onClick={() => handleSearch(filterName)}
             className="bg-[#8a6949] text-white px-5 py-2 rounded-md hover:bg-[#3a2f24] transition"
           >
             Search
@@ -209,7 +240,7 @@ const CategoriesPage = () => {
                   </td>
                 </tr>
               ) : (
-                paginated.map((cat) => (
+                categories.map((cat) => (
                   <tr key={cat.id} className="hover:bg-[#f9f6f2]">
                     <td className="py-3 px-4 border-b">{cat.name}</td>
                     <td className="py-3 px-4 border-b">{cat.type}</td>
@@ -252,13 +283,16 @@ const CategoriesPage = () => {
           </table>
           <div>
             <Pagination
-              totalItems={categories.length}
+              totalItems={total}
               pageSize={pageSize}
               currentPage={page}
-              onPageChange={(p) => setPage(p)}
+              onPageChange={(p) => {
+                setPage(p);
+                fetchCategories(p, pageSize);
+              }}
               onPageSizeChange={(size) => {
                 setPageSize(size);
-                setPage(1); // reset to first page
+                setPage(1, size); // reset to first page
               }}
               showInfo={true}
             />
@@ -269,7 +303,6 @@ const CategoriesPage = () => {
       {showMenuItemModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-[400px] relative">
-
             <form onSubmit={hanleAddMenuItem} className="space-y-4">
               <input
                 type="text"
@@ -343,11 +376,10 @@ const CategoriesPage = () => {
         </div>
       )}
 
-        {/*Combo item modal form */}
+      {/*Combo item modal form */}
       {showComboItemModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-[400px] relative">
-
             <form onSubmit={hanleAddComboItem} className="space-y-4">
               <input
                 type="text"
@@ -411,7 +443,6 @@ const CategoriesPage = () => {
                 </button>
                 <button
                   type="submit"
-            
                   className="px-4 py-2 bg-[#b08968] text-white rounded-md hover:bg-[#8d6e52]"
                 >
                   Save
