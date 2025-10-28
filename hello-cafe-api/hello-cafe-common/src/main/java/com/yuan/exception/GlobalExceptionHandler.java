@@ -69,4 +69,11 @@ public class GlobalExceptionHandler {
         log.error("Unexpected error: {}", ex.getMessage(), ex);
         return Result.error(MessageConstant.UNKNOWN_ERROR);
     }
+
+    @ExceptionHandler(DeletionNotAllowedException.class)
+    public Result<String> handleDeletionNotAllowedException(DeletionNotAllowedException ex) {
+        log.warn("Deletion not allowed: {}", ex.getMessage());
+        return Result.error(ex.getMessage());
+    }
+
 }

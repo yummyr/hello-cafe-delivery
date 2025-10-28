@@ -1,5 +1,6 @@
 package com.yuan.controller;
 
+import com.yuan.dto.CategoryDTO;
 import com.yuan.dto.CategoryPageQueryDTO;
 import com.yuan.dto.MenuItemDTO;
 import com.yuan.entity.Category;
@@ -21,8 +22,18 @@ public class CategoryController {
     private final MenuItemService menuItemService;
     private final CategoryService categoryService;
 
+    @PostMapping
+    public Result addCategory(@RequestBody CategoryDTO dto) {
+        log.info("📥 接收到分类创建请求");
+        log.info("📥 原始DTO数据: name={}, type={}", dto.getName(), dto.getType());
+        log.info("📥 DTO对象详情: {}", dto.toString());
+        Category category = categoryService.addCategory(dto);
+        return Result.success(category);
+    }
+
     @GetMapping("/page")
     public Result getCategories(CategoryPageQueryDTO dto) {
+
         try {
             PageResult pageResult = categoryService.page(dto);
             return Result.success(pageResult);
@@ -33,8 +44,14 @@ public class CategoryController {
 
 
     @DeleteMapping("/{id}")
-    public Result<Long> deleteEmployee(@PathVariable Long id) {
-        categoryService.deleteEmployee(id);
+    public Result<Long> deleteCategory(@PathVariable Long id) {
+        categoryService.deleteCategory(id);
+        return Result.success(id);
+    }
+
+    @PutMapping("/status/{id}")
+    public Result<Long> changeCategoryStatus(@PathVariable Long id) {
+        categoryService.updateCategoryStatus(id);
         return Result.success(id);
     }
 

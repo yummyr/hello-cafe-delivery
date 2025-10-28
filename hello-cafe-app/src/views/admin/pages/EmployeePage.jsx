@@ -3,6 +3,7 @@ import AdminLayout from "../layouts/AdminLayout";
 import Pagination from "../components/Pagination";
 import { Edit, Ban, Check, X, Trash2 } from "lucide-react";
 import api from "../../../api";
+import { formatDateTime } from "../../../utils/date";
 
 function EmployeePage() {
   const [editing, setEditing] = useState(false);
@@ -250,8 +251,7 @@ function EmployeePage() {
                 )}
               </td>
               <td className="py-3 px-4">
-                {new Date(emp.updateTime).toLocaleDateString()}{" "}
-                {new Date(emp.updateTime).toLocaleTimeString()}
+                {formatDateTime(emp.updateTime)}
               </td>
               <td className="py-3 px-4 text-center flex justify-center gap-3">
                 <button
