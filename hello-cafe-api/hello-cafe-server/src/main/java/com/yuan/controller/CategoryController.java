@@ -12,6 +12,7 @@ import com.yuan.service.MenuItemService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -24,9 +25,6 @@ public class CategoryController {
 
     @PostMapping
     public Result addCategory(@RequestBody CategoryDTO dto) {
-        log.info("📥 接收到分类创建请求");
-        log.info("📥 原始DTO数据: name={}, type={}", dto.getName(), dto.getType());
-        log.info("📥 DTO对象详情: {}", dto.toString());
         Category category = categoryService.addCategory(dto);
         return Result.success(category);
     }
@@ -51,31 +49,40 @@ public class CategoryController {
 
     @PutMapping("/status/{id}")
     public Result<Long> changeCategoryStatus(@PathVariable Long id) {
+
         categoryService.updateCategoryStatus(id);
         return Result.success(id);
     }
 
-    @PutMapping("/menu_item")
-    @Transactional
-    public Result addMenuItemCategory(@RequestBody MenuItemDTO dto) {
-        // log.info("MenuItemDTO dto in addMenuItemCategory is:{} ", dto);
-        try {
-            Category item = categoryService.addMenuItemToCate(dto);
-            // log.info(" Category item  in  addMenuItemCategory :{}", item);
-            Long categoryId = item.getId();
-
-            MenuItem menuItem = menuItemService.addMenuItem(dto, categoryId);
-            // log.info(" MenuItem item  in  addMenuItemCategory :{}", menuItem);
-            return Result.success(menuItem);
-        } catch (Exception e) {
-            return Result.error(e.getMessage());
-        }
-
-    }
-
-    @PutMapping("/combo_item")
-    public Result addComboItemCategory() {
+    @PutMapping("/{id}")
+    public Result updateCategory(@RequestBody CategoryDTO dto){
+        categoryService.updateCategory(dto);
         return Result.success();
     }
+
+
+
+    // @PutMapping("/menu_item")
+    // @Transactional
+    // public Result addMenuItemCategory(@RequestBody MenuItemDTO dto) {
+    //     // log.info("MenuItemDTO dto in addMenuItemCategory is:{} ", dto);
+    //     try {
+    //         Category item = categoryService.addMenuItemToCate(dto);
+    //         // log.info(" Category item  in  addMenuItemCategory :{}", item);
+    //         Long categoryId = item.getId();
+    //
+    //         MenuItem menuItem = menuItemService.addMenuItem(dto, categoryId);
+    //         // log.info(" MenuItem item  in  addMenuItemCategory :{}", menuItem);
+    //         return Result.success(menuItem);
+    //     } catch (Exception e) {
+    //         return Result.error(e.getMessage());
+    //     }
+    //
+    // }
+    //
+    // @PutMapping("/combo_item")
+    // public Result addComboItemCategory() {
+    //     return Result.success();
+    // }
 
 }
