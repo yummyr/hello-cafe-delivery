@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import AdminLayout from "../layouts/AdminLayout";
 import Pagination from "../components/Pagination";
 import api from "../../../api";
-import { Edit, Ban, Check, X, Trash2 } from "lucide-react";
 import { formatDateTime } from "../../../utils/date";
 
 const CategoriesPage = () => {
@@ -14,11 +13,13 @@ const CategoriesPage = () => {
   const [pageSize, setPageSize] = useState(5);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [editing, setEditing] = useState(false);
 
   // modal states
   const [showFormModal, setShowFormModal] = useState(false);
 
   const [formData, setFormData] = useState({
+    id: "",
     name: "",
     type: "1",
   });
@@ -33,7 +34,6 @@ const CategoriesPage = () => {
       const res = await api.get("/admin/categories/page", {
         params: { page, pageSize },
       });
-      console.log("categories response data: ", res.data.data.records);
 
       setCategories(res.data.data.records || []);
       setTotal(res.data.data.total);
@@ -129,43 +129,61 @@ const CategoriesPage = () => {
     }
   };
 
+  // open modal for add or edit
+  const openModal = (category = null) => {
+
+    if (category) {
+      setEditing(true);
+      setFormData({
+        id: category.id,
+        name: category.name,
+        type: category.phone,
+      });
+    } else {
+      setEditing(false);
+      setFormData({
+        id: "",
+        name: "",
+        type: "",
+      });
+    }
+    setShowFormModal(true);
+    setError("");
+  };
+
   // handle form input
   const handlFormInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  const hanleAddCategory = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
     try {
-      const requestData = {
-        name: formData.name.trim(),
-        type: parseInt(formData.type, 10),
-      };
+      if (editing) {
+        // update
+        const res = await api.put(`/admin/categories/${formData.id}`, formData);
+        alert(`Update category ${formData.id} successfully!`);
+        setShowFormModal(false);
+        setEditing(false);
+        await fetchCategories(page, pageSize);
+      } else {
+        const requestData = {
+          id: "",
+          name: formData.name.trim(),
+          type: parseInt(formData.type, 10),
+        };
 
-      console.log("Sending data to backend:", requestData);
-      console.log("📤 准备发送的数据:", requestData);
-    console.log("📤 数据类型检查:", {
-      name: typeof requestData.name,
-      type: typeof requestData.type,
-      nameValue: requestData.name,
-      typeValue: requestData.type
-    });
+        const res = await api.post("/admin/categories", requestData);
 
-
-      const res = await api.post("/admin/categories", requestData);
-
-      console.log("Try to add one category", res.data.data);
-
-      alert("Add one category successfully!");
-      setShowFormModal(false);
-      setFormData({ name: "", type: "1" });
-
-      await fetchCategories(page, pageSize);
+        alert("Add one category successfully!");
+        setShowFormModal(false);
+        setFormData({ id: "", name: "", type: "1" });
+        await fetchCategories(page, pageSize);
+      }
     } catch (error) {
-      console.error("Fail to add category:", error);
-      console.log(
-        "fail to category, error message is:",
+      console.error(
+        "fail to add or edit category, error message is:",
         error.response?.data?.message || error.message
       );
     }
@@ -218,7 +236,7 @@ const CategoriesPage = () => {
           </div>
 
           <button
-            onClick={() => setShowFormModal(true)}
+            onClick={() => openModal(null)}
             className="bg-[#db9d60] text-white px-4 py-2 rounded-md hover:bg-[#3a2f24] transition"
           >
             + Add Category
@@ -282,7 +300,10 @@ const CategoriesPage = () => {
                       {formatDateTime(cat.updateTime)}
                     </td>
                     <td className="py-3 px-4 border-b text-center space-x-3">
-                      <button className="text-[#665201] hover:underline">
+                      <button
+                        onClick={() => openModal(cat)}
+                        className="text-[#665201] hover:underline"
+                      >
                         Edit
                       </button>
                       <button
@@ -325,7 +346,7 @@ const CategoriesPage = () => {
       {showFormModal && (
         <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
           <div className="bg-white rounded-xl shadow-lg p-6 w-[400px] relative">
-            <form onSubmit={hanleAddCategory} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-4">
               <input
                 type="text"
                 name="name"

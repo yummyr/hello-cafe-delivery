@@ -11,7 +11,6 @@ import org.springframework.stereotype.Service;
 @Service
 public interface CategoryService {
 
-
     Category addMenuItemToCate(MenuItemDTO menuItem);
 
     PageResult page(CategoryPageQueryDTO dto);
@@ -21,4 +20,7 @@ public interface CategoryService {
     void updateCategoryStatus(Long id);
 
     Category addCategory(CategoryDTO dto);
+
+    Category updateCategory(CategoryDTO dto);
+
 }

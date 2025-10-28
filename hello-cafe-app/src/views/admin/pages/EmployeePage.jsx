@@ -92,7 +92,7 @@ function EmployeePage() {
       const res = await api.get(`/admin/employees/page`, {
         params: { page, pageSize, name },
       });
-  
+
       setTotal(res.data.data.total);
       setEmployees(res.data.data.records);
     } catch (error) {
@@ -112,7 +112,6 @@ function EmployeePage() {
 
   // open modal for add or edit
   const openModal = (employee = null) => {
-    console.log("employee is :", employee);
 
     if (employee) {
       setEditing(true);
@@ -164,13 +163,7 @@ function EmployeePage() {
   const toggleStatus = async (id) => {
     if (!window.confirm("Are you sure to change employee status?")) return;
     try {
-      const res = await api.put(`/admin/employees/${id}/status`);
-      console.log(
-        "try to change employee status, id is: " +
-          id +
-          "response data is " +
-          res.data.data
-      );
+      await api.put(`/admin/employees/${id}/status`);
       await fetchEmployees(page, pageSize);
     } catch (err) {
       console.error("Failed to toggle status, error message:", err);
@@ -250,9 +243,7 @@ function EmployeePage() {
                   <span className="text-gray-500">Disabled</span>
                 )}
               </td>
-              <td className="py-3 px-4">
-                {formatDateTime(emp.updateTime)}
-              </td>
+              <td className="py-3 px-4">{formatDateTime(emp.updateTime)}</td>
               <td className="py-3 px-4 text-center flex justify-center gap-3">
                 <button
                   className="text-[#b08968] hover:text-[#8d6e52]"

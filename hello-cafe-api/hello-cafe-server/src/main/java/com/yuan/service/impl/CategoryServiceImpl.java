@@ -75,7 +75,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void deleteCategory(Long id) {
         if (!categoryRepository.existsById(id)) {
-            throw new IllegalArgumentException("Category not found: " + id);
+            throw new IllegalArgumentException(MessageConstant.ACCOUNT_NOT_FOUND);
         }
         boolean menuExists = menuItemRepository.existsByCategoryId(id);
         boolean comboExists = comboRepository.existsByCategoryId(id);
@@ -94,7 +94,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void updateCategoryStatus(Long id) {
         Category existingCate = categoryRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Category not found"));
+                .orElseThrow(() -> new IllegalArgumentException(MessageConstant.ACCOUNT_NOT_FOUND));
         Long empId = UserContext.getCurrentUserId();
         Integer newStatus = existingCate.getStatus() == 1 ? 0 : 1;
         existingCate.setStatus(newStatus);
@@ -110,15 +110,32 @@ public class CategoryServiceImpl implements CategoryService {
     public Category addCategory(CategoryDTO dto) {
 
         Optional<Category> existing = categoryRepository.findByName(dto.getName());
-        if (existing.isPresent()){
-            throw new IllegalArgumentException("Category already exists!");
+        if (existing.isPresent()) {
+            throw new IllegalArgumentException(MessageConstant.ALREADY_EXISTS);
         }
         Integer maxSort = categoryRepository.findMaxSort();
         int newSort = (maxSort == null ? 1 : maxSort + 1);
         long empId = UserContext.getCurrentUserId();
         Category category = new Category(null, dto.getName(), dto.getType(), newSort, StatusConstant.DISABLE,
-                LocalDateTime.now(),LocalDateTime.now(),empId,empId);
+                LocalDateTime.now(), LocalDateTime.now(), empId, empId);
         categoryRepository.save(category);
         return category;
     }
+
+    @Override
+    public Category updateCategory(CategoryDTO dto) {
+
+        Category existingCate = categoryRepository.findById(dto.getId()).orElseThrow(() -> new IllegalArgumentException(MessageConstant.ACCOUNT_NOT_FOUND));
+        ;
+        existingCate.setName(dto.getName());
+        existingCate.setType(dto.getType());
+        long empId = UserContext.getCurrentUserId();
+        existingCate.setUpdateEmployee(empId);
+        existingCate.setUpdateTime(LocalDateTime.now());
+
+        categoryRepository.save(existingCate);
+        return existingCate;
+    }
+
+
 }
