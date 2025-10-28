@@ -14,4 +14,9 @@ public class MessageConstant {
     public static final String LOGIN_FAILED = "Login failed";
     public static final String UPLOAD_FAILED = "File upload failed";
     public static final String DATABASE_ERROR = "Database operation failed";
+    public static final String ROLE_EMPTY_ERROR = "Role is empty, can not process log in";
+    public static final String ROLE_ERROR = "Invalid role: must be 'employee' or 'customer'";
+    public static final String NAME_EMPTY_ERROR = "Account name is empty, can not process log in";
+    public static final String PASSWORD_EMPTY_ERROR = "Password is empty, can not process log in";
+
 }

@@ -13,11 +13,24 @@ import java.util.List;
 import java.util.Optional;
 
 @Repository
-public interface CategoryRepository extends JpaRepository<Category ,Long> {
+public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     List<Category> findAll();
-    @Query(value = "select * from category where name = :name", nativeQuery = true)
-    Optional<Category> findByName(@Param("name")String name);
 
-    Page<Category> findByNameContaining(String name, Pageable pageable);
+    @Query(value = "select * from category where name = :name", nativeQuery = true)
+    Optional<Category> findByName(@Param("name") String name);
+
+
+    @Query("""
+                SELECT c FROM Category c
+                WHERE (:name IS NULL OR c.name LIKE %:name%)
+                  AND (:type = 0 OR c.type = :type)
+                ORDER BY c.updateTime DESC
+            """)
+    Page<Category> search(@Param("name") String name,
+                          @Param("type") int type,
+                          Pageable pageable);
+
+    @Query("SELECT COALESCE(MAX(c.sort), 0) FROM Category c")
+    Integer findMaxSort();
 }

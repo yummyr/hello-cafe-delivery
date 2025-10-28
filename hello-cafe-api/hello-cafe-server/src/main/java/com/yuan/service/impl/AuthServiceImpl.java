@@ -1,10 +1,12 @@
 package com.yuan.service.impl;
 
+import com.yuan.constant.MessageConstant;
 import com.yuan.dto.LoginRequestDTO;
 import com.yuan.dto.LoginResponseDTO;
 import com.yuan.dto.RegisterRequestDTO;
 import com.yuan.entity.Employee;
 import com.yuan.entity.User;
+import com.yuan.exception.LoginFailedException;
 import com.yuan.properties.JwtProperties;
 import com.yuan.repository.EmployeeRepository;
 import com.yuan.repository.UserRepository;
@@ -48,12 +50,12 @@ public class AuthServiceImpl implements AuthService {
             return switch (req.getRole().toLowerCase()) {
                 case "employee" -> loginEmployee(req);
                 case "customer" -> loginCustomer(req);
-                default -> throw new RuntimeException("Invalid role: must be 'employee' or 'customer'");
+                default -> throw new LoginFailedException(MessageConstant.ROLE_ERROR);
             };
 
         } catch (Exception e) {
             log.error("Login failed for user: {}, role: {}", req.getUsername(), req.getRole(), e);
-            throw new RuntimeException("Login failed: " + e.getMessage());
+            throw new LoginFailedException(MessageConstant.LOGIN_FAILED);
         }
     }
 
@@ -62,13 +64,13 @@ public class AuthServiceImpl implements AuthService {
      */
     private void validateLoginRequest(LoginRequestDTO req) {
         if (req.getUsername() == null || req.getUsername().trim().isEmpty()) {
-            throw new RuntimeException("Username cannot be empty");
+            throw new LoginFailedException(MessageConstant.NAME_EMPTY_ERROR);
         }
         if (req.getPassword() == null || req.getPassword().trim().isEmpty()) {
-            throw new RuntimeException("Password cannot be empty");
+            throw new LoginFailedException(MessageConstant.PASSWORD_EMPTY_ERROR);
         }
         if (req.getRole() == null || req.getRole().trim().isEmpty()) {
-            throw new RuntimeException("Role cannot be empty");
+            throw new LoginFailedException(MessageConstant.ROLE_EMPTY_ERROR);
         }
     }
 
@@ -79,12 +81,12 @@ public class AuthServiceImpl implements AuthService {
         log.info("Processing employee login for: {}", req.getUsername());
 
         Employee employee = employeeRepository.findByUsername(req.getUsername())
-                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                .orElseThrow(() -> new LoginFailedException(MessageConstant.ACCOUNT_NOT_FOUND));
 
         log.info("Employee found: {}", employee.getUsername());
 
         if (!passwordEncoder.matches(req.getPassword(), employee.getPassword())) {
-            throw new RuntimeException("Invalid password");
+            throw new LoginFailedException(MessageConstant.PASSWORD_ERROR);
         }
 
         log.info("Password validation successful");
@@ -101,12 +103,12 @@ public class AuthServiceImpl implements AuthService {
         log.info("Processing customer login for: {}", req.getUsername());
 
         User user = (User) userRepository.findByUsername(req.getUsername())
-                .orElseThrow(() -> new RuntimeException("Customer not found"));
+                .orElseThrow(() -> new LoginFailedException(MessageConstant.ACCOUNT_NOT_FOUND));
 
         log.info("Customer found: {}", user.getUsername());
 
         if (!passwordEncoder.matches(req.getPassword(), user.getPassword())) {
-            throw new RuntimeException("Invalid password");
+            throw  new LoginFailedException(MessageConstant.PASSWORD_ERROR);
         }
 
         log.info("Password validation successful");

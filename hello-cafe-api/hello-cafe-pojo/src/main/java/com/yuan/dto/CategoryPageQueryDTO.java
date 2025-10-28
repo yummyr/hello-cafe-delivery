@@ -15,4 +15,5 @@ public class CategoryPageQueryDTO implements Serializable {
     private String name;
     private int page = 1;
     private int pageSize = 10;
+    private int type = 0;
 }

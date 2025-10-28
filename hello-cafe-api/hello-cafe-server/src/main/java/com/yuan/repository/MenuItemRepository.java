@@ -13,4 +13,6 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
     @Query(value = "select * from menu_item where name = :name", nativeQuery = true)
     Optional<MenuItem> findByName(@Param("name")String name);
 
+    boolean existsByCategoryId(Long categoryId);
+
 }

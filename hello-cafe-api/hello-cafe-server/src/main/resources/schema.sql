@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS employee
     create_user BIGINT COMMENT  'who create this employee',
     update_user BIGINT COMMENT  'last one update this employee'
 );
-
+DROP TABLE IF EXISTS  category;
 CREATE TABLE IF NOT EXISTS category
 (
     id              BIGINT PRIMARY KEY AUTO_INCREMENT,

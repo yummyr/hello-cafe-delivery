@@ -26,7 +26,7 @@ public class PasswordEncryptionRunner implements CommandLineRunner {
             }
         });
 
-        // 2. encode all user password
+        // 2. encode all customer password
         userRepository.findAll().forEach(user -> {
             if (!user.getPassword().startsWith("$2a$")) {
                 user.setPassword(passwordEncoder.encode(user.getPassword()));
