@@ -2,17 +2,13 @@ package com.yuan.controller;
 
 import com.yuan.dto.CategoryDTO;
 import com.yuan.dto.CategoryPageQueryDTO;
-import com.yuan.dto.MenuItemDTO;
 import com.yuan.entity.Category;
-import com.yuan.entity.MenuItem;
 import com.yuan.result.PageResult;
 import com.yuan.result.Result;
 import com.yuan.service.CategoryService;
 import com.yuan.service.MenuItemService;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,7 +16,6 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 @RequestMapping("/api/admin/categories")
 public class CategoryController {
-    private final MenuItemService menuItemService;
     private final CategoryService categoryService;
 
     @PostMapping

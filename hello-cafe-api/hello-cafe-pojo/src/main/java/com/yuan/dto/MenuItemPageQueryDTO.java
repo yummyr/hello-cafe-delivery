@@ -6,19 +6,13 @@ import lombok.NoArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @Component
-public class MenuItemDTO implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private Long id;
+public class MenuItemPageQueryDTO implements Serializable {
     private String name;
-    private Double price;
-    private int sort;
-    private  String image;
-    private  String description;
-    private Long categoryId;
+    private int page = 1;
+    private int pageSize = 10;
 
 }

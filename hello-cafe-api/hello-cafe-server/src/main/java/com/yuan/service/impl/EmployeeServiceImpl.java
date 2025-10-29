@@ -1,5 +1,6 @@
 package com.yuan.service.impl;
 
+import com.yuan.constant.MessageConstant;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
@@ -61,23 +62,12 @@ public class EmployeeServiceImpl implements EmployeeService {
         employeeRepository.deleteById(id);
     }
 
-    @Override
-    public Employee getEmployeeById(Long id) {
-        Employee employee = employeeRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
-        return employee;
-    }
-
-    @Override
-    public List<Employee> getAllEmployees() {
-        return employeeRepository.findAll();
-    }
 
     @Override
     public void updateEmployeeStatus(Long id) {
         try {
             Employee employee = employeeRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Employee not found with id: " + id));
+                    .orElseThrow(() -> new RuntimeException(MessageConstant.ACCOUNT_NOT_FOUND));
             Integer status = employee.getStatus();
             Integer newStatus = (status == 1) ? 0 : 1;
             employee.setStatus(newStatus);
