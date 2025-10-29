@@ -12,8 +12,6 @@ public interface EmployeeService {
     void saveEmployee(EmployeeDTO employee);
     Employee updateEmployee(EmployeeDTO dto);
     void deleteEmployee(Long id);
-    Employee getEmployeeById(Long id);
-    List<Employee> getAllEmployees();
     void updateEmployeeStatus(Long id);
     PageResult page(EmployeePageQueryDTO dto);
 }

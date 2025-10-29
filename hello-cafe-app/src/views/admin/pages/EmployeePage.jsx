@@ -113,6 +113,7 @@ function EmployeePage() {
   // open modal for add or edit
   const openModal = (employee = null) => {
 
+
     if (employee) {
       setEditing(true);
       setFormData({

@@ -1,0 +1,8 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="add_menu_item.sql" type="DatabaseScript" nameIsGenerated="true">
+    <script-file value="$PROJECT_DIR$/hello-cafe-api/hello-cafe-server/src/main/resources/add_menu_item.sql" />
+    <script-mode>FILE</script-mode>
+    <data-source id="8763c5be-8205-45f7-9da8-514bedba7619" namespace="schema/&quot;hello_cafe_db&quot;" />
+    <method v="2" />
+  </configuration>
+</component>
