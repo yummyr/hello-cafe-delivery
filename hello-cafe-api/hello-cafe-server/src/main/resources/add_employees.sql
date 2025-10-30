@@ -1,7 +1,7 @@
 -- =======================
 -- add employees
 -- =======================
-INSERT INTO employee (name, username, password, phone, gender, status, create_time, update_time, create_user, update_user) VALUES
+INSERT INTO employee (name, username, password, phone, gender, status, create_time, update_time, create_employee, update_employee) VALUES
                                                                                                                                ('John Smith', 'john.smith', '123456', '13812345678', 'M', 1, '2024-01-15 09:00:00', '2024-01-15 09:00:00', 1, 1),
                                                                                                                                ('Emily Johnson', 'emily.j', '123456', '13987654321', 'F', 1, '2024-01-15 09:05:00', '2024-01-15 09:05:00', 1, 1),
                                                                                                                                ('Michael Brown', 'michael.b', '123456', '13611112222', 'M', 1, '2024-01-15 09:10:00', '2024-01-20 14:30:00', 1, 2),

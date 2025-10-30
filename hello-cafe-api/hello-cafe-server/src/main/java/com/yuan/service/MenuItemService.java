@@ -15,4 +15,6 @@ public interface MenuItemService {
     PageResult findAllWithCategory(MenuItemPageQueryDTO dto);
 
     void deleteIds(List<Long> idList);
+
+    void changeItemStatus(Long id);
 }

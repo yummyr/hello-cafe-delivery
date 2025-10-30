@@ -131,13 +131,12 @@ const CategoriesPage = () => {
 
   // open modal for add or edit
   const openModal = (category = null) => {
-
     if (category) {
       setEditing(true);
       setFormData({
         id: category.id,
         name: category.name,
-        type: category.phone,
+        type: category.type?.toString() || "1",
       });
     } else {
       setEditing(false);
@@ -160,21 +159,25 @@ const CategoriesPage = () => {
     e.preventDefault();
     setError("");
     try {
+      const typeValue = formData.type ? parseInt(formData.type, 10) : 1;
       if (editing) {
         // update
-        const res = await api.put(`/admin/categories/${formData.id}`, formData);
+        const updateData = {
+          id: formData.id,
+          name: formData.name.trim(),
+          type: typeValue,
+        };
+        await api.put(`/admin/categories/${formData.id}`, updateData);
         alert(`Update category ${formData.id} successfully!`);
         setShowFormModal(false);
         setEditing(false);
         await fetchCategories(page, pageSize);
       } else {
         const requestData = {
-          id: "",
           name: formData.name.trim(),
-          type: parseInt(formData.type, 10),
+          type: typeValue,
         };
-
-        const res = await api.post("/admin/categories", requestData);
+        await api.post("/admin/categories", requestData);
 
         alert("Add one category successfully!");
         setShowFormModal(false);

@@ -11,7 +11,6 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = "http://localhost:5173")
 @RequestMapping("/api/shop/status")
 @Slf4j
 public class ShopController {

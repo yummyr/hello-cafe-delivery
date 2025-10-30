@@ -1,23 +1,16 @@
 package com.yuan.service.impl;
 
-import com.yuan.constant.CategoryTypeConstant;
 import com.yuan.constant.MessageConstant;
 import com.yuan.constant.StatusConstant;
-import com.yuan.context.UserContext;
 import com.yuan.dto.CategoryDTO;
 import com.yuan.dto.CategoryPageQueryDTO;
-import com.yuan.dto.MenuItemDTO;
 import com.yuan.entity.Category;
-import com.yuan.entity.ComboItem;
-import com.yuan.entity.MenuItem;
 import com.yuan.exception.DeletionNotAllowedException;
 import com.yuan.repository.CategoryRepository;
-import com.yuan.repository.ComboItemRepository;
 import com.yuan.repository.ComboRepository;
 import com.yuan.repository.MenuItemRepository;
 import com.yuan.result.PageResult;
 import com.yuan.service.CategoryService;
-import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,8 +19,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -38,27 +29,12 @@ public class CategoryServiceImpl implements CategoryService {
     private final MenuItemRepository menuItemRepository;
     private final ComboRepository comboRepository;
 
-
-    @Override
-    public Category addMenuItemToCate(MenuItemDTO dto) {
-        Optional<Category> existing = categoryRepository.findByName(dto.getName());
-        if (existing.isPresent()) {
-            throw new IllegalArgumentException("Menu item exists, add another one");
-        }
-        Long empId = UserContext.getCurrentUserId();
-        Category category = new Category(null, dto.getName(), CategoryTypeConstant.MENU, dto.getSort(),
-                StatusConstant.DISABLE, LocalDateTime.now(), LocalDateTime.now(), empId, empId);
-        log.info("添加menu item在category里面，数据:{}", category.toString());
-        return categoryRepository.save(category);
-    }
-
     @Override
     public PageResult page(CategoryPageQueryDTO dto) {
         if (dto == null) {
             dto = new CategoryPageQueryDTO();
         }
 
-        // log.info("分类分页查询dto：{}",dto.toString());
         Pageable pageable = PageRequest.of(dto.getPage() - 1, dto.getPageSize(),
                 Sort.by(Sort.Direction.DESC, "updateTime"));
 
@@ -68,7 +44,6 @@ public class CategoryServiceImpl implements CategoryService {
                 pageable
         );
 
-        // log.info("分类分页查询结果：total={}, records={}", page.getTotalElements(), page.getContent().size());
         return new PageResult(page.getTotalElements(), page.getContent());
     }
 
@@ -95,46 +70,43 @@ public class CategoryServiceImpl implements CategoryService {
     public void updateCategoryStatus(Long id) {
         Category existingCate = categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(MessageConstant.ACCOUNT_NOT_FOUND));
-        Long empId = UserContext.getCurrentUserId();
+
         Integer newStatus = existingCate.getStatus() == 1 ? 0 : 1;
         existingCate.setStatus(newStatus);
-        existingCate.setUpdateTime(LocalDateTime.now());
-        existingCate.setUpdateEmployee(empId);
 
-        categoryRepository.save(existingCate); // Update the existing record
-        log.info("Updated category status successfully: {}", existingCate);
-
+        categoryRepository.save(existingCate);
+        // log.info("Updated category status successfully: {}", existingCate);
     }
 
     @Override
     public Category addCategory(CategoryDTO dto) {
-
         Optional<Category> existing = categoryRepository.findByName(dto.getName());
         if (existing.isPresent()) {
             throw new IllegalArgumentException(MessageConstant.ALREADY_EXISTS);
         }
+
         Integer maxSort = categoryRepository.findMaxSort();
         int newSort = (maxSort == null ? 1 : maxSort + 1);
-        long empId = UserContext.getCurrentUserId();
-        Category category = new Category(null, dto.getName(), dto.getType(), newSort, StatusConstant.DISABLE,
-                LocalDateTime.now(), LocalDateTime.now(), empId, empId);
+
+        Category category = new Category();
+        category.setName(dto.getName());
+        category.setType(dto.getType());
+        category.setSort(newSort);
+        category.setStatus(StatusConstant.DISABLE);
+
         categoryRepository.save(category);
         return category;
     }
 
     @Override
     public Category updateCategory(CategoryDTO dto) {
+        Category existingCate = categoryRepository.findById(dto.getId())
+                .orElseThrow(() -> new IllegalArgumentException(MessageConstant.ACCOUNT_NOT_FOUND));
 
-        Category existingCate = categoryRepository.findById(dto.getId()).orElseThrow(() -> new IllegalArgumentException(MessageConstant.ACCOUNT_NOT_FOUND));
-        ;
         existingCate.setName(dto.getName());
         existingCate.setType(dto.getType());
-        long empId = UserContext.getCurrentUserId();
-        existingCate.setUpdateEmployee(empId);
-        existingCate.setUpdateTime(LocalDateTime.now());
 
-        categoryRepository.save(existingCate);
-        return existingCate;
+        return categoryRepository.save(existingCate);
     }
 
 

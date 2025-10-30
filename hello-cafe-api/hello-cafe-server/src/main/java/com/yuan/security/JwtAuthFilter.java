@@ -1,4 +1,4 @@
-package com.yuan.interceptor;
+package com.yuan.security;
 
 import com.yuan.context.UserContext;
 import com.yuan.properties.JwtProperties;
@@ -94,9 +94,12 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     new SimpleGrantedAuthority(authority)
             );
 
-            // create authentication obj
+            // create authentication obj as principal
+            UserDetailsImpl userDetails = new UserDetailsImpl(userId, username, null, authorities);
+
             UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken(username, null, authorities);
+                    new UsernamePasswordAuthenticationToken(userDetails, null, authorities);
+
 
             // add more info into details
             authentication.setDetails(Map.of(

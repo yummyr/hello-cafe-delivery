@@ -16,8 +16,8 @@ CREATE TABLE IF NOT EXISTS employee
     status      INT COMMENT '1 active, 0 inactive',
     create_time DATETIME,
     update_time DATETIME,
-    create_user BIGINT COMMENT  'who create this employee',
-    update_user BIGINT COMMENT  'last one update this employee'
+    create_employee BIGINT COMMENT  'who create this employee',
+    update_employee BIGINT COMMENT  'last one update this employee'
 );
 DROP TABLE IF EXISTS  category;
 CREATE TABLE IF NOT EXISTS category
