@@ -1,16 +1,22 @@
 package com.yuan.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @Entity
+@EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "combo")
-public class Combo implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class Combo extends BaseEntity {
+
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -34,15 +40,5 @@ public class Combo implements Serializable {
     @Column
     private Integer status; // 1 active, 0 inactive
 
-    @Column(name = "create_time")
-    private LocalDateTime createTime;
 
-    @Column(name = "update_time")
-    private LocalDateTime updateTime;
-
-    @Column(name = "create_employee")
-    private Long createEmployee; // creator's employee ID
-
-    @Column(name = "update_employee")
-    private Long updateEmployee; // last updater's employee ID
 }

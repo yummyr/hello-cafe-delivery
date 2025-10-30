@@ -3,6 +3,7 @@ package com.yuan.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
@@ -10,11 +11,12 @@ import java.time.LocalDateTime;
 
 @Data
 @Entity
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "menu_item")
-public class MenuItem implements Serializable {
-    private static final long serialVersionUID = 1L;
+public class MenuItem extends BaseEntity {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -36,18 +38,6 @@ public class MenuItem implements Serializable {
 
     @Column
     private Integer status; // 1 active, 0 inactive
-
-    @Column(name = "create_time")
-    private LocalDateTime createTime;
-
-    @Column(name = "update_time")
-    private LocalDateTime updateTime;
-
-    @Column(name = "create_employee")
-    private Long createEmployee;
-
-    @Column(name = "update_employee")
-    private Long updateEmployee;
 
 
 }

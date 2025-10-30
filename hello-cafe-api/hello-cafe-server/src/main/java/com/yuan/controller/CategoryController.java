@@ -6,7 +6,6 @@ import com.yuan.entity.Category;
 import com.yuan.result.PageResult;
 import com.yuan.result.Result;
 import com.yuan.service.CategoryService;
-import com.yuan.service.MenuItemService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -79,5 +78,4 @@ public class CategoryController {
     // public Result addComboItemCategory() {
     //     return Result.success();
     // }
-
 }

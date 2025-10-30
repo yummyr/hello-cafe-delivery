@@ -3,17 +3,16 @@ package com.yuan.entity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-
-import java.io.Serializable;
-import java.time.LocalDateTime;
 
 @Data
 @Entity
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
 @NoArgsConstructor
 @Table(name = "category")
-public class Category implements Serializable {
+public class Category extends BaseEntity  {
     private static final long serialVersionUID = 1L;
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -31,15 +30,5 @@ public class Category implements Serializable {
     @Column
     private Integer status; // 1 active, 0 inactive
 
-    @Column(name = "create_time")
-    private LocalDateTime createTime;
 
-    @Column(name = "update_time")
-    private LocalDateTime updateTime;
-
-    @Column(name = "create_employee")
-    private Long createEmployee; // employee id who created the category
-
-    @Column(name = "update_employee")
-    private Long updateEmployee; // last employee id who updated the category
 }

@@ -2,7 +2,7 @@ package com.yuan.controller;
 
 import com.yuan.dto.MenuItemDTO;
 import com.yuan.dto.MenuItemPageQueryDTO;
-import com.yuan.repository.MenuItemRepository;
+import com.yuan.entity.MenuItem;
 import com.yuan.result.PageResult;
 import com.yuan.result.Result;
 import com.yuan.service.MenuItemService;
@@ -31,4 +31,15 @@ public class MenuItemController {
         return Result.success(idList);
     }
 
+    @PostMapping
+    public Result addMenuItem(@RequestBody MenuItemDTO dto){
+       MenuItem menuItem = menuItemService.addMenuItem(dto);
+        return Result.success(menuItem);
+    }
+
+    @PutMapping("/status")
+    public Result toggleStatus(@RequestBody Long id){
+        menuItemService.changeItemStatus(id);
+        return Result.success(id);
+    }
 }

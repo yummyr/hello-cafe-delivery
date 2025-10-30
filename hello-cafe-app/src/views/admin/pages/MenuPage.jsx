@@ -7,8 +7,14 @@ import { formatDateTime } from "../../../utils/date";
 function MenuPage() {
   const [selectedIds, setSelectedIds] = useState([]);
   const [menuItems, setMenuItems] = useState([]);
-  const [statusFilter, setStatusFilter] = useState(null);
+  const [categoryList, setCategoryList] = useState([]);
+  const [selectedStatus, setSelectedStatus] = useState(null);
+  const [searchName, setSearchName] = useState(null);
+  const [searchCategory, setSearchCategory] = useState(null);
   const [showModal, setShowModal] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+
   const [newItem, setNewItem] = useState({
     name: "",
     price: "",
@@ -27,7 +33,7 @@ function MenuPage() {
 
   const handleStatusFilterChange = (e) => {
     const value = e.target.value;
-    setStatusFilter(value === "" ? null : parseInt(value));
+    setSelectedStatus(value === "" ? null : parseInt(value));
   };
   // single select checkbox
   const handleCheckboxChange = (id) => {
@@ -50,11 +56,9 @@ function MenuPage() {
     }
 
     try {
-      const res = await api.delete("/admin/menu", { data: idList });
-      console.log("Successfully deleted items");
-
-      setMenuItems((prev) => prev.filter((item) => !idList.includes(item.id)));
-      setSelectedIds((prev) => prev.filter((id) => !idList.includes(id)));
+      await api.delete("/admin/menu", { data: idList });
+      await fetchMenu();
+      setSelectedIds([]);
 
       alert(`Successfully deleted ${idList.length} item(s)`);
     } catch (error) {
@@ -62,27 +66,55 @@ function MenuPage() {
       alert("Failed to delete items. Please try again.");
     }
   };
+
+  const fetchMenu = async () => {
+    try {
+      const params = {
+        page: page,
+        pageSize: pageSize,
+      };
+
+      if (searchName && searchName.trim() !== "") {
+        params.name = searchName;
+      }
+      if (searchCategory && searchCategory.trim() !== "") {
+        params.categoryName = searchCategory;
+      }
+
+      if (selectedStatus !== null && selectedStatus !== undefined) {
+        params.status = selectedStatus;
+      }
+
+      console.log("📤 Fetching menu with params:", params);
+
+      const res = await api.get("admin/menu", { params });
+      console.log("✅ Successfully fetched menu items:", res.data.data.records);
+      setMenuItems(res.data.data.records);
+    } catch (err) {
+      console.error(" Failed to fetch menu items:", err);
+    }
+  };
+
   // Load menu list
   useEffect(() => {
-    const fetchMenu = async () => {
-      try {
-        const res = await api.get("admin/menu");
-        console.log("Successfully fetch menu page:", res.data.data.records);
-
-        setMenuItems(res.data.data.records);
-      } catch (err) {
-        console.error("❌ Failed to fetch menu items:", err);
-      }
-    };
     fetchMenu();
-  }, []);
+  }, [page, pageSize, searchName, searchCategory, selectedStatus]);
 
   // Handle image select
   const handleImageChange = (e) => {
     setNewItem({ ...newItem, image: e.target.files[0] });
   };
 
-  const toggleStatus = (id) => {};
+  const toggleStatus = async (id) => {
+    console.log(`going to toggle ${id} status~~~~`);
+    try {
+      const res = await api.put("admin/menu/status", id);
+      alert(`${id} status updated successfully!`);
+      await fetchMenu();
+    } catch (error) {
+      console.warn(`something wrong to update ${id} status`, error);
+    }
+  };
 
   // Submit new item
   const handleSubmit = async (e) => {
@@ -97,6 +129,7 @@ function MenuPage() {
       if (newItem.image) formData.append("image", newItem.image);
 
       const res = await api.post("admin/menu", formData);
+      await fetchMenu();
 
       // Add the new item to UI immediately
       setMenuItems((prev) => [...prev, res.data]);
@@ -152,10 +185,12 @@ function MenuPage() {
                   Menu Item Status
                 </label>
                 <select
-                  value={statusFilter === null ? "" : statusFilter.toString()}
+                  value={
+                    selectedStatus === null ? "" : selectedStatus.toString()
+                  }
                   onChange={(e) => {
                     const value = e.target.value;
-                    setStatusFilter(value === "" ? null : parseInt(value));
+                    setSelectedStatus(value === "" ? null : parseInt(value));
                   }}
                   className="border border-gray-300 rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#b08968] focus:border-transparent"
                 >
@@ -195,9 +230,19 @@ function MenuPage() {
         {/* ===== Filter Tabs ===== */}
         <div className="flex gap-4 mb-6">
           <button
-            onClick={() => setStatusFilter("active")}
+            onClick={() => setSelectedStatus(null)}
             className={`px-4 py-2 rounded-lg font-medium ${
-              statusFilter === "active"
+              selectedStatus === null
+                ? "bg-[#b08968] text-white"
+                : "bg-gray-200 text-gray-800"
+            }`}
+          >
+            All
+          </button>
+          <button
+            onClick={() => setSelectedStatus(1)}
+            className={`px-4 py-2 rounded-lg font-medium ${
+              selectedStatus === 1
                 ? "bg-[#b08968] text-white"
                 : "bg-gray-200 text-gray-800"
             }`}
@@ -205,9 +250,9 @@ function MenuPage() {
             Active
           </button>
           <button
-            onClick={() => setStatusFilter("inactive")}
+            onClick={() => setSelectedStatus(0)}
             className={`px-4 py-2 rounded-lg font-medium ${
-              statusFilter === "inactive"
+              selectedStatus === 0
                 ? "bg-[#b08968] text-white"
                 : "bg-gray-200 text-gray-800"
             }`}
@@ -258,7 +303,7 @@ function MenuPage() {
                   </td>
                   <td className="py-3 px-4">{item.name}</td>
                   <td className="py-3 px-4">{item.image}</td>
-                  <td className="py-3 px-4">{item.category}</td>
+                  <td className="py-3 px-4">{item.categoryName}</td>
                   <td className="py-3 px-4">{item.price}</td>
                   <td className="py-3 px-4">
                     {item.status === 1 ? (

@@ -5,7 +5,6 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Sort;
 import com.yuan.constant.PasswordConstant;
-import com.yuan.context.UserContext;
 import com.yuan.dto.EmployeeDTO;
 import com.yuan.dto.EmployeePageQueryDTO;
 import com.yuan.entity.Employee;
@@ -13,9 +12,6 @@ import com.yuan.repository.EmployeeRepository;
 import com.yuan.result.PageResult;
 import com.yuan.service.EmployeeService;
 import com.yuan.constant.StatusConstant;
-
-import java.time.LocalDateTime;
-import java.util.List;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,29 +27,36 @@ public class EmployeeServiceImpl implements EmployeeService {
     private final EmployeeRepository employeeRepository;
     private final BCryptPasswordEncoder passwordEncoder;
 
-
+    /**
+     * Create new employee (AutoFill handles common fields)
+     */
     @Override
     public void saveEmployee(EmployeeDTO dto) {
-        Employee employee = new Employee(dto.getId(), dto.getName(), dto.getUsername(),
-                passwordEncoder.encode(PasswordConstant.DEFAULT_PASSWORD), dto.getPhone(),
-                dto.getGender(), StatusConstant.ENABLE, LocalDateTime.now(), LocalDateTime.now(),
-                UserContext.getCurrentUserId(), UserContext.getCurrentUserId());
+        Employee employee = new Employee();
+        employee.setName(dto.getName());
+        employee.setUsername(dto.getUsername());
+        employee.setPassword(passwordEncoder.encode(PasswordConstant.DEFAULT_PASSWORD));
+        employee.setPhone(dto.getPhone());
+        employee.setGender(dto.getGender());
+        employee.setStatus(StatusConstant.ENABLE);
+
         employeeRepository.save(employee);
     }
 
+    /**
+     * Update employee info (AutoFill handles update fields)
+     */
     @Override
     public Employee updateEmployee(EmployeeDTO dto) {
-        Employee existing = (Employee) employeeRepository.findByUsername(dto.getUsername()).orElse(null);
-        if (existing == null) {
-            throw new IllegalArgumentException("Username not exists");
-        }
+        Employee existing = employeeRepository.findByUsername(dto.getUsername())
+                .orElseThrow(() -> new IllegalArgumentException(MessageConstant.ACCOUNT_NOT_FOUND));
 
-        Employee employee = new Employee(dto.getId(), dto.getName(), dto.getUsername(),
-                existing.getPassword(), dto.getPhone(), dto.getGender(), existing.getStatus(), existing.getCreateTime(),
-                LocalDateTime.now(), existing.getCreateUser(), UserContext.getCurrentUserId());
+        existing.setName(dto.getName());
+        existing.setPhone(dto.getPhone());
+        existing.setGender(dto.getGender());
+        // password, username, status keep the same
 
-        employeeRepository.save(employee);
-        return employee;
+        return employeeRepository.save(existing);
     }
 
 
@@ -68,20 +71,13 @@ public class EmployeeServiceImpl implements EmployeeService {
         try {
             Employee employee = employeeRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException(MessageConstant.ACCOUNT_NOT_FOUND));
-            Integer status = employee.getStatus();
-            Integer newStatus = (status == 1) ? 0 : 1;
+            Integer newStatus = employee.getStatus() == 1 ? 0 : 1;
             employee.setStatus(newStatus);
-            employee.setUpdateTime(LocalDateTime.now());
-            employee.setUpdateUser(UserContext.getCurrentUserId());
-
             employeeRepository.save(employee);
-
         } catch (Exception e) {
-            log.info("Try to update employee status but failed, error :{}", e.getMessage());
-
+            log.error("Failed to update employee status: {}", e.getMessage());
         }
     }
-
 
     /**
      * employee page query --- Pageable pagination interceptor

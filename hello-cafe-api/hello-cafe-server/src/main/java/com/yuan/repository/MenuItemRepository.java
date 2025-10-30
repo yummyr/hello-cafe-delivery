@@ -20,19 +20,19 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     Page<MenuItem> findAll(Pageable pageable);
     @Query("""
-    SELECT new com.yuan.vo.MenuItemVO(
-        m.id,
-        m.name,
-        m.image,
-        c.name,
-        m.price,
-        m.status,
-        m.updateTime
-    )
-    FROM MenuItem m
-    JOIN Category c ON m.categoryId = c.id
-    ORDER BY m.updateTime DESC
-""")
-    Page<MenuItemVO> findAllWithCategory(Pageable pageable);
+        SELECT mi
+        FROM MenuItem mi
+        JOIN Category c ON mi.categoryId = c.id
+        WHERE (:name IS NULL OR mi.name LIKE %:name%)
+          AND (:categoryName IS NULL OR c.name LIKE %:categoryName%)
+          AND (:status IS NULL OR mi.status = :status)
+        ORDER BY mi.updateTime DESC
+    """)
+    Page<MenuItem> findAllWithCategory(
+            @Param("name") String name,
+            @Param("categoryName") String categoryName,
+            @Param("status") Integer status,
+            Pageable pageable
+    );
 
 }
