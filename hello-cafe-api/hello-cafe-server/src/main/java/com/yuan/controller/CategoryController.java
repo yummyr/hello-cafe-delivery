@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -54,28 +56,10 @@ public class CategoryController {
         return Result.success();
     }
 
+    @GetMapping
+    public Result getCategories() {
+        List<Category> categories = categoryService.findAll();
+        return Result.success(categories);
+    }
 
-
-    // @PutMapping("/menu_item")
-    // @Transactional
-    // public Result addMenuItemCategory(@RequestBody MenuItemDTO dto) {
-    //     // log.info("MenuItemDTO dto in addMenuItemCategory is:{} ", dto);
-    //     try {
-    //         Category item = categoryService.addMenuItemToCate(dto);
-    //         // log.info(" Category item  in  addMenuItemCategory :{}", item);
-    //         Long categoryId = item.getId();
-    //
-    //         MenuItem menuItem = menuItemService.addMenuItem(dto, categoryId);
-    //         // log.info(" MenuItem item  in  addMenuItemCategory :{}", menuItem);
-    //         return Result.success(menuItem);
-    //     } catch (Exception e) {
-    //         return Result.error(e.getMessage());
-    //     }
-    //
-    // }
-    //
-    // @PutMapping("/combo_item")
-    // public Result addComboItemCategory() {
-    //     return Result.success();
-    // }
 }

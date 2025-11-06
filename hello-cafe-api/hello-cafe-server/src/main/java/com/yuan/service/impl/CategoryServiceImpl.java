@@ -19,6 +19,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -107,6 +108,11 @@ public class CategoryServiceImpl implements CategoryService {
         existingCate.setType(dto.getType());
 
         return categoryRepository.save(existingCate);
+    }
+
+    @Override
+    public List<Category> findAll() {
+        return categoryRepository.findAll();
     }
 
 

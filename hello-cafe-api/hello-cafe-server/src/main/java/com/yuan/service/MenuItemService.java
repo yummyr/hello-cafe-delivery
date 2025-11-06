@@ -17,4 +17,8 @@ public interface MenuItemService {
     void deleteIds(List<Long> idList);
 
     void changeItemStatus(Long id);
+
+    List<MenuItem> findByIds(List<Long> idList);
+
+    MenuItem updateMenuItem(MenuItemDTO dto);
 }

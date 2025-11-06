@@ -11,19 +11,19 @@ import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/shop/status")
+@RequestMapping("/api/shop")
 @Slf4j
 public class ShopController {
 
     private final ShopService shopService;
 
-    @GetMapping
+    @GetMapping("/status")
     public Result getShopStatus() {
         Integer status = shopService.getShopStatus();
         return Result.success(status);
     }
 
-    @PutMapping
+    @PutMapping("/status")
     public Result updateShopStatus(@RequestBody Map<String, Integer> req) {
         try {
             Integer status = req.get("status");

@@ -16,9 +16,8 @@ public class MenuItemDTO implements Serializable {
     private Long id;
     private String name;
     private Double price;
-    private int sort;
-    private  String image;
-    private  String description;
+    private String description;
     private Long categoryId;
+    private String image;
 
 }

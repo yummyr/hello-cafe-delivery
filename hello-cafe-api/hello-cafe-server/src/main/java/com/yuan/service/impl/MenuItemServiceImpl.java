@@ -11,6 +11,7 @@ import com.yuan.repository.MenuItemRepository;
 import com.yuan.result.PageResult;
 import com.yuan.service.MenuItemService;
 import com.yuan.vo.MenuItemVO;
+import org.springframework.beans.BeanUtils;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,14 +42,9 @@ public class MenuItemServiceImpl implements MenuItemService {
         if (existing.isPresent()) {
             throw new IllegalArgumentException(MessageConstant.ALREADY_EXISTS);
         }
-
         MenuItem item = new MenuItem();
-        item.setName(dto.getName());
-        item.setCategoryId(dto.getCategoryId());
-        item.setPrice(dto.getPrice());
-        item.setImage(dto.getImage());
-        item.setDescription(dto.getDescription());
-        item.setStatus(StatusConstant.ENABLE);
+        BeanUtils.copyProperties(dto, item);
+        item.setStatus(StatusConstant.DISABLE);
 
         menuItemRepository.save(item);
         return item;
@@ -125,6 +121,29 @@ public class MenuItemServiceImpl implements MenuItemService {
         item.setStatus(newStatus);
 
         menuItemRepository.save(item);
+    }
+
+    @Override
+    public List<MenuItem> findByIds(List<Long> idList) {
+        if (idList != null && !idList.isEmpty()) {
+            return menuItemRepository.findAllById(idList);
+        }
+        return null;
+    }
+
+    @Override
+    public MenuItem updateMenuItem(MenuItemDTO dto) {
+        if (dto == null || dto.getId() == null) {
+            throw new IllegalArgumentException("DTO or ID cannot be null");
+        }
+        MenuItem item = menuItemRepository.findById(dto.getId())
+                .orElseThrow(() -> new RuntimeException("Menu item not found: " + dto.getId()));
+        log.info("Updating menu item dto: {}", dto);
+        BeanUtils.copyProperties(dto, item);
+
+        log.info("Updating menu item: id={}, name={}", item.getId(), item.getName());
+
+        return menuItemRepository.save(item);
     }
 
 

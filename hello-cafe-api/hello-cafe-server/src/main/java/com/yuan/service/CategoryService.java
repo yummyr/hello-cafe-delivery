@@ -8,6 +8,8 @@ import com.yuan.entity.ComboItem;
 import com.yuan.result.PageResult;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public interface CategoryService {
 
@@ -21,4 +23,5 @@ public interface CategoryService {
 
     Category updateCategory(CategoryDTO dto);
 
+    List<Category> findAll();
 }

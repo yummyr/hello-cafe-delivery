@@ -246,7 +246,7 @@ function AdminTopBar({ onLogout }) {
       {/* Left: Brand logo + name */}
       <div className="flex items-center gap-3">
         <img
-          src="/assets/logo.png"
+          src="public/assets/logo.png"
           alt="logo"
           className="w-10 h-10 bg-[#8d6e52] rounded-full flex items-center justify-center"
         />
