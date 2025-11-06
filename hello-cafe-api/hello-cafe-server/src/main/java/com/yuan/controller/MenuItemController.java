@@ -137,4 +137,25 @@ public class MenuItemController {
             return Result.error("Failed to update menu item");
         }
     }
+
+    @GetMapping("/{id}")
+    public Result getMenuItemById(@PathVariable Long id) {
+        try {
+            MenuItem menuItem = menuItemService.getMenuItemById(id);
+            return Result.success(menuItem);
+        } catch (Exception e) {
+            return Result.error("Failed to fetch menu item: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/status")
+    public Result getMenuItem() {
+        try {
+            List<MenuItem> items = menuItemService.findAll();
+            return Result.success(items);
+        } catch (Exception e) {
+            log.error("Failed to get menu items", e);
+            return Result.error("Failed to retrieve menu items: " + e.getMessage());
+        }
+    }
 }

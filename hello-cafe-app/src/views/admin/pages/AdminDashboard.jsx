@@ -1,7 +1,7 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
-import ErrorBoundary from "../components/ErrorBoundary"
+import ErrorBoundary from "../components/ErrorBoundary";
 import {
   Home,
   BarChart3,
@@ -10,20 +10,79 @@ import {
   Utensils,
   Folder,
   Users,
+  X,
 } from "lucide-react";
+import api from "../../../api";
 
 function AdminDashboard() {
   const navigate = useNavigate();
+  const [activeTotal, setActiveTotal] = useState(0);
+  const [inactiveTotal, setInactiveTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
-  const menuItems = [
-    { label: "Dashboard", path: "dashboard", icon: <Home /> },
-    { label: "Analytics", path: "analytics", icon: <BarChart3 /> },
-    { label: "Orders", path: "orders", icon: <Package /> },
-    { label: "Combos", path: "combos", icon: <Gift /> },
-    { label: "Menu Items", path: "menu", icon: <Utensils /> },
-    { label: "Categories", path: "categories", icon: <Folder /> },
-    { label: "Employees", path: "employees", icon: <Users /> },
-  ];
+  const handleAddNew = () => {
+    navigate("/admin/menu/new");
+  };
+
+  const fetchMenuItemInfo = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      // console.log("Fetching menu item info...");
+      const response = await api.get("/admin/menu/status");
+      // console.log("Menu item info response:", response.data);
+      if (response.data.code === 1) {
+        const items = response.data.data;
+
+        const activeCount = items.filter((item) => item.status === 1).length;
+        const inactiveCount = items.filter((item) => item.status === 0).length;
+     
+        setActiveTotal(activeCount);
+        setInactiveTotal(inactiveCount);
+
+      } else {
+        throw new Error(response.data.msg || "Failed to fetch menu items");
+      }
+    } catch (error) {
+      console.error("Error fetching menu item info:", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchMenuItemInfo();
+  }, []);
+  
+  if (loading) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-500">Loading dashboard data...</p>
+        </div>
+      </AdminLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <AdminLayout>
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">
+            <p className="text-red-500 mb-4">Failed to load data: {error}</p>
+            <button
+              onClick={fetchMenuItemInfo}
+              className="bg-[#b08968] text-white px-4 py-2 rounded-md hover:bg-[#8d6e52]"
+            >
+              Retry
+            </button>
+          </div>
+        </div>
+      </AdminLayout>
+    );
+  }
 
   return (
     <ErrorBoundary>
@@ -36,7 +95,7 @@ function AdminDashboard() {
         <section className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <h3 className="text-lg font-semibold text-[#6b4f3b]">
-              Today’s Data{" "}
+              Today's Data{" "}
               <span className="text-sm text-gray-500">
                 {new Date().toLocaleDateString()}
               </span>
@@ -69,8 +128,9 @@ function AdminDashboard() {
             ))}
           </div>
         </section>
+
         {/* ===== Order Management ===== */}
-        <section>
+        <section className="mb-8">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-bold text-[#6b4f3b]">
               Order Management
@@ -141,25 +201,15 @@ function AdminDashboard() {
 
               <div className="flex justify-between items-center mb-4">
                 <div className="text-gray-600 space-y-1">
-                  <p
-                    onClick={() =>
-                      navigate(`/admin/${block.path}?status=active`)
-                    }
-                    className="cursor-pointer hover:text-[#b08968]"
-                  >
-                    Active: 12
+                  <p className="cursor-pointer hover:text-[#b08968]">
+                    Active: {activeTotal}
                   </p>
-                  <p
-                    onClick={() =>
-                      navigate(`/admin/${block.path}?status=inactive`)
-                    }
-                    className="cursor-pointer hover:text-[#b08968]"
-                  >
-                    Inactive: 3
+                  <p className="cursor-pointer hover:text-[#b08968]">
+                    Inactive: {inactiveTotal}
                   </p>
                 </div>
                 <button
-                  onClick={() => console.log("Add new", block.action)}
+                  onClick={() => handleAddNew()}
                   className="bg-[#b08968] text-white px-4 py-2 rounded-md hover:bg-[#8d6e52] transition"
                 >
                   + {block.action}

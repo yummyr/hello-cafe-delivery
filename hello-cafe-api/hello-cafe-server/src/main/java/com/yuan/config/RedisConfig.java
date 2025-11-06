@@ -17,14 +17,14 @@ public class RedisConfig {
         // serializer key use String
         StringRedisSerializer stringSerializer = new StringRedisSerializer();
         template.setKeySerializer(stringSerializer);
-        template.setHashKeySerializer(stringSerializer);
+        // template.setHashKeySerializer(stringSerializer);
 
         // serializer value use json
-        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer();
-        template.setValueSerializer(jsonSerializer);
-        template.setHashValueSerializer(jsonSerializer);
-
-        template.afterPropertiesSet();
+        // GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer();
+        // template.setValueSerializer(jsonSerializer);
+        // template.setHashValueSerializer(jsonSerializer);
+        //
+        // template.afterPropertiesSet();
         return template;
     }
 }

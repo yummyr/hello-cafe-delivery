@@ -13,6 +13,7 @@ import {
   CategoriesPage,
 } from "@/views/admin";
 import { UserLayout, UserDashboard, UserOrders } from "@/views/user";
+import MenuItemForm from "../views/admin/components/MenuItemForm";
 
 function AppRoutes() {
   return (
@@ -25,15 +26,18 @@ function AppRoutes() {
       <Route path="/register" element={<RegisterPage />} />
 
       {/* Admin Routes */}
-      <Route path="/admin/dashboard" element={<AdminDashboard />} />
-      <Route path="/admin/employees" element={<EmployeePage />} />
-      <Route path="/admin/analytics" element={<AnalyticsPage />} />
-      <Route path="/admin/orders" element={<OrderPage />} />
-      <Route path="/admin/orders/:id" element={<OrderDetails />} />
-      <Route path="/admin/menu" element={<MenuPage />} />
-      <Route path="/admin/combos" element={<ComboPage />} />
-      <Route path="/admin/categories" element={<CategoriesPage />} />
-
+      <Route path="/admin">
+        <Route path="dashboard" element={<AdminDashboard />} />
+        <Route path="employees" element={<EmployeePage />} />
+        <Route path="analytics" element={<AnalyticsPage />} />
+        <Route path="orders" element={<OrderPage />} />
+        <Route path="orders/:id" element={<OrderDetails />} />
+        <Route path="menu" element={<MenuPage />} />
+        <Route path="combos" element={<ComboPage />} />
+        <Route path="categories" element={<CategoriesPage />} />
+        <Route path="menu/new" element={<MenuItemForm />} />
+        <Route path="menu/edit/:id" element={<MenuItemForm />} />
+      </Route>
       {/* User Routes */}
       <Route path="/user" element={<UserLayout />}>
         <Route path="dashboard" element={<UserDashboard />} />

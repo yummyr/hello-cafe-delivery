@@ -21,4 +21,8 @@ public interface MenuItemService {
     List<MenuItem> findByIds(List<Long> idList);
 
     MenuItem updateMenuItem(MenuItemDTO dto);
+
+    List<MenuItem> findAll();
+
+    MenuItem getMenuItemById(Long id);
 }

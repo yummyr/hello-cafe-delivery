@@ -32,7 +32,6 @@ public class ShopController {
             }
 
             shopService.updateShopStatus(status);
-
             return Result.success(status);
         } catch (Exception e) {
             return Result.error(e.getMessage());

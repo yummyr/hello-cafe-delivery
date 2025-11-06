@@ -146,5 +146,27 @@ public class MenuItemServiceImpl implements MenuItemService {
         return menuItemRepository.save(item);
     }
 
+    @Override
+    public List<MenuItem> findAll() {
+        try {
+            List<MenuItem> items = menuItemRepository.findAll();
+            return items;
+        } catch (Exception e) {
+            log.error("Failed to find menu items", e);
+            throw new RuntimeException("Failed to retrieve menu items: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public MenuItem getMenuItemById(Long id) {
+        try {
+            MenuItem item = menuItemRepository.findById(id).orElse(null);
+            return item;
+        } catch (Exception e) {
+            log.error("Failed to find menu item by id: {}", id, e);
+            throw new RuntimeException("Failed to retrieve menu item: " + e.getMessage());
+        }
+    }
+
 
 }
