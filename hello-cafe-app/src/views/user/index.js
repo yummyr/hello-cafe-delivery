@@ -8,4 +8,5 @@ export { default as UserLayout } from "./layouts/UserLayout";
 // Pages
 export { default as UserDashboard } from "./pages/UserDashboard";
 export { default as UserOrders } from "./pages/UserOrders";
+export { default as AddressBookPage } from "./pages/AddressBookPage";
 

@@ -14,6 +14,7 @@ const pendingRequests = new Map();
 
 api.interceptors.request.use(
   (config) => {
+    console.log("🔍 Request URL:", config.baseURL + config.url);
     //initilize headers
     if (!config.headers) {
       config.headers = {};

@@ -30,8 +30,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**").permitAll()
-                        // .requestMatchers("/api/debug/**").permitAll()
-                        // 临时：所有认证用户都可以访问
+                        .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/admin/**").authenticated()
                         .requestMatchers("/api/user/**").authenticated()
                         .anyRequest().authenticated()

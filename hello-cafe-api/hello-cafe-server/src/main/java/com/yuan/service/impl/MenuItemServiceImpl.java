@@ -5,13 +5,18 @@ import com.yuan.constant.StatusConstant;
 import com.yuan.dto.MenuItemDTO;
 import com.yuan.dto.MenuItemPageQueryDTO;
 import com.yuan.entity.Category;
+import com.yuan.entity.ComboItem;
 import com.yuan.entity.MenuItem;
+import com.yuan.entity.MenuItemFlavor;
 import com.yuan.repository.CategoryRepository;
+import com.yuan.repository.ComboItemRepository;
+import com.yuan.repository.MenuItemFlavorRepository;
 import com.yuan.repository.MenuItemRepository;
 import com.yuan.result.PageResult;
 import com.yuan.service.MenuItemService;
 import com.yuan.vo.MenuItemVO;
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -32,11 +37,14 @@ import java.util.stream.Collectors;
 public class MenuItemServiceImpl implements MenuItemService {
     private final MenuItemRepository menuItemRepository;
     private final CategoryRepository categoryRepository;
+    private final MenuItemFlavorRepository menuItemFlavorRepository;
+    private final ComboItemRepository comboItemRepository;
 
     /**
      * Add a new menu item (autofilled by AOP)
      */
     @Override
+    @Transactional
     public MenuItem addMenuItem(MenuItemDTO dto) {
         Optional<MenuItem> existing = menuItemRepository.findByName(dto.getName());
         if (existing.isPresent()) {
@@ -47,6 +55,16 @@ public class MenuItemServiceImpl implements MenuItemService {
         item.setStatus(StatusConstant.DISABLE);
 
         menuItemRepository.save(item);
+
+        // Add flavors if provided (Optional)
+        List<MenuItemFlavor> flavors = dto.getFlavors();
+        if (flavors != null && !flavors.isEmpty()) {
+            flavors.forEach(flavor -> {
+                flavor.setMenuItemId(item.getId());
+                menuItemFlavorRepository.save(flavor);
+            });
+        }
+
         return item;
     }
 
@@ -104,6 +122,30 @@ public class MenuItemServiceImpl implements MenuItemService {
         if (idList == null || idList.isEmpty()) {
             throw new IllegalArgumentException(MessageConstant.ACCOUNT_NOT_FOUND);
         }
+
+        // Check if any menu items are currently active (status = 1)
+        List<MenuItem> activeItems = menuItemRepository.findAllById(idList).stream()
+                .filter(item -> item.getStatus() == 1)
+                .toList();
+
+        if (!activeItems.isEmpty()) {
+            throw new IllegalArgumentException("Cannot delete active menu items: " +
+                    activeItems.stream().map(MenuItem::getName).collect(Collectors.joining(", ")));
+        }
+
+        // Check if any menu items are referenced in combo items
+        List<ComboItem> referencedItems = comboItemRepository.findByMenuItemIdIn(idList);
+        if (!referencedItems.isEmpty()) {
+            List<String> referencedItemNames = menuItemRepository.findAllById(
+                    referencedItems.stream().map(ComboItem::getMenuItemId).toList()
+            ).stream().map(MenuItem::getName).toList();
+            throw new IllegalArgumentException("Cannot delete menu items referenced in combos: " +
+                    String.join(", ", referencedItemNames));
+        }
+
+        // Delete associated flavors first
+        menuItemFlavorRepository.deleteByMenuItemIdIn(idList);
+
         // log.info("Batch deleting menu items: {}", idList);
         menuItemRepository.deleteAllByIdInBatch(idList);
     }
@@ -144,6 +186,31 @@ public class MenuItemServiceImpl implements MenuItemService {
         log.info("Updating menu item: id={}, name={}", item.getId(), item.getName());
 
         return menuItemRepository.save(item);
+    }
+
+    /**
+     * Update menu item with associated flavors
+     */
+    @Override
+    @Transactional
+    public void updateWithFlavor(MenuItemDTO menuItemDTO) {
+        MenuItem item = new MenuItem();
+        BeanUtils.copyProperties(menuItemDTO, item);
+
+        // Update menu item
+        menuItemRepository.save(item);
+
+        // Delete existing flavors for this menu item
+        menuItemFlavorRepository.deleteByMenuItemId(menuItemDTO.getId());
+
+        // Insert new flavors
+        List<MenuItemFlavor> flavors = menuItemDTO.getFlavors();
+        if (flavors != null && !flavors.isEmpty()) {
+            flavors.forEach(flavor -> {
+                flavor.setMenuItemId(menuItemDTO.getId());
+                menuItemFlavorRepository.save(flavor);
+            });
+        }
     }
 
     @Override

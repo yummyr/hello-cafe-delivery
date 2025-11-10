@@ -1,16 +1,23 @@
 package com.yuan.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
 @Entity
+@EqualsAndHashCode(callSuper = true)
+@AllArgsConstructor
+@NoArgsConstructor
 @Table(name = "shopping_cart")
-public class ShoppingCart implements Serializable {
+public class ShoppingCart extends BaseEntity {
     private static final long serialVersionUID = 1L;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -35,6 +42,9 @@ public class ShoppingCart implements Serializable {
 
     @Column(name = "unit_price", precision = 10)
     private Double unitPrice;
+
+    @Column(length = 255)
+    private String flavor; // 口味
 
     @Column(name = "create_time")
     private LocalDateTime createTime;

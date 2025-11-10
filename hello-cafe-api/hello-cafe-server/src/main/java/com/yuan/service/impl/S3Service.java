@@ -64,7 +64,7 @@ public class S3Service {
                     .build();
 
             s3Client.putObject(putObjectRequest,
-                    RequestBody.fromBytes(file.getBytes()));
+                    RequestBody.fromBytes(bytesToUpload));
 
             // generate open access URL
             String url = String.format("https://%s.s3.amazonaws.com/%s",

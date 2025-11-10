@@ -12,7 +12,7 @@ import {
   ComboPage,
   CategoriesPage,
 } from "@/views/admin";
-import { UserLayout, UserDashboard, UserOrders } from "@/views/user";
+import { UserLayout, UserDashboard, UserOrders, AddressBookPage } from "@/views/user";
 import MenuItemForm from "../views/admin/components/MenuItemForm";
 
 function AppRoutes() {
@@ -31,7 +31,7 @@ function AppRoutes() {
         <Route path="employees" element={<EmployeePage />} />
         <Route path="analytics" element={<AnalyticsPage />} />
         <Route path="orders" element={<OrderPage />} />
-        <Route path="orders/:id" element={<OrderDetails />} />
+        <Route path="orders/details/:id" element={<OrderDetails />} />
         <Route path="menu" element={<MenuPage />} />
         <Route path="combos" element={<ComboPage />} />
         <Route path="categories" element={<CategoriesPage />} />
@@ -42,6 +42,7 @@ function AppRoutes() {
       <Route path="/user" element={<UserLayout />}>
         <Route path="dashboard" element={<UserDashboard />} />
         <Route path="orders" element={<UserOrders />} />
+        <Route path="addresses" element={<AddressBookPage />} />
       </Route>
 
       {/* 404 fallback */}

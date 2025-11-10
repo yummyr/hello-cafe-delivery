@@ -5,8 +5,13 @@ import com.yuan.result.Result;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.catalina.connector.ClientAbortException;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.servlet.NoHandlerFoundException;
+
 import java.sql.SQLIntegrityConstraintViolationException;
 
 
@@ -74,6 +79,20 @@ public class GlobalExceptionHandler {
     public Result<String> handleDeletionNotAllowedException(DeletionNotAllowedException ex) {
         log.warn("Deletion not allowed: {}", ex.getMessage());
         return Result.error(ex.getMessage());
+    }
+
+    @ExceptionHandler(NoHandlerFoundException.class)
+    public ResponseEntity<Result<String>> handleNotFound(NoHandlerFoundException e) {
+        log.warn("API endpoint not found: {} {}", e.getHttpMethod(), e.getRequestURL());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Result.error("API endpoint not found: " + e.getHttpMethod() + " " + e.getRequestURL()));
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Result<String>> handleAccessDenied(AccessDeniedException e) {
+        log.warn("Access denied: {}", e.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(Result.error("Access denied: " + e.getMessage()));
     }
 
 }

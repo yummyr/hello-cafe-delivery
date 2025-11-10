@@ -1,7 +1,6 @@
 package com.yuan.repository;
 
 import com.yuan.entity.MenuItem;
-import com.yuan.vo.MenuItemVO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -9,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -35,4 +35,10 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
             Pageable pageable
     );
 
+    List<MenuItem> findByStatus(Integer status);
+
+    List<MenuItem> findByCategoryIdAndStatus(Long categoryId, Integer status);
+
+    @Query(value = "select name from menu_item where id = :menuItemId", nativeQuery = true)
+    String findNameById(Long menuItemId);
 }

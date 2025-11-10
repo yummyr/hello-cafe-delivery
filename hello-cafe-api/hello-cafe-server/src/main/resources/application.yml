@@ -1,11 +1,16 @@
 
 server:
   port: 8080
+  servlet:
+    context-path: /
 spring:
   profiles:
     active: dev
   main:
     allow-circular-references: true
+  web:
+    resources:
+      add-mappings: false
 
   datasource:
     driver-class-name: ${hello-cafe.datasource.driver-class-name}
@@ -66,4 +71,64 @@ logging:
         service: DEBUG
         controller: DEBUG
 
+# Stripe Configuration
+stripe:
+  secret-key: ${STRIPE_SECRET_KEY:sk_test_example}
+  publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_example}
+  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_example}
 
+# Request/Response Logging Configuration
+request-logging:
+  enabled: true
+  log-requests: true
+  log-responses: true
+  log-method-results: false
+  max-payload-size: 1048576  # 1MB
+  skip-paths:
+    - "/actuator"
+    - "/health"
+    - "/metrics"
+    - "/info"
+    - "/favicon.ico"
+    - "/error"
+  skip-user-agents:
+    - "kube-probe"
+    - "Prometheus"
+    - "ELB-HealthChecker"
+    - "AWS-HealthChecker"
+  sensitive-headers:
+    - "authorization"
+    - "cookie"
+    - "set-cookie"
+    - "x-api-key"
+    - "x-auth-token"
+    - "x-forwarded-for"
+    - "x-real-ip"
+    - "proxy-authorization"
+  sensitive-parameters:
+    - "password"
+    - "token"
+    - "secret"
+    - "key"
+    - "credential"
+    - "auth"
+    - "access_token"
+    - "refresh_token"
+  sensitive-fields:
+    - "password"
+    - "token"
+    - "secret"
+    - "key"
+    - "credential"
+    - "auth"
+    - "accessToken"
+    - "refreshToken"
+    - "creditCard"
+    - "ssn"
+    - "socialSecurityNumber"
+    - "bankAccount"
+    - "pin"
+    - "cvv"
+    - "cvc"
+    - "cardNumber"
+    - "cardnumber"

@@ -93,6 +93,8 @@ public class AuthServiceImpl implements AuthService {
 
         String token = generateEmployeeToken(employee);
 
+        log.info("Token generated for employee token: {}", token);
+
         return new LoginResponseDTO(token, jwtProperties.getAdminTtl(), employee.getUsername(), "employee");
     }
 

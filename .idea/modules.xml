@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/hello-cafe-delivery.iml" filepath="$PROJECT_DIR$/hello-cafe-delivery.iml" />
+      <module fileurl="file://$PROJECT_DIR$/hello-cafe-api/hello-cafe-pojo/hello-cafe-pojo.iml" filepath="$PROJECT_DIR$/hello-cafe-api/hello-cafe-pojo/hello-cafe-pojo.iml" />
     </modules>
   </component>
 </project>

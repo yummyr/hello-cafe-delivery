@@ -33,4 +33,8 @@ public interface CategoryRepository extends JpaRepository<Category, Long> {
 
     @Query("SELECT COALESCE(MAX(c.sort), 0) FROM Category c")
     Integer findMaxSort();
+
+    List<Category> findByTypeAndStatusOrderBySortAsc(Integer type, Integer status);
+
+    List<Category> findByStatusOrderBySortAsc(Integer status);
 }

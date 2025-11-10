@@ -1,4 +1,4 @@
-package com.yuan.controller;
+package com.yuan.controller.admin;
 
 import com.yuan.dto.EmployeeDTO;
 import com.yuan.dto.EmployeePageQueryDTO;
@@ -26,7 +26,7 @@ public class EmployeeController {
     // Create
     @PostMapping
     public Result<String> addEmployee(@RequestBody EmployeeDTO dto) {
-        // log.info("add employee dt :{}", dto.toString());
+        log.info("add employee dt :{}", dto.toString());
         employeeService.saveEmployee(dto);
         return Result.success(dto.getUsername());
     }
@@ -53,6 +53,7 @@ public class EmployeeController {
 
     @GetMapping("/page")
     public Result pageResult(EmployeePageQueryDTO dto){
+        log.info("员工分页查询page query :{}", dto.toString());
         PageResult pageResult = employeeService.page(dto);
         return Result.success(pageResult);
     }

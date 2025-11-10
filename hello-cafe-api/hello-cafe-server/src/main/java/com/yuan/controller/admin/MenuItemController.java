@@ -1,9 +1,10 @@
-package com.yuan.controller;
+package com.yuan.controller.admin;
 
 import com.yuan.constant.FileConstant;
 import com.yuan.dto.MenuItemDTO;
 import com.yuan.dto.MenuItemPageQueryDTO;
 import com.yuan.entity.MenuItem;
+import com.yuan.entity.MenuItemFlavor;
 import com.yuan.result.PageResult;
 import com.yuan.result.Result;
 import com.yuan.service.MenuItemService;
@@ -13,6 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -70,7 +72,7 @@ public class MenuItemController {
             //  convert to MenuItem DTO
             MenuItemDTO dto = new MenuItemDTO();
             dto.setName(name);
-            dto.setPrice(price);
+            dto.setPrice(BigDecimal.valueOf(price));
             dto.setDescription(description);
             dto.setCategoryId(categoryId);
 
@@ -111,7 +113,7 @@ public class MenuItemController {
             MenuItemDTO dto = new MenuItemDTO();
             dto.setId(id);
             dto.setName(name);
-            dto.setPrice(price);
+            dto.setPrice(BigDecimal.valueOf(price));
             dto.setDescription(description);
             dto.setCategoryId(categoryId);
 
@@ -156,6 +158,30 @@ public class MenuItemController {
         } catch (Exception e) {
             log.error("Failed to get menu items", e);
             return Result.error("Failed to retrieve menu items: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/with-flavors")
+    public Result addMenuItemWithFlavors(@RequestBody MenuItemDTO menuItemDTO) {
+        try {
+            log.info("Adding menu item with flavors: {}", menuItemDTO.getName());
+            MenuItem menuItem = menuItemService.addMenuItem(menuItemDTO);
+            return Result.success(menuItem);
+        } catch (Exception e) {
+            log.error("Failed to add menu item with flavors", e);
+            return Result.error("Failed to add menu item with flavors: " + e.getMessage());
+        }
+    }
+
+    @PutMapping("/with-flavors")
+    public Result updateMenuItemWithFlavors(@RequestBody MenuItemDTO menuItemDTO) {
+        try {
+            log.info("Updating menu item with flavors: {}", menuItemDTO.getId());
+            menuItemService.updateWithFlavor(menuItemDTO);
+            return Result.success();
+        } catch (Exception e) {
+            log.error("Failed to update menu item with flavors", e);
+            return Result.error("Failed to update menu item with flavors: " + e.getMessage());
         }
     }
 }

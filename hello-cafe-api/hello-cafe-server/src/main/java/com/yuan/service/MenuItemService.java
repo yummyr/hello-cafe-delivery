@@ -22,6 +22,8 @@ public interface MenuItemService {
 
     MenuItem updateMenuItem(MenuItemDTO dto);
 
+    void updateWithFlavor(MenuItemDTO menuItemDTO);
+
     List<MenuItem> findAll();
 
     MenuItem getMenuItemById(Long id);

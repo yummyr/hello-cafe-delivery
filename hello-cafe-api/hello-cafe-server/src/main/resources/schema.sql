@@ -155,12 +155,3 @@ CREATE TABLE IF NOT EXISTS order_detail
     unit_price   DECIMAL(10, 2),
     tax          DECIMAL(10, 2)
 );
-
-CREATE TABLE shop (
-                      id BIGINT PRIMARY KEY AUTO_INCREMENT,
-                      name VARCHAR(50) NOT NULL DEFAULT 'Hello Café',
-                      status TINYINT NOT NULL DEFAULT 1, -- 1=open, 0=closed
-                      update_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
-)
-
-INSERT INTO shop (name, status) VALUES ('Hello Café', 1)

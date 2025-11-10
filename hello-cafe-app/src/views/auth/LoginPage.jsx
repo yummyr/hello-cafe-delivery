@@ -20,7 +20,7 @@ function LoginPage() {
     if (!username || !password) {
     setError("Please fill in all fields");
     return;
-  }
+  } 
 
   setLoading(true);
   setError("");

@@ -1,4 +1,4 @@
-package com.yuan.controller;
+package com.yuan.controller.admin;
 
 import com.yuan.dto.CategoryDTO;
 import com.yuan.dto.CategoryPageQueryDTO;
