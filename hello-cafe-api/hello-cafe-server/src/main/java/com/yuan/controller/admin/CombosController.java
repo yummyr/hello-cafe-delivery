@@ -1,8 +1,8 @@
 package com.yuan.controller.admin;
 
-import com.yuan.entity.ComboItem;
+import com.yuan.entity.Combos;
 import com.yuan.result.Result;
-import com.yuan.service.ComboItemService;
+import com.yuan.service.CombosService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -12,17 +12,17 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/combo-items")
-public class ComboItemController {
+@RequestMapping("/api/admin/combos")
+public class CombosController {
 
-    private final ComboItemService comboItemService;
+    private final CombosService combosService;
 
     @PostMapping
-    public Result addComboItems(@RequestBody List<ComboItem> comboItems) {
+    public Result addCombos(@RequestBody List<Combos> combos) {
         try {
-            log.info("Adding {} combo items", comboItems.size());
+            log.info("Adding {} combo items", combos.size());
 
-            List<ComboItem> savedItems = comboItemService.addComboItems(comboItems);
+            List<Combos> savedItems = combosService.addComboItems(combos);
             return Result.success(savedItems);
         } catch (Exception e) {
             log.error("Failed to add combo items", e);
@@ -31,10 +31,10 @@ public class ComboItemController {
     }
 
     @DeleteMapping
-    public Result deleteComboItems(@RequestBody List<Long> idList) {
+    public Result deleteCombos(@RequestBody List<Long> idList) {
         try {
             log.info("Deleting {} combo items", idList.size());
-            comboItemService.deleteComboItems(idList);
+            combosService.deleteComboItems(idList);
             return Result.success();
         } catch (Exception e) {
             log.error("Failed to delete combo items", e);
@@ -46,7 +46,7 @@ public class ComboItemController {
     public Result deleteComboItemsByMenuItemId(@PathVariable Long menuItemId) {
         try {
             log.info("Deleting combo items for menu item: {}", menuItemId);
-            comboItemService.deleteComboItemsByMenuItemId(menuItemId);
+            combosService.deleteComboItemsByMenuItemId(menuItemId);
             return Result.success();
         } catch (Exception e) {
             log.error("Failed to delete combo items for menu item: {}", menuItemId, e);
@@ -57,7 +57,7 @@ public class ComboItemController {
     @GetMapping("/combo/{comboId}")
     public Result getComboItemsByComboId(@PathVariable Long comboId) {
         try {
-            List<ComboItem> items = comboItemService.getComboItemsByComboId(comboId);
+            List<Combos> items = combosService.getComboItemsByComboId(comboId);
             return Result.success(items);
         } catch (Exception e) {
             log.error("Failed to get combo items for combo: {}", comboId, e);
@@ -66,9 +66,9 @@ public class ComboItemController {
     }
 
     @GetMapping("/menu-item/{menuItemId}")
-    public Result getComboItemsByMenuItemId(@PathVariable Long menuItemId) {
+    public Result getCombosByMenuItemId(@PathVariable Long menuItemId) {
         try {
-            List<ComboItem> items = comboItemService.getComboItemsByMenuItemId(menuItemId);
+            List<Combos> items = combosService.getComboItemsByMenuItemId(menuItemId);
             return Result.success(items);
         } catch (Exception e) {
             log.error("Failed to get combo items for menu item: {}", menuItemId, e);
@@ -77,10 +77,10 @@ public class ComboItemController {
     }
 
     @PutMapping
-    public Result updateComboItem(@RequestBody ComboItem comboItem) {
+    public Result updateCombos(@RequestBody Combos combos) {
         try {
-            log.info("Updating combo item: {}", comboItem.getId());
-            ComboItem updatedItem = comboItemService.updateComboItem(comboItem);
+            log.info("Updating combo item: {}", combos.getId());
+            Combos updatedItem = combosService.updateComboItem(combos);
             return Result.success(updatedItem);
         } catch (Exception e) {
             log.error("Failed to update combo item", e);
@@ -89,10 +89,10 @@ public class ComboItemController {
     }
 
     @GetMapping
-    public Result getAllComboItems() {
+    public Result getAllCombos() {
         try {
-            List<ComboItem> items = comboItemService.getAllComboItems();
-            return Result.success(items);
+            List<Combos> combos = combosService.getAllCombos();
+            return Result.success(combos);
         } catch (Exception e) {
             log.error("Failed to get all combo items", e);
             return Result.error("Failed to get combo items: " + e.getMessage());

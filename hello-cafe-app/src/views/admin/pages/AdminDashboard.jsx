@@ -2,20 +2,18 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import ErrorBoundary from "../components/ErrorBoundary";
+import OrderNotificationModal from "../components/OrderNotificationModal";
+import useOrderNotifications from "../../../hooks/useOrderNotifications";
 import {
-  Home,
-  BarChart3,
   Package,
   Gift,
   Utensils,
-  Folder,
-  Users,
-  X,
   Clock,
   Truck,
   CheckCircle,
   XCircle,
   RefreshCw,
+  Bell,
 } from "lucide-react";
 import api from "../../../api";
 
@@ -29,36 +27,83 @@ function AdminDashboard() {
     orderCompletionRate: 0,
     unitPrice: 0,
     newUsers: 0,
+    totalOrders: 0,
+    pendingOrders: 0,
+    deliveringOrders: 0,
+    completedOrders: 0,
+    cancelledOrders: 0,
   });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // use OrderNotifications hook
+  const {
+    waitingOrders,
+    isLoading: notificationLoading,
+    error: notificationError,
+    isModalOpen,
+    closeModal,
+    openModal,
+    viewOrder,
+    confirmOrder,
+    refresh: refreshNotifications,
+  } = useOrderNotifications();
   const orderStatus = [
-    { name: "All Orders", value: null, icon: Package, color: "text-gray-800" },
-    { name: "Pending", value: 1, icon: Clock, color: "text-yellow-800" },
+    {
+      name: "All Orders",
+      value: null,
+      icon: Package,
+      color: "text-gray-800",
+      count: businessData.totalOrders,
+    },
+    {
+      name: "Pending",
+      value: 1,
+      icon: Clock,
+      color: "text-yellow-800",
+      count: businessData.pendingOrders,
+    },
     {
       name: "Out for Delivery",
       value: 4,
       icon: Truck,
       color: " text-blue-800",
+      count: businessData.deliveringOrders,
     },
     {
       name: "Completed",
       value: 5,
       icon: CheckCircle,
       color: " text-green-800",
+      count: businessData.completedOrders,
     },
-    { name: "Cancelled", value: 6, icon: XCircle, color: "text-red-800" },
+    {
+      name: "Cancelled",
+      value: 6,
+      icon: XCircle,
+      color: "text-red-800",
+      count: businessData.cancelledOrders,
+    },
   ];
 
   const handleAddNew = () => {
     navigate("/admin/menu/new");
   };
 
+  // handle bell click
+  const handleBellClick = () => {
+    if (waitingOrders?.count > 0) {
+      // if there are waiting orders open the modal
+      openModal();
+    } else {
+      // if there are no waiting orders, refresh the notifications
+      refreshNotifications();
+    }
+  };
+
   const fetchBusinessData = async () => {
     try {
-      console.log(
-        "🔄 Fetching business data from /admin/report/businessData"
-      );
+      console.log("🔄 Fetching business data from /admin/report/businessData");
       const response = await api.get("/admin/report/businessData");
       console.log("📊 Business data response:", response.data);
 
@@ -128,11 +173,11 @@ function AdminDashboard() {
     fetchBusinessData();
   }, []);
   const handleNavigate = (status) => {
-    // 如果 status 是 null，跳转到所有订单
+    // if status is null, then navigate to all orders
     if (status === null) {
       navigate("/admin/orders");
     } else {
-      // 带上 status 参数跳转
+      // navigate with status
       navigate(`/admin/orders?searchStatus=${status}`);
     }
   };
@@ -172,9 +217,38 @@ function AdminDashboard() {
   return (
     <ErrorBoundary>
       <AdminLayout>
-        <h2 className="text-2xl font-bold text-[#4b3b2b] mb-6">
-          Dashboard Overview
-        </h2>
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold text-[#4b3b2b]">
+            Dashboard Overview
+          </h2>
+
+          {/* notification button */}
+          <button
+            onClick={handleBellClick}
+            className="relative bg-white p-3 rounded-full shadow hover:shadow-md transition-shadow group"
+            title={waitingOrders?.count > 0 ? "click to view pending orders" : "click to check for new orders"}
+          >
+            <Bell
+              className={`h-6 w-6 text-[#b08968] group-hover:text-[#8d6e52] transition-colors ${
+                notificationLoading ? "animate-pulse" : ""
+              }`}
+            />
+
+            {/* notification badge */}
+            {waitingOrders?.count > 0 && (
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full h-6 w-6 flex items-center justify-center animate-bounce">
+                {waitingOrders.count > 9 ? "9+" : waitingOrders.count}
+              </span>
+            )}
+
+            {/* loading badge */}
+            {notificationLoading && !waitingOrders?.count && (
+              <span className="absolute -top-1 -right-1 bg-orange-400 text-white text-xs font-bold rounded-full h-4 w-4 flex items-center justify-center">
+                •
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* Today's Data */}
         <section className="mb-8">
@@ -187,7 +261,7 @@ function AdminDashboard() {
             </h3>
             <div className="flex gap-2 items-center">
               <button
-                onClick={fetchBusinessData}
+                onClick={handleRetry}
                 className="text-[#b08968] hover:underline text-sm font-medium flex items-center gap-1"
                 title="Refresh business data"
               >
@@ -267,8 +341,13 @@ function AdminDashboard() {
                 key={i}
                 className="bg-white p-5 rounded-xl shadow hover:shadow-md border border-gray-100 flex flex-col items-center justify-center"
               >
-                <status.icon className={`w-6 h-6 ${status.color}`} />
+                <status.icon
+                  className={`w-6 h-6 font-semibold ${status.color}`}
+                />
                 <p className="mt-2 font-medium text-[#4b3b2b]">{status.name}</p>
+                <p className={`text-md font-semibold ${status.color}`}>
+                  {status.count}
+                </p>
               </div>
             ))}
           </div>
@@ -330,6 +409,15 @@ function AdminDashboard() {
             </div>
           ))}
         </section>
+
+        {/*  Order Notification Modal */}
+        <OrderNotificationModal
+          isOpen={isModalOpen}
+          onClose={closeModal}
+          waitingOrders={waitingOrders}
+          onViewOrder={viewOrder}
+          onConfirmOrder={confirmOrder}
+        />
       </AdminLayout>
     </ErrorBoundary>
   );

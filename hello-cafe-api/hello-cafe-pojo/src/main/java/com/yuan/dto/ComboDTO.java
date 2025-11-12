@@ -1,6 +1,6 @@
 package com.yuan.dto;
 
-import com.yuan.entity.ComboItem;
+import com.yuan.entity.Combos;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -22,5 +22,5 @@ public class ComboDTO implements Serializable {
     private String image;               // 套餐图片
     private String description;         // 套餐描述
     private Integer status;             // 套餐状态：1为起售 0为停售
-    private List<ComboItem> comboItems; // 套餐包含的菜品
+    private List<Combos> combos; // 套餐包含的菜品
 }

@@ -10,8 +10,6 @@ import {
   Line,
 } from "recharts";
 import {
-  Calendar,
-  Download,
   TrendingUp,
   Users,
   ShoppingCart,
@@ -37,9 +35,6 @@ function AnalyticsPage() {
     orderCompletionRate: 0,
   });
 
-  /** =======================
-   *   API FUNCTIONS
-   * ======================= */
 
   const getRevenueStatistics = async (begin, end) => {
     const response = await api.get("/admin/report/revenueStatistics", {
@@ -104,9 +99,6 @@ function AnalyticsPage() {
     setDateRange(defaultRange);
   }, [mainPeriod]);
 
-  /** =======================
-   *   FETCH REPORT DATA
-   * ======================= */
 
   useEffect(() => {
     if (dateRange.begin && dateRange.end) {
@@ -244,6 +236,9 @@ function AnalyticsPage() {
           </h3>
 
           <div className="flex gap-2 flex-wrap">
+            <p className="bg-[#e5751a] text-white px-4 py-2 text-sm rounded">
+                Recent
+            </p>
             <button
               onClick={() => setMainPeriod("1day")}
               className={`px-4 py-2 text-sm rounded ${
@@ -252,7 +247,7 @@ function AnalyticsPage() {
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
-              Recent 1 Day
+             1 Day
             </button>
             <button
               onClick={() => setMainPeriod("7days")}
@@ -262,7 +257,7 @@ function AnalyticsPage() {
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
-              Recent 7 Days
+              7 Days
             </button>
             <button
               onClick={() => setMainPeriod("14days")}
@@ -272,7 +267,7 @@ function AnalyticsPage() {
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
-              Recent 14 Days
+            14 Days
             </button>
             <button
               onClick={() => setMainPeriod("30days")}
@@ -282,7 +277,7 @@ function AnalyticsPage() {
                   : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
-              Recent 30 Days
+              30 Days
             </button>
           </div>
 

@@ -19,7 +19,7 @@ function AdminSidebar() {
     { label: "Dashboard", path: "/admin/dashboard", icon: <Home /> },
     { label: "Analytics", path: "/admin/analytics", icon: <BarChart3 /> },
     { label: "Orders", path: "/admin/orders", icon: <Package /> },
-    { label: "Combos", path: "/admin/combos", icon: <Gift /> },
+    { label: "Combo", path: "/admin/combo", icon: <Gift /> },
     { label: "Menu Items", path: "/admin/menu", icon: <Utensils /> },
     { label: "Categories", path: "/admin/categories", icon: <Folder /> },
     { label: "Employees", path: "/admin/employees", icon: <Users /> },

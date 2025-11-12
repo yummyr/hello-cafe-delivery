@@ -23,8 +23,6 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
     @Query("SELECT SUM(o.amount) FROM Orders o WHERE o.orderTime >= :begin AND o.orderTime < :end AND o.status = 5")
     Double sumTodayRevenue(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
 
-    @Query("SELECT o FROM Orders o WHERE o.status IN :statuses")
-    List<Orders> findByStatusIn(@Param("statuses") List<Integer> statuses);
 
     @Query("SELECT COUNT(o) FROM Orders o WHERE o.status = :status")
     Long countByStatus(@Param("status") Integer status);
@@ -54,16 +52,6 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
             "LIMIT 10", nativeQuery = true)
     List<Object[]> getSalesTop10(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
 
-    List<Orders> findByNumberContainingAndStatusAndOrderTimeBetween(
-            String number, Integer status, LocalDateTime beginTime, LocalDateTime endTime);
-
-    List<Orders> findByPhoneContainingAndStatusAndOrderTimeBetween(
-            String phone, Integer status, LocalDateTime beginTime, LocalDateTime endTime);
-
-    Page<Orders> findAllByStatusAndOrderTimeBetween(Integer status, LocalDateTime beginTime, LocalDateTime endTime, Pageable pageable);
-
-    Page<Orders> findAllByOrderTimeBetween(LocalDateTime beginTime, LocalDateTime endTime, Pageable pageable);
-
     Page<Orders> findByUserIdAndStatus(Long userId, Integer status, Pageable pageable);
 
     Page<Orders> findByUserId(Long userId, Pageable pageable);
@@ -86,9 +74,22 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
             Pageable pageable
     );
 
-    @Query("SELECT o.number FROM Orders o WHERE o.id = :orderId")
-    String findNumberById(Long orderId);
 
-    @Query("SELECT COUNT(o) FROM Orders o WHERE o.orderTime >= :begin AND o.orderTime < :end")
-    Integer countNewUsers(LocalDateTime begin, LocalDateTime end);
+    @Query("SELECT COUNT(o) FROM Orders o WHERE o.status = 1 AND o.orderTime >= :begin AND o.orderTime < :end")
+    Integer countPendingOrders( @Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
+
+    @Query("SELECT COUNT(o) FROM Orders o WHERE o.status = 4 AND o.orderTime >= :begin AND o.orderTime < :end")
+    Integer countDeliveringOrders(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
+
+    @Query("SELECT COUNT(o) FROM Orders o WHERE o.status = 5 AND o.orderTime >= :begin AND o.orderTime < :end")
+    Integer countCompletedOrders(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
+
+    @Query("SELECT COUNT(o) FROM Orders o WHERE o.status = 6 AND o.orderTime >= :begin AND o.orderTime < :end")
+    Integer countCancelledOrders(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
+
+    @Query("SELECT COUNT(o) FROM Orders o Where o.orderTime >= :begin AND o.orderTime < :end")
+    Integer countAllOrders(@Param("begin") LocalDateTime begin, @Param("end") LocalDateTime end);
+
+    @Query("SELECT o FROM Orders o WHERE o.status IN :integers")
+    List<Orders> findByStatusIn(List<Integer> integers);
 }

@@ -1,6 +1,6 @@
 package com.yuan.repository;
 
-import com.yuan.entity.ComboItem;
+import com.yuan.entity.Combos;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,14 +10,14 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface ComboItemRepository extends JpaRepository<ComboItem, Long> {
+public interface CombosRepository extends JpaRepository<Combos, Long> {
 
-    @Query("SELECT ci FROM ComboItem ci WHERE ci.menuItemId IN :menuItemIds")
-    List<ComboItem> findByMenuItemIdIn(@Param("menuItemIds") List<Long> menuItemIds);
+    @Query("SELECT ci FROM Combos ci WHERE ci.menuItemId IN :menuItemIds")
+    List<Combos> findByMenuItemIdIn(@Param("menuItemIds") List<Long> menuItemIds);
 
-    List<ComboItem> findByMenuItemId(Long menuItemId);
+    List<Combos> findByMenuItemId(Long menuItemId);
 
-    List<ComboItem> findByComboId(Long comboId);
+    List<Combos> findByComboId(Long comboId);
 
     void deleteByMenuItemId(Long menuItemId);
 

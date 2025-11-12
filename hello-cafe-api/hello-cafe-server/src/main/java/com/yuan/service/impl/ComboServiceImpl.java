@@ -6,13 +6,14 @@ import com.yuan.dto.ComboDTO;
 import com.yuan.dto.ComboPageQueryDTO;
 import com.yuan.entity.Category;
 import com.yuan.entity.Combo;
-import com.yuan.entity.ComboItem;
+import com.yuan.entity.Combos;
+import com.yuan.entity.MenuItem;
 import com.yuan.repository.CategoryRepository;
-import com.yuan.repository.ComboItemRepository;
+import com.yuan.repository.CombosRepository;
 import com.yuan.repository.ComboRepository;
+import com.yuan.repository.MenuItemRepository;
 import com.yuan.result.PageResult;
 import com.yuan.service.ComboService;
-import com.yuan.service.impl.S3Service;
 import com.yuan.vo.ComboVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -35,7 +36,8 @@ import java.util.stream.Collectors;
 public class ComboServiceImpl implements ComboService {
     private final ComboRepository comboRepository;
     private final CategoryRepository categoryRepository;
-    private final ComboItemRepository comboItemRepository;
+    private final CombosRepository combosRepository;
+    private final MenuItemRepository menuItemRepository;
     private final S3Service s3Service;
 
     @Override
@@ -52,13 +54,24 @@ public class ComboServiceImpl implements ComboService {
 
         Combo savedCombo = comboRepository.save(combo);
 
-        // Save combo items
-        List<ComboItem> comboItems = comboDTO.getComboItems();
-        if (comboItems != null && !comboItems.isEmpty()) {
-            comboItems.forEach(item -> {
+        // Save combo items if provided
+        List<Combos> combos = comboDTO.getCombos();
+        if (combos != null && !combos.isEmpty()) {
+            for (Combos item : combos) {
                 item.setComboId(savedCombo.getId());
-                comboItemRepository.save(item);
-            });
+                // Set default values if not provided
+                if (item.getQuantity() == null) {
+                    item.setQuantity(1);
+                }
+                // Set name from MenuItem if not provided
+                if (item.getName() == null && item.getMenuItemId() != null) {
+                    MenuItem menuItem = menuItemRepository.findById(item.getMenuItemId())
+                            .orElseThrow(() -> new IllegalArgumentException("Menu item not found: " + item.getMenuItemId()));
+                    item.setName(menuItem.getName());
+                    item.setPrice(menuItem.getPrice());
+                }
+                combosRepository.save(item);
+            }
         }
 
         return savedCombo;
@@ -90,7 +103,7 @@ public class ComboServiceImpl implements ComboService {
         // Convert to combo VO
         List<ComboVO> voList = page.getContent().stream()
                 .map(combo -> {
-                    List<ComboItem> comboItems = comboItemRepository.findByComboId(combo.getId());
+                    List<Combos> combos = combosRepository.findByComboId(combo.getId());
                     return new ComboVO(
                             combo.getId(),
                             combo.getName(),
@@ -101,7 +114,7 @@ public class ComboServiceImpl implements ComboService {
                             combo.getDescription(),
                             combo.getStatus(),
                             combo.getUpdateTime(),
-                            comboItems
+                            combos
                     );
                 })
                 .toList();
@@ -119,13 +132,13 @@ public class ComboServiceImpl implements ComboService {
         // Delete associated combo items first
         for (Long comboId : idList) {
             // Delete combo items and associated images
-            List<ComboItem> comboItems = comboItemRepository.findByComboId(comboId);
-            for (ComboItem item : comboItems) {
+            List<Combos> combos = combosRepository.findByComboId(comboId);
+            for (Combos item : combos) {
                 // If menu items have images, delete them from S3
                 // Note: This assumes ComboItem might have an image field
                 // You may need to adjust based on your actual data model
             }
-            comboItemRepository.deleteByComboId(comboId);
+            combosRepository.deleteByComboId(comboId);
         }
 
         // Delete combos
@@ -155,14 +168,14 @@ public class ComboServiceImpl implements ComboService {
         BeanUtils.copyProperties(comboDTO, combo);
 
         // Delete existing combo items
-        comboItemRepository.deleteByComboId(combo.getId());
+        combosRepository.deleteByComboId(combo.getId());
 
         // Save new combo items
-        List<ComboItem> comboItems = comboDTO.getComboItems();
-        if (comboItems != null && !comboItems.isEmpty()) {
-            comboItems.forEach(item -> {
+        List<Combos> combos = comboDTO.getCombos();
+        if (combos != null && !combos.isEmpty()) {
+            combos.forEach(item -> {
                 item.setComboId(combo.getId());
-                comboItemRepository.save(item);
+                combosRepository.save(item);
             });
         }
 
@@ -177,7 +190,7 @@ public class ComboServiceImpl implements ComboService {
         Category category = categoryRepository.findById(combo.getCategoryId())
                 .orElse(null);
 
-        List<ComboItem> comboItems = comboItemRepository.findByComboId(id);
+        List<Combos> combos = combosRepository.findByComboId(id);
 
         return new ComboVO(
                 combo.getId(),
@@ -189,7 +202,7 @@ public class ComboServiceImpl implements ComboService {
                 combo.getDescription(),
                 combo.getStatus(),
                 combo.getUpdateTime(),
-                comboItems
+                combos
         );
     }
 
@@ -200,6 +213,31 @@ public class ComboServiceImpl implements ComboService {
         } catch (Exception e) {
             log.error("Failed to find combos", e);
             throw new RuntimeException("Failed to retrieve combos: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<Map<String, Object>> searchMenuItems(String query) {
+        try {
+            log.info("Searching menu items with query: {}", query);
+            // Search menu items by name with fuzzy matching
+            List<MenuItem> menuItems = menuItemRepository.findByNameContainingIgnoreCaseAndStatus(query, 1);
+
+            return menuItems.stream()
+                    .map(item -> {
+                        Map<String, Object> result = new java.util.HashMap<>();
+                        result.put("id", item.getId());
+                        result.put("name", item.getName());
+                        result.put("price", item.getPrice());
+                        result.put("image", item.getImage());
+                        result.put("categoryId", item.getCategoryId());
+                        result.put("description", item.getDescription());
+                        return result;
+                    })
+                    .collect(java.util.stream.Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to search menu items", e);
+            throw new RuntimeException("Failed to search menu items: " + e.getMessage());
         }
     }
 }

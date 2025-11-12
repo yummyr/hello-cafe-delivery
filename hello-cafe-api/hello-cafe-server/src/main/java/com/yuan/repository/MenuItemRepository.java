@@ -37,8 +37,15 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     List<MenuItem> findByStatus(Integer status);
 
-    List<MenuItem> findByCategoryIdAndStatus(Long categoryId, Integer status);
+    @Query("SELECT m FROM MenuItem m WHERE " +
+            "(:categoryId IS NULL OR m.categoryId = :categoryId) AND " +
+            "(:status IS NULL OR m.status = :status)")
+    List<MenuItem> findByCategoryIdAndStatus(
+            @Param("categoryId") Long categoryId,
+            @Param("status") Integer status
+    );
 
-    @Query(value = "select name from menu_item where id = :menuItemId", nativeQuery = true)
-    String findNameById(Long menuItemId);
+
+    // Fuzzy search menu items by name (case-insensitive) and status
+    List<MenuItem> findByNameContainingIgnoreCaseAndStatus(String name, Integer status);
 }

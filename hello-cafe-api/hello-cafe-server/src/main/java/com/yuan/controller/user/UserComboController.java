@@ -1,9 +1,9 @@
 package com.yuan.controller.user;
 
 import com.yuan.entity.Combo;
-import com.yuan.entity.ComboItem;
+import com.yuan.entity.Combos;
 import com.yuan.entity.MenuItem;
-import com.yuan.repository.ComboItemRepository;
+import com.yuan.repository.CombosRepository;
 import com.yuan.repository.ComboRepository;
 import com.yuan.repository.MenuItemRepository;
 import com.yuan.result.Result;
@@ -18,11 +18,11 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/user/combo")
+@RequestMapping("/api/user/combo")
 public class UserComboController {
 
     private final ComboRepository comboRepository;
-    private final ComboItemRepository comboItemRepository;
+    private final CombosRepository combosRepository;
     private final MenuItemRepository menuItemRepository;
 
     /**
@@ -52,9 +52,9 @@ public class UserComboController {
             log.info("Querying menu items for combo id: {}", id);
 
             // 查询套餐包含的菜品
-            List<ComboItem> comboItems = comboItemRepository.findByComboId(id);
+            List<Combos> combos = combosRepository.findByComboId(id);
 
-            List<DishItemVO> dishItems = comboItems.stream()
+            List<DishItemVO> dishItems = combos.stream()
                     .map(comboItem -> {
                         DishItemVO dishItem = new DishItemVO();
 
@@ -82,6 +82,21 @@ public class UserComboController {
         } catch (Exception e) {
             log.error("Failed to query combo menu items", e);
             return Result.error("Failed to query combo menu items: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 获取所有活跃的套餐
+     */
+    @GetMapping("/all")
+    public Result<List<Combo>> getAllActiveCombos() {
+        try {
+            log.info("Fetching all active combos");
+            List<Combo> combos = comboRepository.findByStatus(1);
+            return Result.success(combos);
+        } catch (Exception e) {
+            log.error("Failed to fetch all active combos", e);
+            return Result.error("Failed to fetch combos: " + e.getMessage());
         }
     }
 }

@@ -12,18 +12,18 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/user/addressBook")
+@RequestMapping("/api/user/addressBook")
 public class UserAddressBookController {
 
     private final AddressBookService addressBookService;
 
     /**
-     * 新增地址
+     * add new address
      */
     @PostMapping
     public Result addAddress(@RequestBody AddressBook addressBook) {
         try {
-            log.info("Adding new address for consignee: {}", addressBook.getConsignee());
+            log.info("Adding new address for consignee: {}", addressBook.getName());
             addressBookService.addAddress(addressBook);
             return Result.success();
         } catch (Exception e) {
@@ -33,7 +33,7 @@ public class UserAddressBookController {
     }
 
     /**
-     * 查询当前登录用户的所有地址信息
+     * query address list
      */
     @GetMapping("/list")
     public Result<List<AddressBook>> listAddress() {
@@ -48,7 +48,7 @@ public class UserAddressBookController {
     }
 
     /**
-     * 查询默认地址
+     * query default address
      */
     @GetMapping("/default")
     public Result<AddressBook> getDefaultAddress() {
@@ -63,7 +63,7 @@ public class UserAddressBookController {
     }
 
     /**
-     * 根据id修改地址
+     * update address
      */
     @PutMapping
     public Result updateAddress(@RequestBody AddressBook addressBook) {

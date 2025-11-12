@@ -131,7 +131,7 @@ INSERT INTO combo (name, category_id, price, image, description, status, create_
 -- =============================================
 -- 7. COMBO_ITEM TABLE (20 records)
 -- =============================================
-INSERT INTO combo_item (combo_id, menu_item_id, name, price, quantity) VALUES
+INSERT INTO combos (combo_id, menu_item_id, name, price, quantity) VALUES
 (1, 1, 'Espresso', 2.50, 1),
 (1, 7, 'Croissant', 3.50, 1),
 (1, 9, 'Seasonal Fruit Cup', 4.50, 1),

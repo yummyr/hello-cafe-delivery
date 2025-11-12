@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/user/order/payment")
+@RequestMapping("/api/user/order/payment")
 @RequiredArgsConstructor
 @Slf4j
 public class UserPaymentController {

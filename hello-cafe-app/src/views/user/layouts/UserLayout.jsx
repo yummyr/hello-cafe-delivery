@@ -1,17 +1,28 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import UserTopBar from "../components/UserTopBar";
 import UserSidebar from "../components/UserSidebar";
+import { useNavigate } from "react-router-dom";
 
 function UserLayout({ children }) {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    console.log("User logged out");
-    // Clear localStorage
-    localStorage.clear();
-    setIsLoggedIn(false);
-    // Redirect to login page
-    window.location.href = "/login";
+    try {
+      console.log("User logged out");
+      // Clear all user data
+      localStorage.removeItem("token");
+      localStorage.removeItem("username");
+      localStorage.removeItem("role");
+      localStorage.removeItem("loginResponse");
+
+      console.log("✅ Logged out successfully");
+      setIsLoggedIn(false);
+      navigate("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+      navigate("/login");
+    }
   };
 
   if (!isLoggedIn) {
@@ -27,15 +38,15 @@ function UserLayout({ children }) {
 
   return (
     <div className="h-screen w-full flex flex-col bg-[#f5f2ef] text-gray-800 font-sans">
-      {/* User TopBar */}
-      <UserTopBar onLogout={handleLogout} />
+      {/* Fixed Top Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50">
+        <UserTopBar onLogout={handleLogout} />
+      </div>
 
-      <div className="flex flex-1 overflow-hidden">
-        {/* User Sidebar */}
+      {/* Sidebar + Main Content */}
+      <div className="flex flex-1 pt-[72px]">
         <UserSidebar />
-
-        {/* Main Content */}
-        <main className="flex-1 overflow-y-auto ml-64">
+        <main className="flex-1 ml-64 p-8 overflow-y-auto space-y-6 bg-[#f8f4ef]">
           {children}
         </main>
       </div>

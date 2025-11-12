@@ -15,8 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/user/order")
-@Tag(name = "用户端订单相关接口")
+@RequestMapping("/api/user/order")
 @RequiredArgsConstructor
 @Slf4j
 public class UserOrderController {
@@ -24,60 +23,53 @@ public class UserOrderController {
     private final OrderService orderService;
 
     @PostMapping("/submit")
-    @Operation(summary = "用户下单")
     public Result<OrderSubmitVO> submit(@RequestBody OrdersSubmitDTO ordersSubmitDTO) {
-        log.info("用户下单：{}", ordersSubmitDTO);
+        log.info("submit order：{}", ordersSubmitDTO);
         OrderSubmitVO orderSubmitVO = orderService.submitOrder(ordersSubmitDTO);
         return Result.success(orderSubmitVO);
     }
 
     @PostMapping("/payment")
-    @Operation(summary = "订单支付")
     public Result<OrderPaymentVO> payment(@RequestBody OrdersPaymentDTO ordersPaymentDTO) throws Exception {
-        log.info("订单支付：{}", ordersPaymentDTO);
+        log.info("make payment：{}", ordersPaymentDTO);
         OrderPaymentVO orderPaymentVO = orderService.payment(ordersPaymentDTO);
         return Result.success(orderPaymentVO);
     }
 
     @GetMapping("/orderDetail/{id}")
-    @Operation(summary = "查询订单详情")
     public Result<OrderVO> orderDetail(@PathVariable Long id) {
-        log.info("查询订单详情：{}", id);
+        log.info("check order detail by id：{}", id);
         OrderVO orderVO = orderService.getOrderDetail(id);
         return Result.success(orderVO);
     }
 
     @GetMapping("/historyOrders")
-    @Operation(summary = "历史订单查询")
     public Result<PageResult> historyOrders(
             @RequestParam(defaultValue = "1") Integer page,
             @RequestParam(defaultValue = "10") Integer pageSize,
             @RequestParam(required = false) Integer status) {
-        log.info("历史订单查询：page={}, pageSize={}, status={}", page, pageSize, status);
+        log.info("History orders：page={}, pageSize={}, status={}", page, pageSize, status);
         PageResult pageResult = orderService.historyOrders(page, pageSize, status);
         return Result.success(pageResult);
     }
 
     @PutMapping("/cancel/{id}")
-    @Operation(summary = "取消订单")
     public Result cancel(@PathVariable Long id) {
-        log.info("取消订单：{}", id);
+        log.info("User cancel order by id：{}", id);
         orderService.cancelOrder(id);
         return Result.success();
     }
 
     @PostMapping("/repetition/{id}")
-    @Operation(summary = "再来一单")
     public Result repetition(@PathVariable Long id) {
-        log.info("再来一单：{}", id);
+        log.info("User repetition order by id：{}", id);
         orderService.repetitionOrder(id);
         return Result.success();
     }
 
     @GetMapping("/reminder/{id}")
-    @Operation(summary = "用户催单")
     public Result reminder(@PathVariable Long id) {
-        log.info("用户催单：{}", id);
+        log.info("User reminder order by id：{}", id);
         orderService.reminderOrder(id);
         return Result.success();
     }

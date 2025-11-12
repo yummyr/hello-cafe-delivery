@@ -1,5 +1,7 @@
 package com.yuan.config;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
@@ -19,12 +21,15 @@ public class RedisConfig {
         template.setKeySerializer(stringSerializer);
         // template.setHashKeySerializer(stringSerializer);
 
-        // serializer value use json
-        // GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer();
-        // template.setValueSerializer(jsonSerializer);
-        // template.setHashValueSerializer(jsonSerializer);
-        //
-        // template.afterPropertiesSet();
+        // serializer value use json with Java 8 time support
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.registerModule(new JavaTimeModule());
+        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer(objectMapper);
+
+        template.setValueSerializer(jsonSerializer);
+        template.setHashValueSerializer(jsonSerializer);
+
+        template.afterPropertiesSet();
         return template;
     }
 }

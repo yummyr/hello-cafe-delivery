@@ -1,10 +1,17 @@
 package com.yuan.entity;
 
+import com.fasterxml.jackson.annotation.JsonSetter;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.deser.std.StdDeserializer;
+import com.fasterxml.jackson.core.JsonParser;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
+
+import java.io.IOException;
 
 @Data
 @Entity
@@ -23,38 +30,42 @@ public class AddressBook extends BaseEntity {
     private Long userId;
 
     @Column(length = 50)
-    private String consignee;  // 收货人
+    private String name;
 
     @Column(length = 10)
-    private String sex;        // 性别
+    private String gender;
 
     @Column(length = 15)
-    private String phone;      // 手机号
-
-    @Column(name = "province_code", length = 12)
-    private String provinceCode; // 省份编码
-
-    @Column(name = "province_name", length = 32)
-    private String provinceName; // 省份名称
-
-    @Column(name = "city_code", length = 12)
-    private String cityCode;     // 城市编码
-
-    @Column(name = "city_name", length = 32)
-    private String cityName;     // 城市名称
-
-    @Column(name = "district_code", length = 12)
-    private String districtCode; // 区县编码
-
-    @Column(name = "district_name", length = 32)
-    private String districtName; // 区县名称
+    private String phone;
 
     @Column(length = 200)
-    private String detail;      // 详细地址
+    private String address;     // detail: door number, street ,etc
+
+    @Column(length = 64)
+    private String city;
+
+    @Column(length = 64)
+    private String state;
+
+    @Column(length = 12)
+    private String zipcode;
 
     @Column(length = 100)
-    private String label;       // 标签
+    private String label;       // label: home, office, etc
 
     @Column(name = "is_default")
-    private Integer isDefault;  // 是否默认地址 0-否 1-是
+    private Integer isDefault;  // is_default address: 0-NO 1-YES
+
+    // Custom setter to handle Boolean to Integer conversion
+    @JsonSetter("isDefault")
+    public void setIsDefault(Object isDefault) {
+        if (isDefault instanceof Boolean) {
+            this.isDefault = ((Boolean) isDefault) ? 1 : 0;
+        } else if (isDefault instanceof Integer) {
+            this.isDefault = (Integer) isDefault;
+        } else if (isDefault instanceof String) {
+            this.isDefault = "true".equalsIgnoreCase((String) isDefault) ? 1 : 0;
+        }
+    }
+
 }

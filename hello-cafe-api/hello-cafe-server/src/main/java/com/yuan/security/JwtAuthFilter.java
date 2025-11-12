@@ -1,6 +1,5 @@
 package com.yuan.security;
 
-import com.yuan.context.UserContext;
 import com.yuan.properties.JwtProperties;
 import com.yuan.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
@@ -11,6 +10,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -48,16 +48,16 @@ public class JwtAuthFilter extends OncePerRequestFilter {
                     String role = claims.get("role", String.class);
 
                     if (userId != null) {
-                        UserContext.setCurrentUserId(userId);
-                        // log.debug("Set current userId in context: {}", userId);
+                        log.debug("Set current userId in SecurityContext: {}", userId);
                         setAuthentication(username, role, userId);
                     }
                 }
             }
             // continue next filter
             filterChain.doFilter(request, response);
-        } finally {
-            UserContext.clear();
+        } catch (Exception e) {
+            log.error("Error in JWT authentication filter", e);
+            filterChain.doFilter(request, response);
         }
     }
 
@@ -114,6 +114,28 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             // log.info("set security context: username={}, role={}, authority={}", username, role, authority);
         } else {
             log.warn("fail to set security context: username={}, role={}", username, role);
+        }
+    }
+
+    private Long getCurrentUserId() {
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+            if (authentication == null || !authentication.isAuthenticated()) {
+                return null;
+            }
+
+            Object principal = authentication.getPrincipal();
+
+            if (principal instanceof UserDetailsImpl) {
+                return ((UserDetailsImpl) principal).getId();
+            }
+
+            return null;
+
+        } catch (Exception e) {
+            log.error("Error getting current user", e);
+            return null;
         }
     }
 }

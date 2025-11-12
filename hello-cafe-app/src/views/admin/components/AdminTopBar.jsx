@@ -1,15 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Coffee, User } from "lucide-react";
-import api from "../../../api";
+import { useShopStatus } from "../../../hooks/useShopStatus";
 import {tokenManager} from "../../../utils/tokenManager";
 import { isTokenExpired } from "../../../utils/tokenUtils";
 
 function AdminTopBar({ onLogout }) {
-  const [shopState, setShopState] = useState({
-    status: null, // 'open' or 'closed'
-    loading: false,
-    error: null,
-  });
   const [username, setUsername] = useState("");
   const [initialized, setInitialized] = useState(false);
    const [tokenStatus, setTokenStatus] = useState({
@@ -76,7 +71,7 @@ function AdminTopBar({ onLogout }) {
   }, []);
 
     // Handle token expiration
-  const handleTokenExpired = () => {
+  const handleTokenExpired = useCallback(() => {
     console.log("Token expired or invalid, logging out...");
     localStorage.clear();
     if (onLogout) {
@@ -84,104 +79,15 @@ function AdminTopBar({ onLogout }) {
     } else {
       window.location.href = "/login";
     }
-  };
+  }, [onLogout]);
 
-  // Fetch shop status
-  const fetchStatus = async () => {
-    try {
-      console.log("Fetching shop status...");
-      const res = await api.get("/shop/status");
-      console.log("Shop status response:", res.data);
-
-      if (res.data.code === 1) {
-        setShopState((prev) => ({
-          ...prev,
-          status: res.data.data === 1 ? "open" : "closed",
-          error: null,
-        }));
-      } else {
-        throw new Error(res.data.msg || "Failed to fetch status");
-      }
-    } catch (err) {
-      console.error("Failed to fetch shop status:", err);
-
-       // If error is due to authentication, handle it
-      if (err.response?.status === 401) {
-        handleTokenExpired();
-        return;
-      }
-
-      setShopState((prev) => ({
-        ...prev,
-        status: "closed", // default status
-        error: err.response?.data?.msg || err.message,
-      }));
-    }
-  };
+  const { shopState, fetchStatus, toggleStatus, getButtonText, getButtonStyles } = useShopStatus(handleTokenExpired);
 
   useEffect(() => {
     if (initialized) {
       fetchStatus();
     }
-  }, [initialized]);
-
-  // Toggle shop status
-  const toggleStatus = async () => {
-    if (shopState.status === null || shopState.loading) return;
-
-    const newStatus = shopState.status === "open" ? "closed" : "open";
-    const statusValue = newStatus === "open" ? 1 : 0;
-
-    // Optimistic update
-    setShopState((prev) => ({
-      ...prev,
-      status: newStatus,
-      loading: true,
-      error: null,
-    }));
-
-    try {
-      const response = await api.put("/shop/status", {
-        status: statusValue,
-      });
-
-      console.log("Status update response:", response.data);
-
-      if (response.data.code === 1) {
-       
-        const serverStatus = response.data.data === 1 ? "open" : "closed";
-        setShopState((prev) => ({
-          ...prev,
-          status: serverStatus,
-          loading: false,
-          error: null,
-        }));
-        console.log("Status updated successfully to:", serverStatus);
-      } else {
-        throw new Error(response.data.msg || "Update failed");
-      }
-    } catch (err) {
-      console.error("Failed to update status:", err);
-
-      if (err.response?.status === 401) {
-        handleTokenExpired();
-        return;
-      }
-
-      // Rollback status on error
-      setShopState((prev) => ({
-        ...prev,
-        status: shopState.status, // Revert to original status
-        loading: false,
-        error: err.response?.data?.msg || err.message,
-      }));
-
-      // Show error message
-      const errorMessage =
-        err.response?.data?.msg || "Failed to update status on server";
-      alert(`Fail to update status: ${errorMessage}`);
-    }
-  };
+  }, [initialized, fetchStatus]);
 
   // Manual token refresh
   const handleManualRefresh = async () => {
@@ -220,27 +126,7 @@ function AdminTopBar({ onLogout }) {
     );
   }
 
-  // Get button display text
-  const getButtonText = () => {
-    if (shopState.loading) return "Updating...";
-    if (shopState.status === null) return "Loading...";
-    return shopState.status.toUpperCase();
-  };
-
-  // Get button styles
-  const getButtonStyles = () => {
-    const baseStyles =
-      "ml-2 px-3 py-1 text-sm font-medium rounded-md transition-all duration-200";
-
-    if (shopState.loading || shopState.status === null) {
-      return `${baseStyles} bg-gray-400 text-gray-600 cursor-not-allowed`;
-    }
-
-    return shopState.status === "open"
-      ? `${baseStyles} bg-[#4b3b2b] text-white hover:bg-[#3a2f24] cursor-pointer`
-      : `${baseStyles} bg-gray-300 text-gray-800 hover:bg-gray-400 cursor-pointer`;
-  };
-
+  
   return (
     <header className="w-full bg-[#f5c16c] flex justify-between items-center px-8 py-4 shadow-md">
       {/* Left: Brand logo + name */}

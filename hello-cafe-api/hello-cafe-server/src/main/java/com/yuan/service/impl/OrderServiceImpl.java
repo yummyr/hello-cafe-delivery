@@ -28,7 +28,7 @@ public class OrderServiceImpl implements OrderService {
 
     private final OrdersRepository ordersRepository;
     private final OrderDetailRepository orderDetailRepository;
-    private final MenuItemRepository menuItemRepository;
+
     private final ComboRepository comboRepository;
     private final MenuItemFlavorRepository menuItemFlavorRepository;
 
@@ -65,7 +65,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new RuntimeException("Order not found: " + id));
 
 
-        // 查询订单详情
+        // check order details
         List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(id);
         List<OrderItemVO> orderItemVOS = orderDetails.stream()
                 .map(this::convertToOrderDetailVO)
@@ -81,7 +81,6 @@ public class OrderServiceImpl implements OrderService {
         orderDetailVO.setUserName(order.getUserName());
         orderDetailVO.setStatus(order.getStatus());
         orderDetailVO.setPayMethod(order.getPayMethod());
-
 
         return orderDetailVO;
     }
@@ -150,13 +149,13 @@ public class OrderServiceImpl implements OrderService {
         Orders order = ordersRepository.findById(ordersCancelDTO.getId())
                 .orElseThrow(() -> new RuntimeException("Order not found: " + ordersCancelDTO.getId()));
 
-        // 验证订单状态 - 只有待接单和已接单的订单可以取消
-        if (order.getStatus() != 2 && order.getStatus() != 3) {
+        // check order status if it is not awaiting acceptance or confirmed then throw exception
+        if (order.getStatus() != OrderStatusConstant.AWAITING_ACCEPTANCE && order.getStatus() != OrderStatusConstant.ACCEPTED) {
             throw new RuntimeException("Order cannot be cancelled in current status");
         }
 
-        // 更新订单状态和取消原因
-        order.setStatus(6);
+        // update order status to be cancelled and set cancel reason
+        order.setStatus(OrderStatusConstant.CANCELED);
         order.setCancelReason(ordersCancelDTO.getReason());
         order.setCancelTime(LocalDateTime.now());
         ordersRepository.save(order);
@@ -170,12 +169,12 @@ public class OrderServiceImpl implements OrderService {
         Orders order = ordersRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + id));
 
-        // 验证订单状态
-        if (order.getStatus() != 3) {
+        // Check order status if it is not confirmed
+        if (order.getStatus() != OrderStatusConstant.ACCEPTED) {
             throw new RuntimeException("Order status is not confirmed");
         }
 
-        // 更新订单状态为派送中
+        // UPDATE ORDER STATUS TO BE DELIVERING
         order.setStatus(4);
         order.setDeliveryTime(LocalDateTime.now());
         ordersRepository.save(order);
@@ -189,13 +188,13 @@ public class OrderServiceImpl implements OrderService {
         Orders order = ordersRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + id));
 
-        // 验证订单状态
-        if (order.getStatus() != 4) {
+        // check order status if it is not delivery then throw exception
+        if (order.getStatus() != OrderStatusConstant.DELIVERING) {
             throw new RuntimeException("Order status is not in delivery");
         }
 
-        // 更新订单状态为已完成
-        order.setStatus(5);
+        // update order status to be completed
+        order.setStatus(OrderStatusConstant.COMPLETED);
         order.setCheckoutTime(LocalDateTime.now());
         ordersRepository.save(order);
 
@@ -222,5 +221,56 @@ public class OrderServiceImpl implements OrderService {
         orderItemVO.setFlavor(flavorList);
 
         return orderItemVO;
+    }
+
+    @Override
+    public WaitingAcceptanceVO getWaitingAcceptanceOrders() {
+        try {
+            log.info("Finding waiting acceptance orders");
+
+            // find all waiting acceptance orders
+            List<Orders> waitingOrders = ordersRepository.findByStatusIn(List.of(OrderStatusConstant.AWAITING_ACCEPTANCE));
+
+            WaitingAcceptanceVO result = new WaitingAcceptanceVO();
+            result.setCount(waitingOrders.size());
+
+            // convert to waiting order summary
+            List<WaitingAcceptanceVO.WaitingOrderSummary> orderSummaries = waitingOrders.stream()
+                    .map(this::convertToWaitingOrderSummary)
+                    .collect(Collectors.toList());
+
+            result.setOrders(orderSummaries);
+
+            log.info("Found {} waiting acceptance orders", waitingOrders.size());
+            return result;
+
+        } catch (Exception e) {
+            log.error("ERROR: Failed to get waiting acceptance orders", e);
+            // return empty result if error occurred or no orders found
+            WaitingAcceptanceVO emptyResult = new WaitingAcceptanceVO();
+            emptyResult.setCount(0);
+            emptyResult.setOrders(List.of());
+            return emptyResult;
+        }
+    }
+
+    private WaitingAcceptanceVO.WaitingOrderSummary convertToWaitingOrderSummary(Orders order) {
+        WaitingAcceptanceVO.WaitingOrderSummary summary = new WaitingAcceptanceVO.WaitingOrderSummary();
+        summary.setId(order.getId());
+        summary.setNumber(order.getNumber());
+        summary.setUserName(order.getUserName());
+        summary.setPhone(order.getPhone());
+        summary.setAmount(order.getAmount());
+        summary.setOrderTime(order.getOrderTime());
+
+        // calculate waiting minutes
+        if (order.getOrderTime() != null) {
+            long waitingMinutes = java.time.Duration.between(order.getOrderTime(), LocalDateTime.now()).toMinutes();
+            summary.setWaitingMinutes((int) waitingMinutes);
+        } else {
+            summary.setWaitingMinutes(0);
+        }
+
+        return summary;
     }
 }

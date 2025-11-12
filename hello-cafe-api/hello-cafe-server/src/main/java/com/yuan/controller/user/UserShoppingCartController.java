@@ -13,7 +13,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/user/shoppingCart")
+@RequestMapping("/api/user/shoppingCart")
 public class UserShoppingCartController {
 
     private final ShoppingCartService shoppingCartService;

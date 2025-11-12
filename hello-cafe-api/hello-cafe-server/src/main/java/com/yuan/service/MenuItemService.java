@@ -4,6 +4,7 @@ import com.yuan.dto.MenuItemDTO;
 import com.yuan.dto.MenuItemPageQueryDTO;
 import com.yuan.entity.MenuItem;
 import com.yuan.result.PageResult;
+import com.yuan.vo.MenuItemVO;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -27,4 +28,13 @@ public interface MenuItemService {
     List<MenuItem> findAll();
 
     MenuItem getMenuItemById(Long id);
+
+    // User-facing methods
+    List<MenuItemVO> findByStatus(Integer status);
+
+    List<MenuItemVO> findByCategoryIdAndStatus(Long categoryId, Integer status);
+
+    List<MenuItemVO> findAllActive();
+
+    MenuItemVO getMenuItemVOById(Long id);
 }

@@ -12,8 +12,12 @@ import {
   ComboPage,
   CategoriesPage,
 } from "@/views/admin";
-import { UserLayout, UserDashboard, UserOrders, AddressBookPage } from "@/views/user";
+import {  UserDashboard, UserOrders, AddressBookPage } from "@/views/user";
 import MenuItemForm from "../views/admin/components/MenuItemForm";
+import UserMenuPage from '../views/user/pages/UserMenuPage';
+import ShoppingCartPage from '../views/user/pages/ShoppingCartPage';
+import CombosPage from '../views/user/pages/CombosPage';
+import FavoritesPage from '../views/user/pages/FavoritesPage';
 
 function AppRoutes() {
   return (
@@ -33,16 +37,20 @@ function AppRoutes() {
         <Route path="orders" element={<OrderPage />} />
         <Route path="orders/details/:id" element={<OrderDetails />} />
         <Route path="menu" element={<MenuPage />} />
-        <Route path="combos" element={<ComboPage />} />
+        <Route path="combo" element={<ComboPage />} />
         <Route path="categories" element={<CategoriesPage />} />
         <Route path="menu/new" element={<MenuItemForm />} />
         <Route path="menu/edit/:id" element={<MenuItemForm />} />
       </Route>
       {/* User Routes */}
-      <Route path="/user" element={<UserLayout />}>
+      <Route path="/user" >
         <Route path="dashboard" element={<UserDashboard />} />
         <Route path="orders" element={<UserOrders />} />
         <Route path="addresses" element={<AddressBookPage />} />
+        <Route path="menu" element={<UserMenuPage />} />
+        <Route path="combos" element={<CombosPage />} />
+        <Route path="cart" element={<ShoppingCartPage />} />
+        <Route path="favorites" element={<FavoritesPage />} />
       </Route>
 
       {/* 404 fallback */}

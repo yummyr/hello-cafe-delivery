@@ -8,15 +8,18 @@ import com.yuan.repository.ComboRepository;
 import com.yuan.repository.MenuItemRepository;
 import com.yuan.repository.ShoppingCartRepository;
 import com.yuan.service.ShoppingCartService;
+import com.yuan.utils.UserUtils;
 import com.yuan.vo.ShoppingCartVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,12 +30,47 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final ShoppingCartRepository shoppingCartRepository;
     private final MenuItemRepository menuItemRepository;
     private final ComboRepository comboRepository;
+    private final RedisTemplate<String, Object> redisTemplate;
 
-    // TODO: Get current user ID from security context
-    private Long getCurrentUserId() {
-        // This should be implemented to get the current logged-in user ID
-        // For now, return a placeholder
-        return 1L;
+    
+
+
+    // Redis key prefix for cart items cache
+    private String getCartCacheKey(Long userId) {
+        return "cart:user:" + userId;
+    }
+
+    @SuppressWarnings("unchecked")
+    private List<ShoppingCartVO> getCartFromCache(Long userId) {
+        try {
+            String cacheKey = getCartCacheKey(userId);
+            Object cachedData = redisTemplate.opsForValue().get(cacheKey);
+            if (cachedData instanceof List) {
+                return (List<ShoppingCartVO>) cachedData;
+            }
+        } catch (Exception e) {
+            log.error("Failed to get cart from cache for user {}", userId, e);
+        }
+        return null;
+    }
+
+    private void setCartToCache(Long userId, List<ShoppingCartVO> cartItems) {
+        try {
+            String cacheKey = getCartCacheKey(userId);
+            // 缓存30分钟
+            redisTemplate.opsForValue().set(cacheKey, cartItems, 30, TimeUnit.MINUTES);
+        } catch (Exception e) {
+            log.error("Failed to set cart to cache for user {}", userId, e);
+        }
+    }
+
+    private void clearCartCache(Long userId) {
+        try {
+            String cacheKey = getCartCacheKey(userId);
+            redisTemplate.delete(cacheKey);
+        } catch (Exception e) {
+            log.error("Failed to clear cart cache for user {}", userId, e);
+        }
     }
 
     @Override
@@ -43,7 +81,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         ShoppingCart shoppingCart = new ShoppingCart();
 
         if (shoppingCartDTO.getDishId() != null) {
-            // 处理菜品
+            // handle menu item case
             MenuItem menuItem = menuItemRepository.findById(shoppingCartDTO.getDishId())
                     .orElseThrow(() -> new RuntimeException("Dish not found"));
 
@@ -52,7 +90,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             shoppingCart.setMenuItemId(shoppingCartDTO.getDishId());
             shoppingCart.setUnitPrice(menuItem.getPrice());
         } else if (shoppingCartDTO.getSetmealId() != null) {
-            // 处理套餐
+            // handle combo case
             Combo combo = comboRepository.findById(shoppingCartDTO.getSetmealId())
                     .orElseThrow(() -> new RuntimeException("Combo not found"));
 
@@ -64,43 +102,62 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             throw new RuntimeException("Either dishId or setmealId must be provided");
         }
 
-        shoppingCart.setUserId(getCurrentUserId());
+        shoppingCart.setUserId(UserUtils.getCurrentUserId());
         shoppingCart.setFlavor(shoppingCartDTO.getFlavor());
-        shoppingCart.setQuantity(1); // 默认数量为1
+        shoppingCart.setQuantity(1); // default quantity is 1
         shoppingCart.setCreateTime(LocalDateTime.now());
 
-        // 检查购物车中是否已存在相同商品
+        // check if item already exists
         ShoppingCart existingCart = null;
         if (shoppingCartDTO.getDishId() != null) {
             existingCart = shoppingCartRepository.findByUserIdAndMenuItemIdAndFlavor(
-                    getCurrentUserId(), shoppingCartDTO.getDishId(), shoppingCartDTO.getFlavor());
+                    UserUtils.getCurrentUserId(), shoppingCartDTO.getDishId(), shoppingCartDTO.getFlavor());
         } else if (shoppingCartDTO.getSetmealId() != null) {
             existingCart = shoppingCartRepository.findByUserIdAndComboId(
-                    getCurrentUserId(), shoppingCartDTO.getSetmealId());
+                    UserUtils.getCurrentUserId(), shoppingCartDTO.getSetmealId());
         }
 
         if (existingCart != null) {
-            // 如果已存在，增加数量
+            // if exists, increase quantity
             existingCart.setQuantity(existingCart.getQuantity() + 1);
             shoppingCartRepository.save(existingCart);
         } else {
-            // 如果不存在，新增
+            // if not exists, add to cart
             shoppingCartRepository.save(shoppingCart);
         }
 
         log.info("Successfully added to cart");
+
+        // clear cart cache after successful addition, as it may have changed
+        clearCartCache(UserUtils.getCurrentUserId());
     }
 
     @Override
     public List<ShoppingCartVO> listCart() {
-        List<ShoppingCart> cartItems = shoppingCartRepository.findByUserId(getCurrentUserId());
-        return cartItems.stream()
+        Long userId = UserUtils.getCurrentUserId();
+
+        // try to get cart from cache first
+        List<ShoppingCartVO> cachedCart = getCartFromCache(userId);
+        if (cachedCart != null) {
+            log.info("Retrieved cart from cache for user {}", userId);
+            return cachedCart;
+        }
+
+        // if not found in cache, retrieve from database
+        List<ShoppingCart> cartItems = shoppingCartRepository.findByUserId(userId);
+        List<ShoppingCartVO> cartVOs = cartItems.stream()
                 .map(this::convertToVO)
                 .collect(Collectors.toList());
+
+        // set cart to cache and return results
+        setCartToCache(userId, cartVOs);
+        log.info("Retrieved cart from database and cached for user {}", userId);
+
+        return cartVOs;
     }
 
     /**
-     * 转换购物车实体为VO
+     * Convert ShoppingCart to ShoppingCartVO for public
      */
     private ShoppingCartVO convertToVO(ShoppingCart cart) {
         ShoppingCartVO vo = new ShoppingCartVO();
@@ -125,10 +182,10 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         ShoppingCart existingCart = null;
         if (shoppingCartDTO.getDishId() != null) {
             existingCart = shoppingCartRepository.findByUserIdAndMenuItemIdAndFlavor(
-                    getCurrentUserId(), shoppingCartDTO.getDishId(), shoppingCartDTO.getFlavor());
+                    UserUtils.getCurrentUserId(), shoppingCartDTO.getDishId(), shoppingCartDTO.getFlavor());
         } else if (shoppingCartDTO.getSetmealId() != null) {
             existingCart = shoppingCartRepository.findByUserIdAndComboId(
-                    getCurrentUserId(), shoppingCartDTO.getSetmealId());
+                    UserUtils.getCurrentUserId(), shoppingCartDTO.getSetmealId());
         }
 
         if (existingCart == null) {
@@ -136,21 +193,27 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         }
 
         if (existingCart.getQuantity() > 1) {
-            // 如果数量大于1，减少数量
+            // if quantity is greater than 1, decrease quantity
             existingCart.setQuantity(existingCart.getQuantity() - 1);
             shoppingCartRepository.save(existingCart);
         } else {
-            // 如果数量为1，删除该记录
+            // if quantity is 1, delete item
             shoppingCartRepository.delete(existingCart);
         }
 
         log.info("Successfully subtracted from cart");
+
+        // clear cart cache after successful addition, as it may have changed for public
+        clearCartCache(UserUtils.getCurrentUserId());
     }
 
     @Override
     @Transactional
     public void cleanCart() {
-        log.info("Cleaning cart for user: {}", getCurrentUserId());
-        shoppingCartRepository.deleteByUserId(getCurrentUserId());
+        log.info("Cleaning cart for user: {}", UserUtils.getCurrentUserId());
+        shoppingCartRepository.deleteByUserId(UserUtils.getCurrentUserId());
+
+        // clear cart cache after successful addition, as it may have changed for public
+        clearCartCache(UserUtils.getCurrentUserId());
     }
 }

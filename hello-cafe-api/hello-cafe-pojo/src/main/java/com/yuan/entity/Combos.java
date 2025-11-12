@@ -7,8 +7,8 @@ import java.io.Serializable;
 
 @Data
 @Entity
-@Table(name = "combo_item")
-public class ComboItem implements Serializable {
+@Table(name = "combos")
+public class Combos implements Serializable {
     private static final long serialVersionUID = 1L;
 
     @Id

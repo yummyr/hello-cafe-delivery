@@ -62,8 +62,8 @@ CREATE TABLE IF NOT EXISTS combo
     create_employee BIGINT COMMENT 'employee id who created the combo',
     update_employee BIGINT COMMENT 'last employee id who updated the combo'
 );
-
-CREATE TABLE IF NOT EXISTS combo_item
+DROP TABLE IF EXISTS combos;
+CREATE TABLE IF NOT EXISTS combos
 (
     id           BIGINT PRIMARY KEY AUTO_INCREMENT,
     combo_id     BIGINT,

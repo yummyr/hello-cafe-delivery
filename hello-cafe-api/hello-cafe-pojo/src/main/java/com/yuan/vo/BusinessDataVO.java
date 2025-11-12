@@ -8,9 +8,17 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class BusinessDataVO {
-    private Double revenue;              // 营业额
-    private Integer validOrderCount;      // 有效订单数
-    private Double orderCompletionRate;   // 订单完成率
-    private Double unitPrice;             // 平均客单价
-    private Integer newUsers;             // 新增用户数
+    // today's business data
+    private Double revenue;              // total revenue
+    private Integer validOrderCount;      // valid order count
+    private Double orderCompletionRate;   // order completion rate
+    private Double unitPrice;             // average unit price
+    private Integer newUsers;             // new users
+    private Integer totalOrders;          // totalOrders
+    private Integer pendingOrders;         // pendingOrders
+    private Integer deliveringOrders;       // deliveredOrders
+    private Integer completedOrders;       // completedOrders
+    private Integer cancelledOrders;       // cancelledOrders
+
+
 }

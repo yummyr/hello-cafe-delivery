@@ -68,7 +68,30 @@ public class ReportServiceImpl implements ReportService {
             if (beginTime.equals(endTime)) {
                 newUsers = userRepository.countNewUsers(beginTime.toLocalDate());
             }
-            BusinessDataVO result = new BusinessDataVO(revenue, validOrders.intValue(), orderCompletionRate, unitPrice, newUsers);
+            // calculate total orders
+            Integer totalOrders = ordersRepository.countAllOrders(beginTime, endTime);
+            log.info("Total orders: {}", totalOrders);
+
+            // calculate pending orders
+            Integer pendingOrders = ordersRepository.countPendingOrders(beginTime, endTime);
+            log.info("Pending orders: {}", pendingOrders);
+
+            // calculate delivering orders
+
+            Integer deliveringOrders = ordersRepository.countDeliveringOrders(beginTime, endTime);
+            log.info("Delivering orders: {}", deliveringOrders);
+
+            // calculate completed orders
+            Integer completedOrders = ordersRepository.countCompletedOrders(beginTime, endTime);
+            log.info("Completed orders: {}", completedOrders);
+
+            // calculate cancelled orders
+            Integer cancelledOrders = ordersRepository.countCancelledOrders(beginTime, endTime);
+            log.info("Cancelled orders: {}", cancelledOrders);
+
+
+            BusinessDataVO result = new BusinessDataVO(revenue, validOrders.intValue(), orderCompletionRate, unitPrice, newUsers,
+                    totalOrders, pendingOrders, deliveringOrders, completedOrders, cancelledOrders);
             log.info("Business data result: {}", result);
 
             return result;
@@ -76,7 +99,7 @@ public class ReportServiceImpl implements ReportService {
         } catch (Exception e) {
             log.error("Error in getBusinessData", e);
             // Return default values instead of throwing exception
-            return new BusinessDataVO(0.0, 0, 0.0, 0.0, 0);
+            return new BusinessDataVO(0.0, 0, 0.0, 0.0, 0, 0, 0, 0, 0, 0);
         }
     }
 

@@ -24,10 +24,12 @@ function AddressBookPage() {
   const [editingAddress, setEditingAddress] = useState(null);
   const [formData, setFormData] = useState({
     name: "",
+    gender: "Female",
     phone: "",
-    province: "",
+    address: "",
     city: "",
-    district: "",
+    state: "",
+    zipcode: "",
     detail: "",
     isDefault: false,
   });
@@ -98,10 +100,12 @@ function AddressBookPage() {
       setEditingAddress(null);
       setFormData({
         name: "",
+        gender: "Female",
         phone: "",
-        province: "",
+        address: "",
         city: "",
-        district: "",
+        state: "",
+        zipcode: "",
         detail: "",
         isDefault: false,
       });
@@ -113,10 +117,12 @@ function AddressBookPage() {
       setEditingAddress(null);
       setFormData({
         name: "",
+        gender: "Female",
         phone: "",
-        province: "",
+        address: "",
         city: "",
-        district: "",
+        state: "",
+        zipcode: "",
         detail: "",
         isDefault: false,
       });
@@ -137,7 +143,7 @@ function AddressBookPage() {
       } catch (error) {
         console.error("Failed to delete address:", error);
         // For demo, just update local state
-        setAddresses(addresses.filter(addr => addr.id !== id));
+        setAddresses(addresses.filter((addr) => addr.id !== id));
       }
     }
   };
@@ -149,10 +155,12 @@ function AddressBookPage() {
     } catch (error) {
       console.error("Failed to set default address:", error);
       // For demo, just update local state
-      setAddresses(addresses.map(addr => ({
-        ...addr,
-        isDefault: addr.id === id
-      })));
+      setAddresses(
+        addresses.map((addr) => ({
+          ...addr,
+          isDefault: addr.id === id,
+        }))
+      );
     }
   };
 
@@ -187,10 +195,13 @@ function AddressBookPage() {
       <div className="min-h-screen bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50">
         {/* Wooden texture background overlay */}
         <div className="fixed inset-0 opacity-10 pointer-events-none">
-          <div className="h-full w-full" style={{
-            backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139, 69, 19, 0.03) 2px, rgba(139, 69, 19, 0.03) 4px),
+          <div
+            className="h-full w-full"
+            style={{
+              backgroundImage: `repeating-linear-gradient(90deg, transparent, transparent 2px, rgba(139, 69, 19, 0.03) 2px, rgba(139, 69, 19, 0.03) 4px),
                               repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(139, 69, 19, 0.03) 2px, rgba(139, 69, 19, 0.03) 4px)`,
-          }}></div>
+            }}
+          ></div>
         </div>
 
         <div className="relative p-8">
@@ -202,9 +213,7 @@ function AddressBookPage() {
                   <MapPin className="w-8 h-8 text-amber-700" />
                   Address Book
                 </h1>
-                <p className="text-amber-700">
-                  Manage your delivery addresses
-                </p>
+                <p className="text-amber-700">Manage your delivery addresses</p>
               </div>
               <button
                 onClick={openAddModal}
@@ -237,7 +246,9 @@ function AddressBookPage() {
                       <div>
                         <h3 className="font-semibold">{address.name}</h3>
                         <p className="text-sm opacity-90">
-                          {address.isDefault ? "Default Address" : "Delivery Address"}
+                          {address.isDefault
+                            ? "Default Address"
+                            : "Delivery Address"}
                         </p>
                       </div>
                     </div>
@@ -256,7 +267,9 @@ function AddressBookPage() {
                     <div className="flex items-start gap-3">
                       <Phone className="w-4 h-4 text-amber-600 mt-1 flex-shrink-0" />
                       <div>
-                        <p className="text-amber-900 font-medium">{address.phone}</p>
+                        <p className="text-amber-900 font-medium">
+                          {address.phone}
+                        </p>
                       </div>
                     </div>
 
@@ -264,7 +277,8 @@ function AddressBookPage() {
                       <MapPin className="w-4 h-4 text-amber-600 mt-1 flex-shrink-0" />
                       <div>
                         <p className="text-gray-700 leading-relaxed">
-                          {address.detail}, {address.district}, {address.city}, {address.province}
+                          {address.address},  {address.city},{" "}
+                          {address.state}, {address.zipcode}
                         </p>
                       </div>
                     </div>
@@ -381,62 +395,75 @@ function AddressBookPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
-                      Province *
+                      Gender*
                     </label>
-                    <input
-                      type="text"
-                      name="province"
-                      value={formData.province}
+                    <select
+                      name="gender"
+                      value={formData.gender}
                       onChange={handleInputChange}
                       required
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                      placeholder="Province"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      City *
-                    </label>
-                    <input
-                      type="text"
-                      name="city"
-                      value={formData.city}
-                      onChange={handleInputChange}
-                      required
-                      className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                      placeholder="City"
-                    />
+                    >
+                      {" "}
+                      <option value="female">Female</option>
+                      <option value="male">Male</option>
+                    </select>
                   </div>
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    District *
+                    address *
                   </label>
                   <input
                     type="text"
-                    name="district"
-                    value={formData.district}
+                    name="address"
+                    value={formData.address}
                     onChange={handleInputChange}
                     required
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                    placeholder="District/Area"
+                    placeholder="house number, street, building, floor, etc."
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Detailed Address *
+                    City *
                   </label>
-                  <textarea
-                    name="detail"
-                    value={formData.detail}
+                  <input
+                    type="text"
+                    name="city"
+                    value={formData.city}
                     onChange={handleInputChange}
                     required
-                    rows={3}
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
-                    placeholder="Street address, building, apartment number, etc."
+                    placeholder="City"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Zipcode *
+                  </label>
+                  <input
+                    name="zipcode"
+                    value={formData.zipcode}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    placeholder="zipcode"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Label *
+                  </label>
+                  <input
+                    name="label"
+                    value={formData.label}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    placeholder="home, office, etc."
                   />
                 </div>
 
@@ -449,7 +476,10 @@ function AddressBookPage() {
                     onChange={handleInputChange}
                     className="w-4 h-4 text-amber-600 focus:ring-amber-500 border-gray-300 rounded"
                   />
-                  <label htmlFor="isDefault" className="ml-2 text-sm text-gray-700">
+                  <label
+                    htmlFor="isDefault"
+                    className="ml-2 text-sm text-gray-700"
+                  >
                     Set as default address
                   </label>
                 </div>

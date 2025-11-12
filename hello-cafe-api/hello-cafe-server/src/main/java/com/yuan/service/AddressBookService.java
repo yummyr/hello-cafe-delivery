@@ -6,37 +6,37 @@ import java.util.List;
 
 public interface AddressBookService {
     /**
-     * 新增地址
+     * add new address
      */
     void addAddress(AddressBook addressBook);
 
     /**
-     * 查询当前登录用户的所有地址信息
+     * query all address for current user
      */
     List<AddressBook> listAddress();
 
     /**
-     * 查询默认地址
+     * query default address
      */
     AddressBook getDefaultAddress();
 
     /**
-     * 根据id修改地址
+     * update address by id
      */
     void updateAddress(AddressBook addressBook);
 
     /**
-     * 根据id删除地址
+     * delete address by id
      */
     void deleteAddress(Long id);
 
     /**
-     * 根据id查询地址
+     * get address by id
      */
     AddressBook getAddressById(Long id);
 
     /**
-     * 设置默认地址
+     * set default address
      */
     void setDefaultAddress(AddressBook addressBook);
 }

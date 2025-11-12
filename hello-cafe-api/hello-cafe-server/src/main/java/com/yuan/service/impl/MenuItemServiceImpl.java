@@ -5,18 +5,17 @@ import com.yuan.constant.StatusConstant;
 import com.yuan.dto.MenuItemDTO;
 import com.yuan.dto.MenuItemPageQueryDTO;
 import com.yuan.entity.Category;
-import com.yuan.entity.ComboItem;
+import com.yuan.entity.Combos;
 import com.yuan.entity.MenuItem;
 import com.yuan.entity.MenuItemFlavor;
 import com.yuan.repository.CategoryRepository;
-import com.yuan.repository.ComboItemRepository;
+import com.yuan.repository.CombosRepository;
 import com.yuan.repository.MenuItemFlavorRepository;
 import com.yuan.repository.MenuItemRepository;
 import com.yuan.result.PageResult;
 import com.yuan.service.MenuItemService;
 import com.yuan.vo.MenuItemVO;
 import org.springframework.beans.BeanUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +37,7 @@ public class MenuItemServiceImpl implements MenuItemService {
     private final MenuItemRepository menuItemRepository;
     private final CategoryRepository categoryRepository;
     private final MenuItemFlavorRepository menuItemFlavorRepository;
-    private final ComboItemRepository comboItemRepository;
+    private final CombosRepository combosRepository;
 
     /**
      * Add a new menu item (autofilled by AOP)
@@ -134,10 +133,10 @@ public class MenuItemServiceImpl implements MenuItemService {
         }
 
         // Check if any menu items are referenced in combo items
-        List<ComboItem> referencedItems = comboItemRepository.findByMenuItemIdIn(idList);
+        List<Combos> referencedItems = combosRepository.findByMenuItemIdIn(idList);
         if (!referencedItems.isEmpty()) {
             List<String> referencedItemNames = menuItemRepository.findAllById(
-                    referencedItems.stream().map(ComboItem::getMenuItemId).toList()
+                    referencedItems.stream().map(Combos::getMenuItemId).toList()
             ).stream().map(MenuItem::getName).toList();
             throw new IllegalArgumentException("Cannot delete menu items referenced in combos: " +
                     String.join(", ", referencedItemNames));
@@ -233,6 +232,91 @@ public class MenuItemServiceImpl implements MenuItemService {
             log.error("Failed to find menu item by id: {}", id, e);
             throw new RuntimeException("Failed to retrieve menu item: " + e.getMessage());
         }
+    }
+
+    @Override
+    public List<MenuItemVO> findByStatus(Integer status) {
+        try {
+            log.info("Finding menu items by status: {}", status);
+            List<MenuItem> menuItems = menuItemRepository.findByStatus(status);
+
+            return menuItems.stream()
+                    .map(this::convertToVO)
+                    .collect(java.util.stream.Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to find menu items by status: {}", status, e);
+            throw new RuntimeException("Failed to retrieve menu items: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<MenuItemVO> findByCategoryIdAndStatus(Long categoryId, Integer status) {
+        try {
+            log.info("Finding menu items by category {} and status: {}", categoryId, status);
+            List<MenuItem> menuItems = menuItemRepository.findByCategoryIdAndStatus(categoryId, status);
+
+            return menuItems.stream()
+                    .map(this::convertToVO)
+                    .collect(java.util.stream.Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to find menu items by category {} and status: {}", categoryId, status, e);
+            throw new RuntimeException("Failed to retrieve menu items: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public MenuItemVO getMenuItemVOById(Long id) {
+        try {
+            log.info("Finding menu item VO by id: {}", id);
+            MenuItem menuItem = menuItemRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Menu item not found: " + id));
+
+            return convertToVO(menuItem);
+        } catch (Exception e) {
+            log.error("Failed to find menu item VO by id: {}", id, e);
+            throw new RuntimeException("Failed to retrieve menu item: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public List<MenuItemVO> findAllActive() {
+        try {
+            log.info("Finding all active menu items");
+            List<MenuItem> menuItems = menuItemRepository.findByStatus(StatusConstant.ENABLE);
+
+            return menuItems.stream()
+                    .map(this::convertToVO)
+                    .collect(java.util.stream.Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to find all active menu items", e);
+            throw new RuntimeException("Failed to retrieve menu items: " + e.getMessage());
+        }
+    }
+
+    private MenuItemVO convertToVO(MenuItem menuItem) {
+        MenuItemVO vo = new MenuItemVO();
+        vo.setId(menuItem.getId());
+        vo.setName(menuItem.getName());
+        vo.setPrice(menuItem.getPrice());
+        vo.setImage(menuItem.getImage());
+        vo.setDescription(menuItem.getDescription());
+        vo.setStatus(menuItem.getStatus());
+        vo.setUpdateTime(menuItem.getUpdateTime());
+
+        // Get category name if categoryId is not null
+        if (menuItem.getCategoryId() != null) {
+            try {
+                Category category = categoryRepository.findById(menuItem.getCategoryId()).orElse(null);
+                vo.setCategoryName(category != null ? category.getName() : "Unknown");
+            } catch (Exception e) {
+                log.warn("Failed to fetch category for menu item {}: {}", menuItem.getId(), e.getMessage());
+                vo.setCategoryName("Unknown");
+            }
+        } else {
+            vo.setCategoryName("Uncategorized");
+        }
+
+        return vo;
     }
 
 

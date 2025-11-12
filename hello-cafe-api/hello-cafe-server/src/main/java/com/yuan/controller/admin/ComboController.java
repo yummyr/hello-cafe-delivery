@@ -18,7 +18,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/admin/combo_item")
+@RequestMapping("/api/admin/combo")
 public class ComboController {
 
     private final ComboService comboService;
@@ -90,6 +90,42 @@ public class ComboController {
         } catch (Exception e) {
             log.error("Failed to get combo by id: {}", id, e);
             return Result.error("Failed to get combo: " + e.getMessage());
+        }
+    }
+
+    @PostMapping("/upload")
+    public Result<String> uploadImage(@RequestParam("file") MultipartFile file) {
+        try {
+            if (file.isEmpty()) {
+                return Result.error("Please select a file to upload");
+            }
+
+            // Validate file type
+            String contentType = file.getContentType();
+            if (contentType == null || !contentType.startsWith("image/")) {
+                return Result.error("Only image files are allowed");
+            }
+
+            // Upload file to S3
+            String imageUrl = s3Service.uploadFile(file);
+            log.info("Successfully uploaded combo image: {}", imageUrl);
+
+            return Result.success(imageUrl);
+        } catch (Exception e) {
+            log.error("Failed to upload combo image", e);
+            return Result.error("Failed to upload image: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/menu-items/search")
+    public Result searchMenuItems(@RequestParam String query) {
+        try {
+            log.info("Searching menu items with query: {}", query);
+            var menuItems = comboService.searchMenuItems(query);
+            return Result.success(menuItems);
+        } catch (Exception e) {
+            log.error("Failed to search menu items", e);
+            return Result.error("Failed to search menu items: " + e.getMessage());
         }
     }
 }

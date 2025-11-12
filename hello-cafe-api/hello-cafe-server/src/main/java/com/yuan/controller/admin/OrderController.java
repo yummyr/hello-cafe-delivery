@@ -17,7 +17,7 @@ public class OrderController {
 
     private final OrderService orderService;
     /**
-     * 分页查询 + 条件查询
+     * page query order with conditions
      * @param orderPageQueryDTO
      * @return page
      */
@@ -26,7 +26,7 @@ public class OrderController {
         try {
             log.info("Searching orders with conditions: {}", orderPageQueryDTO);
             PageResult result = orderService.conditionSearch(orderPageQueryDTO);
-            log.info("订单条件分页查询结果Search result: {}", result);
+            log.info("Search result: {}", result);
             return Result.success(result);
         } catch (Exception e) {
             log.error("Failed to search orders", e);
@@ -35,14 +35,14 @@ public class OrderController {
     }
 
     /**
-     * 查询订单详情
+     * fetch order details
      */
     @GetMapping("/details/{id}")
     public Result<OrderDetailVO> getOrderDetails(@PathVariable Long id) {
         try {
             log.info("Getting order details for id: {}", id);
             OrderDetailVO orderDetail= orderService.getOrderDetails(id);
-            log.info("订单详情查询结果: {}", orderDetail);
+            log.info("Order details: {}", orderDetail);
             return Result.success(orderDetail);
         } catch (Exception e) {
             log.error("Failed to get order details", e);
@@ -51,7 +51,7 @@ public class OrderController {
     }
 
     /**
-     * 各个状态的订单数量统计
+     * orders statistics with status
      */
     @GetMapping("/statistics")
     public Result<OrderStatisticsVO> statistics() {
@@ -66,14 +66,14 @@ public class OrderController {
     }
 
     /**
-     * 接单
+     * confirm order
      */
     @PutMapping("/confirm")
     public Result<Long> confirm(@RequestBody OrdersOperateDTO ordersOperateDTO) {
         try {
             log.info("Confirming order: {}", ordersOperateDTO.getId());
             orderService.confirm(ordersOperateDTO);
-            log.info("controller 层Order confirmed successfully: {}", Result.success(ordersOperateDTO.getId()));
+            log.info("Order confirmed successfully: {}", Result.success(ordersOperateDTO.getId()));
             return Result.success(ordersOperateDTO.getId());
         } catch (Exception e) {
             log.error("Failed to confirm order", e);
@@ -82,7 +82,7 @@ public class OrderController {
     }
 
     /**
-     * 拒单
+     * reject order
      */
     @PutMapping("/rejection")
     public Result rejection(@RequestBody OrdersOperateDTO dto) {
@@ -97,7 +97,7 @@ public class OrderController {
     }
 
     /**
-     * 取消订单
+     * cancel order
      */
     @PutMapping("/cancel")
     public Result cancel(@RequestBody OrdersOperateDTO dto) {
@@ -112,7 +112,7 @@ public class OrderController {
     }
 
     /**
-     * 派送订单
+     * deliver order to customer
      */
     @PutMapping("/delivery")
     public Result delivery(@RequestBody OrdersOperateDTO dto) {
@@ -127,7 +127,7 @@ public class OrderController {
     }
 
     /**
-     * 完成订单
+     * complete order
      */
     @PutMapping("/complete")
     public Result complete(@RequestBody OrdersOperateDTO dto) {
@@ -138,6 +138,21 @@ public class OrderController {
         } catch (Exception e) {
             log.error("Failed to complete order", e);
             return Result.error("Failed to complete order: " + e.getMessage());
+        }
+    }
+
+    /**
+     * get waiting acceptance orders
+     */
+    @GetMapping("/waiting-acceptance")
+    public Result<WaitingAcceptanceVO> getWaitingAcceptanceOrders() {
+        try {
+            log.info("Getting waiting acceptance orders");
+            WaitingAcceptanceVO waitingOrders = orderService.getWaitingAcceptanceOrders();
+            return Result.success(waitingOrders);
+        } catch (Exception e) {
+            log.error("Failed to get waiting acceptance orders", e);
+            return Result.error("Failed to get waiting acceptance orders: " + e.getMessage());
         }
     }
 }

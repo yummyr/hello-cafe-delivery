@@ -1,11 +1,10 @@
 package com.yuan.service.impl;
 
-import com.yuan.entity.ComboItem;
-import com.yuan.repository.ComboItemRepository;
-import com.yuan.service.ComboItemService;
+import com.yuan.entity.Combos;
+import com.yuan.repository.CombosRepository;
+import com.yuan.service.CombosService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -14,17 +13,17 @@ import java.util.List;
 @RequiredArgsConstructor
 @Service
 @Slf4j
-public class ComboItemServiceImpl implements ComboItemService {
+public class CombosServiceImpl implements CombosService {
 
-    private final ComboItemRepository comboItemRepository;
+    private final CombosRepository combosRepository;
 
     @Override
     @Transactional
-    public List<ComboItem> addComboItems(List<ComboItem> comboItems) {
-        if (comboItems == null || comboItems.isEmpty()) {
+    public List<Combos> addComboItems(List<Combos> combos) {
+        if (combos == null || combos.isEmpty()) {
             throw new IllegalArgumentException("Combo items list cannot be null or empty");
         }
-        return comboItemRepository.saveAll(comboItems);
+        return combosRepository.saveAll(combos);
     }
 
     @Override
@@ -33,7 +32,7 @@ public class ComboItemServiceImpl implements ComboItemService {
         if (idList == null || idList.isEmpty()) {
             throw new IllegalArgumentException("ID list cannot be null or empty");
         }
-        comboItemRepository.deleteAllByIdInBatch(idList);
+        combosRepository.deleteAllByIdInBatch(idList);
     }
 
     @Override
@@ -42,7 +41,7 @@ public class ComboItemServiceImpl implements ComboItemService {
         if (menuItemId == null) {
             throw new IllegalArgumentException("Menu item ID cannot be null");
         }
-        comboItemRepository.deleteByMenuItemId(menuItemId);
+        combosRepository.deleteByMenuItemId(menuItemId);
     }
 
     @Override
@@ -51,36 +50,36 @@ public class ComboItemServiceImpl implements ComboItemService {
         if (menuItemIds == null || menuItemIds.isEmpty()) {
             throw new IllegalArgumentException("Menu item IDs list cannot be null or empty");
         }
-        comboItemRepository.deleteByMenuItemIdIn(menuItemIds);
+        combosRepository.deleteByMenuItemIdIn(menuItemIds);
     }
 
     @Override
-    public List<ComboItem> getComboItemsByComboId(Long comboId) {
+    public List<Combos> getComboItemsByComboId(Long comboId) {
         if (comboId == null) {
             throw new IllegalArgumentException("Combo ID cannot be null");
         }
-        return comboItemRepository.findByComboId(comboId);
+        return combosRepository.findByComboId(comboId);
     }
 
     @Override
-    public List<ComboItem> getComboItemsByMenuItemId(Long menuItemId) {
+    public List<Combos> getComboItemsByMenuItemId(Long menuItemId) {
         if (menuItemId == null) {
             throw new IllegalArgumentException("Menu item ID cannot be null");
         }
-        return comboItemRepository.findByMenuItemId(menuItemId);
+        return combosRepository.findByMenuItemId(menuItemId);
     }
 
     @Override
     @Transactional
-    public ComboItem updateComboItem(ComboItem comboItem) {
-        if (comboItem == null || comboItem.getId() == null) {
+    public Combos updateComboItem(Combos combos) {
+        if (combos == null || combos.getId() == null) {
             throw new IllegalArgumentException("Combo item or ID cannot be null");
         }
-        return comboItemRepository.save(comboItem);
+        return combosRepository.save(combos);
     }
 
     @Override
-    public List<ComboItem> getAllComboItems() {
-        return comboItemRepository.findAll();
+    public List<Combos> getAllCombos() {
+        return combosRepository.findAll();
     }
 }

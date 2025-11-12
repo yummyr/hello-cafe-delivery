@@ -1,5 +1,6 @@
 package com.yuan.controller.user;
 
+import com.yuan.constant.StatusConstant;
 import com.yuan.entity.Category;
 import com.yuan.result.Result;
 import com.yuan.repository.CategoryRepository;
@@ -12,7 +13,7 @@ import java.util.List;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/user/category")
+@RequestMapping("/api/user/categories")
 public class UserCategoryController {
 
     private final CategoryRepository categoryRepository;
@@ -27,7 +28,7 @@ public class UserCategoryController {
 
             List<Category> categories;
             if (type != null) {
-                categories = categoryRepository.findByTypeAndStatusOrderBySortAsc(type, 1);
+                categories = categoryRepository.findByTypeAndStatusOrderBySortAsc(type, StatusConstant.ENABLE);
             } else {
                 categories = categoryRepository.findByStatusOrderBySortAsc(1);
             }

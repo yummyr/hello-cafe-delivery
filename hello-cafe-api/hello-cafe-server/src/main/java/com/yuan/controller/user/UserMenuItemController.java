@@ -5,8 +5,10 @@ import com.yuan.entity.MenuItemFlavor;
 import com.yuan.repository.MenuItemFlavorRepository;
 import com.yuan.repository.MenuItemRepository;
 import com.yuan.result.Result;
-import com.yuan.vo.DishFlavorVO;
+import com.yuan.service.MenuItemService;
+import com.yuan.vo.MenuItemFlavorVO;
 import com.yuan.vo.DishVO;
+import com.yuan.vo.MenuItemVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -17,11 +19,12 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/user/menu_item")
+@RequestMapping("/api/user/menu_item")
 public class UserMenuItemController {
 
     private final MenuItemRepository menuItemRepository;
     private final MenuItemFlavorRepository menuItemFlavorRepository;
+    private final MenuItemService menuItemService;
 
     /**
      * 根据分类id查询菜品
@@ -61,7 +64,7 @@ public class UserMenuItemController {
 
         // 查询口味信息
         List<MenuItemFlavor> flavors = menuItemFlavorRepository.findByMenuItemId(menuItem.getId());
-        List<DishFlavorVO> flavorVOs = flavors.stream()
+        List<MenuItemFlavorVO> flavorVOs = flavors.stream()
                 .map(this::convertToDishFlavorVO)
                 .collect(Collectors.toList());
         dishVO.setFlavors(flavorVOs);
@@ -69,12 +72,27 @@ public class UserMenuItemController {
         return dishVO;
     }
 
-    private DishFlavorVO convertToDishFlavorVO(MenuItemFlavor flavor) {
-        DishFlavorVO flavorVO = new DishFlavorVO();
+    private MenuItemFlavorVO convertToDishFlavorVO(MenuItemFlavor flavor) {
+        MenuItemFlavorVO flavorVO = new MenuItemFlavorVO();
         flavorVO.setId(flavor.getId());
-        flavorVO.setDishId(flavor.getMenuItemId());
+        flavorVO.setId(flavor.getMenuItemId());
         flavorVO.setName(flavor.getName());
         flavorVO.setValue(flavor.getValue().toString()); // 将List转换为字符串
         return flavorVO;
+    }
+
+    /**
+     * 获取所有活跃的菜单项
+     */
+    @GetMapping("/all")
+    public Result<List<MenuItemVO>> getAllActiveMenuItems() {
+        try {
+            log.info("Fetching all active menu items");
+            List<MenuItemVO> menuItems = menuItemService.findAllActive();
+            return Result.success(menuItems);
+        } catch (Exception e) {
+            log.error("Failed to fetch all active menu items", e);
+            return Result.error("Failed to fetch menu items: " + e.getMessage());
+        }
     }
 }

@@ -1,18 +1,16 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { Coffee, User, ShoppingCart, Heart, Clock } from "lucide-react";
-import api from "../../../api";
+import { useShopStatus } from "../../../hooks/useShopStatus";
+import { useShoppingCart } from "../../../hooks/useShoppingCart";
 import {tokenManager} from "../../../utils/tokenManager";
 import { isTokenExpired } from "../../../utils/tokenUtils";
 
 function UserTopBar({ onLogout }) {
-  const [shopState, setShopState] = useState({
-    status: null, // 'open' or 'closed'
-    loading: false,
-    error: null,
-  });
+  const navigate = useNavigate();
   const [username, setUsername] = useState("");
   const [initialized, setInitialized] = useState(false);
-  const [cartItemCount, setCartItemCount] = useState(0);
+  const { itemCount: cartItemCount, updateCartCount } = useShoppingCart();
    const [tokenStatus, setTokenStatus] = useState({
     isValid: true,
     lastRefresh: null,
@@ -76,7 +74,7 @@ function UserTopBar({ onLogout }) {
   }, []);
 
     // Handle token expiration
-  const handleTokenExpired = () => {
+  const handleTokenExpired = useCallback(() => {
     console.log("Token expired or invalid, logging out...");
     localStorage.clear();
     if (onLogout) {
@@ -84,66 +82,17 @@ function UserTopBar({ onLogout }) {
     } else {
       window.location.href = "/login";
     }
-  };
+  }, [onLogout]);
 
-  // Fetch shop status
-  const fetchShopStatus = async () => {
-    try {
-      console.log("Fetching shop status...");
-      const res = await api.get("/user/shop/status");
-      console.log("Shop status response:", res.data);
-
-      if (res.data.code === 1) {
-        setShopState((prev) => ({
-          ...prev,
-          status: res.data.data === 1 ? "open" : "closed",
-          error: null,
-        }));
-      } else {
-        throw new Error(res.data.msg || "Failed to fetch shop status");
-      }
-    } catch (err) {
-      console.error("Failed to fetch shop status:", err);
-
-       // If error is due to authentication, handle it
-      if (err.response?.status === 401) {
-        handleTokenExpired();
-        return;
-      }
-
-      setShopState((prev) => ({
-        ...prev,
-        status: "closed", // default status
-        error: err.response?.data?.msg || err.message,
-      }));
-    }
-  };
-
-  // Fetch cart item count
-  const fetchCartItemCount = async () => {
-    try {
-      const response = await api.get("/user/shoppingCart/list");
-      if (response.data.code === 1 && response.data.data) {
-        const items = response.data.data;
-        const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-        setCartItemCount(totalItems);
-      }
-    } catch (error) {
-      console.error("Failed to fetch cart items:", error);
-      // If error is due to authentication, handle it
-      if (error.response?.status === 401) {
-        handleTokenExpired();
-        return;
-      }
-    }
-  };
+  const { shopState, fetchStatus } = useShopStatus(handleTokenExpired, {
+    canToggle: false // Users cannot toggle shop status
+  });
 
   useEffect(() => {
     if (initialized) {
-      fetchShopStatus();
-      fetchCartItemCount();
+      fetchStatus();
     }
-  }, [initialized]);
+  }, [initialized, fetchStatus]);
 
   // Handle logout button click
   const handleLogoutClick = () => {
@@ -156,17 +105,17 @@ function UserTopBar({ onLogout }) {
 
   // Navigate to cart
   const navigateToCart = () => {
-    window.location.href = "/user/cart";
+    navigate("/user/cart");
   };
 
   // Navigate to favorites
   const navigateToFavorites = () => {
-    window.location.href = "/user/favorites";
+    navigate("/user/favorites");
   };
 
   // Navigate to orders
   const navigateToOrders = () => {
-    window.location.href = "/user/orders";
+    navigate("/user/orders");
   };
 
   // If fail to initialize, render loading

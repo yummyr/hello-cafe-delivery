@@ -48,4 +48,9 @@ public interface OrderService {
 
     Orders findById(Long id);
 
+    /**
+     * get waiting acceptance orders
+     */
+    WaitingAcceptanceVO getWaitingAcceptanceOrders();
+
 }

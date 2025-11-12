@@ -19,5 +19,5 @@ public class DishVO {
     private Double price;               // 价格
     private Integer status;             // 状态
     private LocalDateTime updateTime;   // 更新时间
-    private List<DishFlavorVO> flavors; // 菜品口味
+    private List<MenuItemFlavorVO> flavors; // 菜品口味
 }

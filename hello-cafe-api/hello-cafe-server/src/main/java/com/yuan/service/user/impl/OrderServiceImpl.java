@@ -76,8 +76,6 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(1); // 待付款
         order.setNotes(ordersSubmitDTO.getRemark());
         order.setPhone(addressBook.getPhone());
-        order.setAddress(addressBook.getDetail());
-        order.setName(addressBook.getConsignee());
         order.setDeliveryStatus(ordersSubmitDTO.getDeliveryStatus());
         order.setEstimatedDeliveryTime(LocalDateTime.parse(ordersSubmitDTO.getEstimatedDeliveryTime()));
         order.setPackAmount(ordersSubmitDTO.getPackAmount());

@@ -194,7 +194,7 @@ function OrderDetailPage() {
 
   const handleDeliver = async () => {
     try {
-      const response = await put("/admin/orders/delivery", operation);
+      const response = await api.put("/admin/orders/delivery", operation);
       if (response.data.code === 1) {
         await fetchOrderDetails();
         alert("✅ Order delivered successfully!");
@@ -485,9 +485,9 @@ function OrderDetailPage() {
                         <h4 className="font-medium text-[#4b3b2b]">
                           {item.name}
                         </h4>
-                        {item.flavor && (
+                        {item.flavor && item.flavor.length > 0 && (
                           <p className="text-sm text-gray-600">
-                            Flavors: {item.flavor}
+                            Flavors: {item.flavor.map((f) => f.name).join(", ")}
                           </p>
                         )}
                         <p className="text-sm text-gray-600">
