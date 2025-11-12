@@ -58,7 +58,7 @@ function MenuItemModal({ item, onClose }) {
         isVisible: true,
       });
 
-      refreshCartCount();
+      await refreshCartCount();
 
       // 延迟关闭模态框，让用户看到成功提示
       setTimeout(() => {

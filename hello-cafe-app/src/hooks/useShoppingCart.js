@@ -62,19 +62,20 @@ export const useShoppingCart = () => {
 };
 
 // 导出一个函数供其他组件调用，用于刷新购物车数量
-export const refreshCartCount = () => {
-  globalCartState.updateCount(0); // 先设为0，然后触发重新获取
-  // 延迟触发重新获取，确保状态更新
-  setTimeout(async () => {
-    try {
-      const response = await shoppingCartAPI.getCart();
-      if (response.data.code === 1 && response.data.data) {
-        const items = response.data.data;
-        const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-        globalCartState.updateCount(totalItems);
-      }
-    } catch (error) {
-      console.error("Failed to refresh cart count:", error);
+export const refreshCartCount = async () => {
+  try {
+    const response = await shoppingCartAPI.getCart();
+    if (response.data.code === 1 && response.data.data) {
+      const items = response.data.data;
+      const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
+      globalCartState.updateCount(totalItems);
+    } else {
+      // 如果获取失败，设为0
+      globalCartState.updateCount(0);
     }
-  }, 100);
+  } catch (error) {
+    console.error("Failed to refresh cart count:", error);
+    // 出错时设为0
+    globalCartState.updateCount(0);
+  }
 };

@@ -51,7 +51,7 @@ function ShoppingCartPage() {
       );
       if (response.data.code === 1) {
         await fetchCart(); // 重新获取购物车数据
-        refreshCartCount(); // 更新顶部购物车数量
+        await refreshCartCount(); // 更新顶部购物车数量
       } else {
         setToast({
           message: "Failed to update quantity",
@@ -85,7 +85,7 @@ function ShoppingCartPage() {
       );
       if (response.data.code === 1) {
         await fetchCart(); // 重新获取购物车数据
-        refreshCartCount(); // 更新顶部购物车数量
+        await refreshCartCount(); // 更新顶部购物车数量
       } else {
         setToast({
           message: "Failed to update quantity",
@@ -118,7 +118,7 @@ function ShoppingCartPage() {
             isVisible: true,
           });
           await fetchCart();
-          refreshCartCount(); // 更新顶部购物车数量
+          await refreshCartCount(); // 更新顶部购物车数量
         } else {
           setToast({
             message: "Failed to clear cart",

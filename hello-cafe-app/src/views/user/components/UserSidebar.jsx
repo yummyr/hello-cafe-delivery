@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Home,
@@ -10,12 +10,12 @@ import {
   Heart,
   Settings,
 } from "lucide-react";
-import api from "../../../api";
+import { useShoppingCart } from "../../../hooks/useShoppingCart";
 
 function UserSidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [cartItemCount, setCartItemCount] = useState(0);
+  const { itemCount: cartItemCount } = useShoppingCart();
 
   const menuItems = [
     { label: "Dashboard", path: "/user/dashboard", icon: <Home /> },
@@ -32,27 +32,7 @@ function UserSidebar() {
     { label: "Favorites", path: "/user/favorites", icon: <Heart /> },
   ];
 
-  // Fetch cart item count
-  const fetchCartItemCount = async () => {
-    try {
-      const response = await api.get("/user/shoppingCart/list");
-      if (response.data.code === 1 && response.data.data) {
-        const items = response.data.data;
-        const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-        setCartItemCount(totalItems);
-      }
-    } catch (error) {
-      console.error("Failed to fetch cart items:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchCartItemCount();
-    // Set up interval to refresh cart count periodically
-    const cartInterval = setInterval(fetchCartItemCount, 30000); // Every 30 seconds
-    return () => clearInterval(cartInterval);
-  }, []);
-
+  
   return (
     <aside className="w-64 bg-[#2e2e2e] text-white flex flex-col shadow-lg fixed top-[72px] left-0 bottom-0">
       <nav className="flex-1 px-4 py-6 space-y-3 overflow-y-auto">

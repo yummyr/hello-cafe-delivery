@@ -128,7 +128,7 @@ function CombosPage() {
           message: `${combo.name} added to cart!`,
           isVisible: true,
         });
-        refreshCartCount();
+        await refreshCartCount();
       } else {
         setToast({
           message: "Failed to add combo to cart",

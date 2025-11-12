@@ -39,34 +39,19 @@ function AddressBookPage() {
     try {
       const response = await api.get("/user/addressBook/list");
       if (response.data.code === 1 && response.data.data) {
-        setAddresses(response.data.data);
+        // Sort addresses: default address first, then others
+        const sortedAddresses = [...response.data.data].sort((a, b) => {
+          // Default address comes first (isDefault: true)
+          if (a.isDefault && !b.isDefault) return -1;
+          if (!a.isDefault && b.isDefault) return 1;
+          // If both have same default status, maintain original order or sort by id
+          return 0;
+        });
+        setAddresses(sortedAddresses);
       }
     } catch (error) {
       console.error("Failed to fetch addresses:", error);
-      // Set mock data for demo
-      const mockAddresses = [
-        {
-          id: 1,
-          name: "John Doe",
-          phone: "13800138000",
-          province: "California",
-          city: "Los Angeles",
-          district: "Hollywood",
-          detail: "123 Sunset Blvd, Apt 4B",
-          isDefault: true,
-        },
-        {
-          id: 2,
-          name: "John Doe",
-          phone: "13900139000",
-          province: "California",
-          city: "San Francisco",
-          district: "Downtown",
-          detail: "456 Market Street, Floor 3",
-          isDefault: false,
-        },
-      ];
-      setAddresses(mockAddresses);
+      setAddresses([]);
     } finally {
       setLoading(false);
     }
@@ -89,7 +74,7 @@ function AddressBookPage() {
     try {
       if (editingAddress) {
         // Update existing address
-        await api.put(`/user/addressBook/${editingAddress.id}`, formData);
+        await api.put(`/user/addressBook`, formData);
       } else {
         // Add new address
         await api.post("/user/addressBook", formData);
@@ -111,7 +96,7 @@ function AddressBookPage() {
       });
     } catch (error) {
       console.error("Failed to save address:", error);
-      // For demo, just update local state
+      
       await fetchAddresses();
       setShowAddModal(false);
       setEditingAddress(null);
@@ -154,13 +139,14 @@ function AddressBookPage() {
       await fetchAddresses();
     } catch (error) {
       console.error("Failed to set default address:", error);
-      // For demo, just update local state
-      setAddresses(
-        addresses.map((addr) => ({
-          ...addr,
-          isDefault: addr.id === id,
-        }))
-      );
+    
+      // Re-sort addresses to put default first
+      const sortedAddresses = updatedAddresses.sort((a, b) => {
+        if (a.isDefault && !b.isDefault) return -1;
+        if (!a.isDefault && b.isDefault) return 1;
+        return 0;
+      });
+      setAddresses(sortedAddresses);
     }
   };
 
@@ -237,19 +223,10 @@ function AddressBookPage() {
                   <div className="flex justify-between items-start">
                     <div className="flex items-center gap-2">
                       <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center">
-                        {address.isDefault ? (
-                          <Home className="w-5 h-5" />
-                        ) : (
-                          <Building className="w-5 h-5" />
-                        )}
+                        <User className="w-5 h-5" />
                       </div>
                       <div>
                         <h3 className="font-semibold">{address.name}</h3>
-                        <p className="text-sm opacity-90">
-                          {address.isDefault
-                            ? "Default Address"
-                            : "Delivery Address"}
-                        </p>
                       </div>
                     </div>
                     {address.isDefault && (
@@ -277,8 +254,8 @@ function AddressBookPage() {
                       <MapPin className="w-4 h-4 text-amber-600 mt-1 flex-shrink-0" />
                       <div>
                         <p className="text-gray-700 leading-relaxed">
-                          {address.address},  {address.city},{" "}
-                          {address.state}, {address.zipcode}
+                          {address.address}, {address.city}, {address.state},{" "}
+                          {address.zipcode}
                         </p>
                       </div>
                     </div>
@@ -440,6 +417,20 @@ function AddressBookPage() {
                     placeholder="City"
                   />
                 </div>
+                  <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    State *
+                  </label>
+                  <input
+                    type="text"
+                    name="state"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                    placeholder="State"
+                  />
+                </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
                     Zipcode *
@@ -456,7 +447,7 @@ function AddressBookPage() {
 
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Label *
+                    Label 
                   </label>
                   <input
                     name="label"

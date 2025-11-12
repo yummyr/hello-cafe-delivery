@@ -78,7 +78,7 @@ function FavoritesPage() {
             message: `${item.itemName} added to cart!`,
             isVisible: true,
           });
-          refreshCartCount();
+          await refreshCartCount();
         }
       } else if (item.itemType === 'combo') {
         const response = await shoppingCartAPI.addItem(null, null, item.itemId);
@@ -87,7 +87,7 @@ function FavoritesPage() {
             message: `${item.itemName} added to cart!`,
             isVisible: true,
           });
-          refreshCartCount();
+          await refreshCartCount();
         }
       }
     } catch (error) {

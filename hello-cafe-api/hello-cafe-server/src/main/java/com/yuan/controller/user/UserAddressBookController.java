@@ -78,7 +78,7 @@ public class UserAddressBookController {
     }
 
     /**
-     * 根据id删除地址
+     * delete address by id
      */
     @DeleteMapping
     public Result deleteAddress(@RequestParam Long id) {
@@ -93,7 +93,7 @@ public class UserAddressBookController {
     }
 
     /**
-     * 根据id查询地址
+     * query address by id
      */
     @GetMapping("/{id}")
     public Result<AddressBook> getAddressById(@PathVariable Long id) {
@@ -108,13 +108,13 @@ public class UserAddressBookController {
     }
 
     /**
-     * 设置默认地址
+     * set default address
      */
     @PutMapping("/default")
-    public Result setDefaultAddress(@RequestBody AddressBook addressBook) {
+    public Result setDefaultAddress(@RequestParam Long id) {
         try {
-            log.info("Setting default address: {}", addressBook.getId());
-            addressBookService.setDefaultAddress(addressBook);
+            log.info("Setting default address: {}", id);
+            addressBookService.setDefaultAddress(id);
             return Result.success();
         } catch (Exception e) {
             log.error("Failed to set default address", e);

@@ -144,7 +144,7 @@ function UserDashboard() {
           isVisible: true,
         });
         // update cart count
-        refreshCartCount();
+        await refreshCartCount();
       } else {
         setToast({
           message: "Failed to add item to cart",

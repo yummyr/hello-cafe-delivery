@@ -38,5 +38,5 @@ public interface AddressBookService {
     /**
      * set default address
      */
-    void setDefaultAddress(AddressBook addressBook);
+    void setDefaultAddress(Long id);
 }

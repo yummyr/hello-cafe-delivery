@@ -118,7 +118,7 @@ function UserMenuPage() {
           isVisible: true,
         });
         // 更新购物车数量
-        refreshCartCount();
+        await refreshCartCount();
       } else {
         setToast({
           message: "Failed to add item to cart",

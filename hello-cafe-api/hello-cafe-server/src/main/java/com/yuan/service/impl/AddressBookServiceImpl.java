@@ -26,7 +26,7 @@ public class AddressBookServiceImpl implements AddressBookService {
         addressBook.setUserId(UserUtils.getCurrentUserId());
 
         // If setting as default, unset other default addresses first
-        if (addressBook.getIsDefault() != null && addressBook.getIsDefault() == AddressConstant.DEFAULT_ADDRESS) {
+        if (addressBook.getIsDefault() != null && addressBook.getIsDefault().equals(AddressConstant.DEFAULT_ADDRESS)) {
             addressBookRepository.unsetDefaultAddress(UserUtils.getCurrentUserId());
         }
 
@@ -41,7 +41,7 @@ public class AddressBookServiceImpl implements AddressBookService {
 
     @Override
     public AddressBook getDefaultAddress() {
-        return addressBookRepository.findByUserIdAndIsDefault(UserUtils.getCurrentUserId(), 1);
+        return addressBookRepository.findByUserIdAndIsDefault(UserUtils.getCurrentUserId(), AddressConstant.DEFAULT_ADDRESS);
     }
 
     @Override
@@ -92,9 +92,9 @@ public class AddressBookServiceImpl implements AddressBookService {
 
     @Override
     @Transactional
-    public void setDefaultAddress(AddressBook addressBook) {
+    public void setDefaultAddress(Long id) {
         // Verify the address belongs to current user
-        AddressBook existingAddress = addressBookRepository.findById(addressBook.getId())
+        AddressBook existingAddress = addressBookRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Address not found"));
 
         if (!existingAddress.getUserId().equals(UserUtils.getCurrentUserId())) {
@@ -105,8 +105,8 @@ public class AddressBookServiceImpl implements AddressBookService {
         addressBookRepository.unsetDefaultAddress(UserUtils.getCurrentUserId());
 
         // Set this address as default
-        addressBookRepository.setDefaultAddress(addressBook.getId());
+        addressBookRepository.setDefaultAddress(id);
 
-        log.info("Set default address: {} for user: {}", addressBook.getId(), UserUtils.getCurrentUserId());
+        log.info("Set default address: {} for user: {}", id, UserUtils.getCurrentUserId());
     }
 }

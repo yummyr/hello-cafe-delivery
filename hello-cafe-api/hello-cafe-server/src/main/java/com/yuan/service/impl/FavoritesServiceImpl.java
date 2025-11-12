@@ -99,4 +99,4 @@ public class FavoritesServiceImpl implements FavoritesService {
             favorites = new ArrayList<>();
         }
         return favorites;
-    }
+    }}
