@@ -57,7 +57,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     private void setCartToCache(Long userId, List<ShoppingCartVO> cartItems) {
         try {
             String cacheKey = getCartCacheKey(userId);
-            // 缓存30分钟
+            // Cache for 30 minutes
             redisTemplate.opsForValue().set(cacheKey, cartItems, 30, TimeUnit.MINUTES);
         } catch (Exception e) {
             log.error("Failed to set cart to cache for user {}", userId, e);

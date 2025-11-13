@@ -44,14 +44,14 @@ public class UserComboController {
     }
 
     /**
-     * 根据套餐id查询包含的菜品
+     * Get menu items included in combo by combo id
      */
     @GetMapping("/menu_item/{id}")
     public Result<List<MenuItemVO>> getComboMenuItems(@PathVariable Long id) {
         try {
             log.info("Querying menu items for combo id: {}", id);
 
-            // 查询套餐包含的菜品
+            // Query menu items included in combo
             List<Combos> combos = combosRepository.findByComboId(id);
 
             List<MenuItemVO> menuItems = combos.stream()

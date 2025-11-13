@@ -36,7 +36,7 @@ public class UserFavoritesController {
     }
 
     /**
-     * 检查收藏状态
+     * Check favorite status
      */
     @GetMapping("/status")
     public Result<Map<String, Object>> checkFavoriteStatus(
@@ -51,7 +51,7 @@ public class UserFavoritesController {
     }
 
     /**
-     * 获取用户收藏列表
+     * Get user favorites list
      */
     @GetMapping("/list")
     public Result<List<Map<String, Object>>> getUserFavorites() {
@@ -64,7 +64,7 @@ public class UserFavoritesController {
     }
 
     /**
-     * 清空用户收藏
+     * Clear user favorites
      */
     @DeleteMapping("/clear")
     public Result<String> clearFavorites() {

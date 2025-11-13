@@ -39,19 +39,19 @@ public class StripeServiceImpl implements StripeService {
     public String createPaymentSession(Long orderId, BigDecimal amount, String orderNumber) throws StripeException {
         log.info("Creating Stripe payment session for order: {}, amount: {}", orderId, amount);
 
-        // 转换为分（Stripe使用最小货币单位）
+        // Convert to cents (Stripe uses smallest currency unit)
         long amountInCents = amount.multiply(new BigDecimal(100)).longValue();
 
-        // 创建商品项
+        // Create product item
         SessionCreateParams.LineItem.PriceData.ProductData productData =
             SessionCreateParams.LineItem.PriceData.ProductData.builder()
-                .setName("订单 #" + orderNumber)
-                .setDescription("Hello Cafe Delivery - 订单支付")
+                .setName("Order #" + orderNumber)
+                .setDescription("Hello Cafe Delivery - Order Payment")
                 .build();
 
         SessionCreateParams.LineItem.PriceData priceData =
             SessionCreateParams.LineItem.PriceData.builder()
-                .setCurrency("usd") // 可以根据需要修改为其他货币
+                .setCurrency("usd") // Can be modified to other currencies as needed
                 .setUnitAmount(amountInCents)
                 .setProductData(productData)
                 .build();
@@ -62,7 +62,7 @@ public class StripeServiceImpl implements StripeService {
                 .setQuantity(1L)
                 .build();
 
-        // 添加元数据用于后续验证
+        // Add metadata for subsequent verification
         Map<String, String> metadata = new HashMap<>();
         metadata.put("order_id", orderId.toString());
         metadata.put("order_number", orderNumber);
@@ -72,7 +72,7 @@ public class StripeServiceImpl implements StripeService {
             .addLineItem(lineItem)
             .setSuccessUrl(buildRedirectUrl("success", orderId))
             .setCancelUrl(buildRedirectUrl("cancel", orderId))
-            .setExpiresAt(System.currentTimeMillis() / 1000 + 3600) // 1小时后过期
+            .setExpiresAt(System.currentTimeMillis() / 1000 + 3600) // Expires in 1 hour
             .putAllMetadata(metadata)
             .build();
 

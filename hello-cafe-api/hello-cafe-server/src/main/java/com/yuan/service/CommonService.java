@@ -4,7 +4,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 public interface CommonService {
     /**
-     * 文件上传
+     * File upload
      */
     String uploadFile(MultipartFile file);
 }

@@ -1,17 +1,17 @@
 import api from "./index";
 
 export const combosAPI = {
-  // 获取所有活跃的套餐
+  // Get all active combos
   getAllCombos: () => {
     return api.get("/user/combo/all");
   },
 
-  // 根据分类ID获取套餐
+  // Get combos by category ID
   getCombosByCategory: (categoryId) => {
     return api.get(`/user/combo/list?categoryId=${categoryId}`);
   },
 
-  // 获取套餐包含的菜品
+  // Get combo menu items
   getComboMenuItems: (comboId) => {
     return api.get(`/user/combo/menu_item/${comboId}`);
   },

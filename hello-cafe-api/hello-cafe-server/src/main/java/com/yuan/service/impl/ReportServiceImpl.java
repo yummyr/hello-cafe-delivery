@@ -109,7 +109,7 @@ public class ReportServiceImpl implements ReportService {
         LocalDateTime beginTime = begin.atStartOfDay();
         LocalDateTime endTime = end.atTime(LocalTime.MAX);
 
-        // 查询每日营业额
+        // Query daily revenue
         List<Object[]> dailyRevenueList = ordersRepository.getDailyRevenue(beginTime, endTime);
 
         List<String> dateList = new ArrayList<>();
@@ -124,7 +124,7 @@ public class ReportServiceImpl implements ReportService {
             revenueMap.put(resultDate, dailyRevenue);
         }
 
-        // 填充数据
+        // Fill data
         for (LocalDate date = begin; !date.isAfter(end); date = date.plusDays(1)) {
             dateList.add(date.format(formatter));
             revenueList.add(revenueMap.getOrDefault(date, 0.0));
@@ -138,7 +138,7 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public UserStatVO getUsers(LocalDate begin, LocalDate end) {
-        // 查询每日新增用户
+        // Query daily new users
         List<Object[]> dailyNewUsersList = userRepository.getDailyNewUsers(begin, end);
 
         List<String> dateList = new ArrayList<>();
@@ -148,7 +148,7 @@ public class ReportServiceImpl implements ReportService {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         int totalUsers = 0;
 
-        // 填充数据
+        // Fill data
         for (LocalDate date = begin; !date.isAfter(end); date = date.plusDays(1)) {
             dateList.add(date.format(formatter));
 
@@ -174,11 +174,11 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public OrderStatVO getOrders(LocalDate begin, LocalDate end) {
-        // 转换为LocalDateTime
+        // Convert to LocalDateTime
         LocalDateTime beginTime = begin.atStartOfDay();
         LocalDateTime endTime = end.atTime(LocalTime.MAX);
 
-        // 查询每日订单数据
+        // Query daily order data
         List<Object[]> dailyOrderCountList = ordersRepository.getDailyOrderCount(beginTime, endTime);
         List<Object[]> dailyValidOrderCountList = ordersRepository.getDailyValidOrderCount(beginTime, endTime);
 
@@ -188,7 +188,7 @@ public class ReportServiceImpl implements ReportService {
 
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
-        // 创建映射
+        // Create mapping
         Map<LocalDate, Integer> orderCountMap = new HashMap<>();
         for (Object[] result : dailyOrderCountList) {
             LocalDate resultDate = convertToLocalDate(result[0]);
@@ -205,7 +205,7 @@ public class ReportServiceImpl implements ReportService {
         int totalOrderCount = 0;
         int totalValidOrderCount = 0;
 
-        // 填充数据
+        // Fill data
         for (LocalDate date = begin; !date.isAfter(end); date = date.plusDays(1)) {
             dateList.add(date.format(formatter));
 
@@ -233,11 +233,11 @@ public class ReportServiceImpl implements ReportService {
 
     @Override
     public SalesTop10VO getTop10(LocalDate begin, LocalDate end) {
-        // 转换为LocalDateTime
+        // Convert to LocalDateTime
         LocalDateTime beginTime = begin.atStartOfDay();
         LocalDateTime endTime = end.atTime(LocalTime.MAX);
 
-        // 查询销量top10
+        // Query sales top 10
         List<Object[]> salesTop10List = ordersRepository.getSalesTop10(beginTime, endTime);
 
         List<String> nameList = new ArrayList<>();

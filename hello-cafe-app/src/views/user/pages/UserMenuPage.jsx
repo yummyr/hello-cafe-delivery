@@ -4,10 +4,34 @@ import { Search, Star, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import api from "../../../api";
 import { shoppingCartAPI } from "../../../api/shoppingCart";
-import { favoritesAPI } from "../../../api/favorites";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
 import ToastNotification from "../../../components/ToastNotification";
 import MenuItemModal from "../../../components/MenuItemModal";
+
+// Favorites API functions
+const favoritesAPI = {
+  // Toggle favorite status
+  toggleFavorite: (favoriteData) => {
+    return api.post('user/favorites/toggle', favoriteData);
+  },
+
+  // Check favorite status
+  checkFavoriteStatus: (itemType, itemId) => {
+    return api.get('user/favorites/status', {
+      params: { itemType, itemId }
+    });
+  },
+
+  // Get user favorites list
+  getUserFavorites: () => {
+    return api.get('user/favorites/list');
+  },
+
+  // Clear favorites
+  clearFavorites: () => {
+    return api.delete('user/favorites/clear');
+  }
+};
 
 function UserMenuPage() {
   const navigate = useNavigate();
@@ -108,7 +132,7 @@ function UserMenuPage() {
   };
 
   const handleAddToCart = async (e, item) => {
-    e.stopPropagation(); // 阻止事件冒泡，避免触发卡片的点击事件
+    e.stopPropagation(); // Stop event propagation to avoid triggering card click event
 
     try {
       const response = await shoppingCartAPI.addItem(item.id);
@@ -117,7 +141,7 @@ function UserMenuPage() {
           message: `${item.name} added to cart!`,
           isVisible: true,
         });
-        // 更新购物车数量
+        // Update cart count
         await refreshCartCount();
       } else {
         setToast({

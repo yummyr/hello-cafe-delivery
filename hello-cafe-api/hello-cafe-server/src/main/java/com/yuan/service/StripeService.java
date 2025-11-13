@@ -9,28 +9,28 @@ import java.math.BigDecimal;
 public interface StripeService {
 
     /**
-     * 创建支付会话
-     * @param orderId 订单ID
-     * @param amount 支付金额（元）
-     * @param orderNumber 订单号
-     * @return Stripe支付会话URL
-     * @throws StripeException Stripe异常
+     * Create payment session
+     * @param orderId Order ID
+     * @param amount Payment amount (in yuan)
+     * @param orderNumber Order number
+     * @return Stripe payment session URL
+     * @throws StripeException Stripe exception
      */
     String createPaymentSession(Long orderId, BigDecimal amount, String orderNumber) throws StripeException;
 
     /**
-     * 验证支付状态
-     * @param sessionId Stripe会话ID
-     * @return 是否支付成功
-     * @throws StripeException Stripe异常
+     * Verify payment status
+     * @param sessionId Stripe session ID
+     * @return Whether payment is successful
+     * @throws StripeException Stripe exception
      */
     boolean verifyPayment(String sessionId) throws StripeException;
 
     /**
-     * 构建成功/取消重定向URL
-     * @param type 类型（success/cancel）
-     * @param orderId 订单ID
-     * @return 完整的URL
+     * Build success/cancel redirect URL
+     * @param type Type (success/cancel)
+     * @param orderId Order ID
+     * @return Complete URL
      */
     String buildRedirectUrl(String type, Long orderId);
 }

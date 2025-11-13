@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { shoppingCartAPI } from "../api/shoppingCart";
 
-// 创建一个全局的购物车状态
+// Create a global shopping cart state
 let globalCartState = {
   itemCount: 0,
   listeners: [],
@@ -11,7 +11,7 @@ let globalCartState = {
   },
   addListener: function(listener) {
     this.listeners.push(listener);
-    // 立即触发一次，让组件获取当前状态
+    // Trigger immediately to let component get current state
     listener(this.itemCount);
     return () => {
       this.listeners = this.listeners.filter(l => l !== listener);
@@ -22,7 +22,7 @@ let globalCartState = {
 export const useShoppingCart = () => {
   const [itemCount, setItemCount] = useState(0);
 
-  // 获取购物车数量
+  // Get shopping cart count
   const fetchCartCount = useCallback(async () => {
     try {
       const response = await shoppingCartAPI.getCart();
@@ -39,16 +39,16 @@ export const useShoppingCart = () => {
     }
   }, []);
 
-  // 更新购物车数量（添加/删除商品时调用）
+  // Update shopping cart count (called when adding/removing items)
   const updateCartCount = useCallback(() => {
     fetchCartCount();
   }, [fetchCartCount]);
 
   useEffect(() => {
-    // 监听全局状态变化
+    // Listen for global state changes
     const unsubscribe = globalCartState.addListener(setItemCount);
 
-    // 初始化时获取购物车数量
+    // Get shopping cart count on initialization
     fetchCartCount();
 
     return unsubscribe;
@@ -61,7 +61,7 @@ export const useShoppingCart = () => {
   };
 };
 
-// 导出一个函数供其他组件调用，用于刷新购物车数量
+// Export a function for other components to call, used to refresh shopping cart count
 export const refreshCartCount = async () => {
   try {
     const response = await shoppingCartAPI.getCart();
@@ -70,12 +70,12 @@ export const refreshCartCount = async () => {
       const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
       globalCartState.updateCount(totalItems);
     } else {
-      // 如果获取失败，设为0
+      // If fetch fails, set to 0
       globalCartState.updateCount(0);
     }
   } catch (error) {
     console.error("Failed to refresh cart count:", error);
-    // 出错时设为0
+    // Set to 0 on error
     globalCartState.updateCount(0);
   }
 };

@@ -22,8 +22,8 @@ function ComboPage() {
   const getCombos = async (params = {}) => {
     try {
       const response = await api.get('/admin/combo/page', { params });
-      console.log("获取combos:",response.data);
-      
+      console.log("Get combos:",response.data);
+
       return response.data;
     } catch (error) {
       console.error('Error fetching combos:', error);
@@ -100,7 +100,7 @@ function ComboPage() {
       };
 
       const response = await getCombos(params);
-      console.log("获取combos code:",response.code);
+      console.log("Get combos code:",response.code);
 
       if (response.code === 1 && response.data) {
         const comboData = response.data.records || [];

@@ -59,37 +59,37 @@ public interface OrderService {
     // ========== User Order Methods ==========
 
     /**
-     * 用户下单
+     * User submits order
      */
     OrderSubmitVO submitOrder(OrdersSubmitDTO ordersSubmitDTO);
 
     /**
-     * 订单支付
+     * Order payment
      */
     OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws StripeException;
 
     /**
-     * 查询订单详情 (用户端)
+     * Get order details (user side)
      */
     OrderVO getOrderDetail(Long id);
 
     /**
-     * 历史订单查询 (用户端)
+     * Historical order query (user side)
      */
     PageResult historyOrders(Integer page, Integer pageSize, Integer status);
 
     /**
-     * 取消订单 (用户端)
+     * Cancel order (user side)
      */
     void cancelOrder(Long id);
 
     /**
-     * 再来一单
+     * Order again
      */
     void repetitionOrder(Long id);
 
     /**
-     * 催单
+     * Remind order
      */
     void reminderOrder(Long id);
 

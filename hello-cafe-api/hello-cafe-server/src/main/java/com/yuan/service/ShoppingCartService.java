@@ -7,22 +7,22 @@ import java.util.List;
 
 public interface ShoppingCartService {
     /**
-     * 添加购物车
+     * Add to shopping cart
      */
     void addToCart(ShoppingCartDTO shoppingCartDTO);
 
     /**
-     * 查看购物车
+     * View shopping cart
      */
     List<ShoppingCartVO> listCart();
 
     /**
-     * 删除购物车中一个商品
+     * Remove one item from shopping cart
      */
     void subtractFromCart(ShoppingCartDTO shoppingCartDTO);
 
     /**
-     * 清空购物车
+     * Clear shopping cart
      */
     void cleanCart();
 }

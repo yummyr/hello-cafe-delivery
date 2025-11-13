@@ -17,22 +17,22 @@ public class CommonServiceImpl implements CommonService {
     @Override
     public String uploadFile(MultipartFile file) {
         try {
-            // 验证文件
+            // Validate file
             if (file == null || file.isEmpty()) {
                 throw new IllegalArgumentException("File cannot be null or empty");
             }
 
-            // 检查文件大小
+            // Check file size
             if (file.getSize() > FileConstant.MAX_IMAGE_SIZE) {
                 throw new IllegalArgumentException("File size exceeds maximum allowed size");
             }
 
-            // 检查文件类型
+            // Check file type
             if (!FileConstant.ALLOWED_IMAGE_TYPES.contains(file.getContentType())) {
                 throw new IllegalArgumentException("File type not supported");
             }
 
-            // 上传文件到S3
+            // Upload file to S3
             String fileUrl = s3Service.uploadFile(file);
 
             log.info("File uploaded successfully: {}", fileUrl);

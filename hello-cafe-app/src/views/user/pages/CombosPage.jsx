@@ -4,9 +4,34 @@ import { Search, Star, ChevronLeft, ChevronRight, Plus, Info, Heart } from "luci
 import UserLayout from "../layouts/UserLayout";
 import { combosAPI } from "../../../api/combos";
 import { shoppingCartAPI } from "../../../api/shoppingCart";
-import { favoritesAPI } from "../../../api/favorites";
+import api from "../../../api";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
 import ToastNotification from "../../../components/ToastNotification";
+
+// Favorites API functions
+const favoritesAPI = {
+  // Toggle favorite status
+  toggleFavorite: (favoriteData) => {
+    return api.post('user/favorites/toggle', favoriteData);
+  },
+
+  // Check favorite status
+  checkFavoriteStatus: (itemType, itemId) => {
+    return api.get('user/favorites/status', {
+      params: { itemType, itemId }
+    });
+  },
+
+  // Get user favorites list
+  getUserFavorites: () => {
+    return api.get('user/favorites/list');
+  },
+
+  // Clear favorites
+  clearFavorites: () => {
+    return api.delete('user/favorites/clear');
+  }
+};
 
 function CombosPage() {
   const navigate = useNavigate();
@@ -26,7 +51,7 @@ function CombosPage() {
   // Pagination: 3 columns x 4 rows = 12 items per page
   const ITEMS_PER_PAGE = 12;
 
-  // 获取所有套餐
+  // Get all combos
   const fetchCombos = async () => {
     try {
       setLoading(true);
@@ -62,7 +87,7 @@ function CombosPage() {
     }
   };
 
-  // 获取套餐详情（包含的菜品）
+  // Get combo details (included menu items)
   const fetchComboDetails = async (comboId) => {
     try {
       const response = await combosAPI.getComboMenuItems(comboId);
@@ -75,7 +100,7 @@ function CombosPage() {
     }
   };
 
-  // 处理搜索功能
+  // Handle search functionality
   const handleSearch = (query) => {
     setSearchQuery(query);
     let newFilteredCombos;
@@ -95,14 +120,14 @@ function CombosPage() {
     setTotalPages(Math.ceil(total / ITEMS_PER_PAGE));
   };
 
-  // 获取当前页的套餐
+  // Get current page combos
   const getCurrentPageItems = () => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
     const endIndex = startIndex + ITEMS_PER_PAGE;
     return filteredCombos.slice(startIndex, endIndex);
   };
 
-  // 处理分页
+  // Handle pagination
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
@@ -110,14 +135,14 @@ function CombosPage() {
     }
   };
 
-  // 查看套餐详情
+  // View combo details
   const handleViewDetails = async (combo) => {
     setSelectedCombo(combo);
     setShowDetailsModal(true);
     await fetchComboDetails(combo.id);
   };
 
-  // 添加套餐到购物车
+  // Add combo to shopping cart
   const handleAddToCart = async (e, combo) => {
     e.stopPropagation();
 
@@ -144,7 +169,7 @@ function CombosPage() {
     }
   };
 
-  // 切换收藏状态
+  // Toggle favorite status
   const handleToggleFavorite = async (e, combo) => {
     e.stopPropagation();
 

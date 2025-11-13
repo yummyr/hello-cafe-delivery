@@ -35,7 +35,7 @@ public class Shop extends BaseEntity {
     private String address;
 
     @Column
-    private Integer status; // 1: 营业, 0: 打烊
+    private Integer status; // 1: open, 0: closed
 
     @Column(name = "open_time", length = 10)
     private String openTime;

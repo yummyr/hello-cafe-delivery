@@ -18,23 +18,23 @@ public class OrderVO {
     private Double amount;  // order total amount
     private LocalDateTime orderTime;
     private Integer status;
-    // private Long userId;                       // 用户id
-    // private Long addressBookId;                // 地址簿id
-    // private LocalDateTime checkoutTime;        // 结账时间
-    // private Integer payMethod;                 // 支付方式
-    // private Integer payStatus;                 // 支付状态
-    // private String remark;                     // 备注
-    // private String address;                    // 地址
-    // private String consignee;                  // 收货人
-    // private String cancelReason;               // 取消原因
-    // private String rejectionReason;            // 拒单原因
-    // private LocalDateTime cancelTime;          // 取消时间
-    // private LocalDateTime estimatedDeliveryTime; // 预计送达时间
-    // private Integer deliveryStatus;            // 配送状态
-    // private LocalDateTime deliveryTime;        // 派送时间
-    // private Integer packAmount;                // 打包费
-    // private Integer tablewareNumber;           // 餐具数量
-    // private Integer tablewareStatus;           // 餐具状态
-    // private String orderDishes;                      // 订单菜品（字符串形式）
-    // private List<OrderDetailVO> orderDetailList;     // 订单详情列表
+    // private Long userId;                       // user id
+    // private Long addressBookId;                // address book id
+    // private LocalDateTime checkoutTime;        // checkout time
+    // private Integer payMethod;                 // payment method
+    // private Integer payStatus;                 // payment status
+    // private String remark;                     // remark
+    // private String address;                    // address
+    // private String consignee;                  // consignee
+    // private String cancelReason;               // cancel reason
+    // private String rejectionReason;            // rejection reason
+    // private LocalDateTime cancelTime;          // cancel time
+    // private LocalDateTime estimatedDeliveryTime; // estimated delivery time
+    // private Integer deliveryStatus;            // delivery status
+    // private LocalDateTime deliveryTime;        // delivery time
+    // private Integer packAmount;                // packing fee
+    // private Integer tablewareNumber;           // tableware number
+    // private Integer tablewareStatus;           // tableware status
+    // private String orderDishes;                      // order dishes (string format)
+    // private List<OrderDetailVO> orderDetailList;     // order detail list
 }

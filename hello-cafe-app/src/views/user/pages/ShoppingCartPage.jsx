@@ -20,7 +20,7 @@ function ShoppingCartPage() {
   const [updatingItems, setUpdatingItems] = useState(new Set());
   const [toast, setToast] = useState({ message: "", isVisible: false });
 
-  // 获取购物车数据
+  // Get shopping cart data
   const fetchCart = async () => {
     try {
       setLoading(true);
@@ -39,7 +39,7 @@ function ShoppingCartPage() {
     }
   };
 
-  // 增加商品数量
+  // Increase item quantity
   const handleIncreaseQuantity = async (item) => {
     const itemId = item.id;
     setUpdatingItems((prev) => new Set([...prev, itemId]));
@@ -51,8 +51,8 @@ function ShoppingCartPage() {
         item.comboId
       );
       if (response.data.code === 1) {
-        await fetchCart(); // 重新获取购物车数据
-        await refreshCartCount(); // 更新顶部购物车数量
+        await fetchCart(); // Refresh cart data
+        await refreshCartCount(); // Update cart count
       } else {
         setToast({
           message: "Failed to update quantity",
@@ -74,7 +74,7 @@ function ShoppingCartPage() {
     }
   };
 
-  // 减少商品数量
+  // Decrease item quantity
   const handleDecreaseQuantity = async (item) => {
     const itemId = item.id;
     setUpdatingItems((prev) => new Set([...prev, itemId]));
@@ -86,8 +86,8 @@ function ShoppingCartPage() {
         item.comboId
       );
       if (response.data.code === 1) {
-        await fetchCart(); // 重新获取购物车数据
-        await refreshCartCount(); // 更新顶部购物车数量
+        await fetchCart(); // Refresh cart data
+        await refreshCartCount(); // Update cart count
       } else {
         setToast({
           message: "Failed to update quantity",
@@ -109,7 +109,7 @@ function ShoppingCartPage() {
     }
   };
 
-  // 清空购物车
+  // Clear shopping cart
   const handleClearCart = async () => {
     if (window.confirm("Are you sure you want to clear your shopping cart?")) {
       try {
@@ -120,7 +120,7 @@ function ShoppingCartPage() {
             isVisible: true,
           });
           await fetchCart();
-          await refreshCartCount(); // 更新顶部购物车数量
+          await refreshCartCount(); // Update cart count
         } else {
           setToast({
             message: "Failed to clear cart",
@@ -137,7 +137,7 @@ function ShoppingCartPage() {
     }
   };
 
-  // 计算总价
+  // Calculate total price
   const calculateTotal = () => {
     return cartItems.reduce((total, item) => {
       return total + (item.unitPrice * item.quantity);

@@ -16,7 +16,7 @@ public class CommonController {
     private final CommonService commonService;
 
     /**
-     * 文件上传
+     * File upload
      */
     @PostMapping("/upload")
     public Result<String> uploadFile(@RequestParam("file") MultipartFile file) {

@@ -53,7 +53,7 @@ public class EmployeeController {
 
     @GetMapping("/page")
     public Result pageResult(EmployeePageQueryDTO dto){
-        log.info("员工分页查询page query :{}", dto.toString());
+        log.info("Employee page query: {}", dto.toString());
         PageResult pageResult = employeeService.page(dto);
         return Result.success(pageResult);
     }

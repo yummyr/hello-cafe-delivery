@@ -15,12 +15,12 @@ import java.util.List;
 @Component
 public class ComboDTO implements Serializable {
     private static final long serialVersionUID = 1L;
-    private Long id;                    // 套餐id
-    private String name;                // 套餐名称
-    private Long categoryId;            // 分类id
-    private Double price;               // 套餐价格
-    private String image;               // 套餐图片
-    private String description;         // 套餐描述
-    private Integer status;             // 套餐状态：1为起售 0为停售
-    private List<Combos> combos; // 套餐包含的菜品
+    private Long id;                    // Combo id
+    private String name;                // Combo name
+    private Long categoryId;            // Category id
+    private Double price;               // Combo price
+    private String image;               // Combo image
+    private String description;         // Combo description
+    private Integer status;             // Combo status: 1 for available, 0 for unavailable
+    private List<Combos> combos; // Menu items included in combo
 }

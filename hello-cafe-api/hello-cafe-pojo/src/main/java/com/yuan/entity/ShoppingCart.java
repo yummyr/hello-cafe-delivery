@@ -44,7 +44,7 @@ public class ShoppingCart extends BaseEntity {
     private Double unitPrice;
 
     @Column(length = 255)
-    private String flavor; // 口味
+    private String flavor; // Flavor
 
     @Column(name = "create_time")
     private LocalDateTime createTime;

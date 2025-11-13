@@ -247,7 +247,7 @@ function OrderDetailPage() {
   };
 
   const getPayMethodText = (payMethod) => {
-    console.log("付款方式参数：", payMethod);
+    console.log("Payment method parameter:", payMethod);
 
     const methodMap = {
       1: "Credit Card",

@@ -53,7 +53,7 @@ const useOrderNotifications = () => {
     }
   }, []);
 
-  // 播放提示音
+  // Play notification sound
   const playNotificationSound = () => {
     try {
       // new Audio('/notification.mp3').play();
@@ -73,24 +73,24 @@ const useOrderNotifications = () => {
       oscillator.start(audioContext.currentTime);
       oscillator.stop(audioContext.currentTime + 0.5);
     } catch (error) {
-      console.log('🔇 无法播放提示音:', error);
+      console.log('🔇 Unable to play notification sound:', error);
     }
   };
 
-  // start polling
+  // Start polling
   const startPolling = useCallback(() => {
-    console.log('🔄 开始轮询检查订单');
+    console.log('🔄 Start polling for orders');
 
-    // check waiting orders immediately
+    // Check waiting orders immediately
     checkWaitingOrders();
 
-    // set interval to check waiting orders
+    // Set interval to check waiting orders
     pollIntervalRef.current = setInterval(checkWaitingOrders, NOTIFICATION_CHECK_INTERVAL);
   }, [checkWaitingOrders]);
 
-  // stop polling
+  // Stop polling
   const stopPolling = useCallback(() => {
-    console.log('⏹️ stop polling');
+    console.log('⏹️ Stop polling');
 
     if (pollIntervalRef.current) {
       clearInterval(pollIntervalRef.current);
@@ -98,34 +98,34 @@ const useOrderNotifications = () => {
     }
   }, []);
 
-  // manual refresh
+  // Manual refresh
   const refresh = useCallback(() => {
-    console.log('🔄 manually check orders');
+    console.log('🔄 Manually check orders');
     checkWaitingOrders();
   }, [checkWaitingOrders]);
 
-  // close modal
+  // Close modal
   const closeModal = useCallback(() => {
     setIsModalOpen(false);
   }, []);
 
-  // open modal manually
+  // Open modal manually
   const openModal = useCallback(() => {
     setIsModalOpen(true);
   }, []);
 
-  // check order details
+  // View order details
   const viewOrder = useCallback((orderId) => {
-    console.log('👀 check order details:', orderId);
+    console.log('👀 Check order details:', orderId);
     setIsModalOpen(false);
-    // navigate to order details
+    // Navigate to order details
     window.location.href = `/admin/orders/details/${orderId}`;
   }, []);
 
-  // confirm order
+  // Confirm order
   const confirmOrder = useCallback(async (orderId) => {
     try {
-      console.log('✅ confirming order:', orderId);
+      console.log('✅ Confirming order:', orderId);
 
       const response = await api.put('/admin/orders/confirm', {
         id: orderId
@@ -135,7 +135,7 @@ const useOrderNotifications = () => {
         console.log('✅ Order confirmed successfully');
         setIsModalOpen(false);
 
-        // refresh waiting orders
+        // Refresh waiting orders
         setTimeout(() => {
           checkWaitingOrders();
         }, 1000);
@@ -151,7 +151,7 @@ const useOrderNotifications = () => {
     }
   }, [checkWaitingOrders]);
 
-  // automatic polling of waiting orders
+  // Automatic polling of waiting orders
   useEffect(() => {
     startPolling();
 
@@ -160,14 +160,14 @@ const useOrderNotifications = () => {
     };
   }, [startPolling, stopPolling]);
 
-  // hanle visibility change to start or stop polling
+  // Handle visibility change to start or stop polling
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden) {
-        // stop polling when page is not visible
+        // Stop polling when page is not visible
         stopPolling();
       } else {
-        // restart polling when page becomes visible
+        // Restart polling when page becomes visible
         startPolling();
       }
     };

@@ -8,9 +8,9 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderStatisticsVO {
-    private Integer toBeConfirmed;     // 待接单数量
-    private Integer confirmed;         // 待派送数量
-    private Integer deliveryInProgress; // 派送中数量
-    private Integer completed;         // 已完成数量
-    private Integer canceled;          // 已取消数量
+    private Integer toBeConfirmed;     // pending confirmation count
+    private Integer confirmed;         // pending delivery count
+    private Integer deliveryInProgress; // in delivery count
+    private Integer completed;         // completed count
+    private Integer canceled;          // canceled count
 }

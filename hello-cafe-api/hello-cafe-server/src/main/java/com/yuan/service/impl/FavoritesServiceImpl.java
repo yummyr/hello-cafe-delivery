@@ -16,7 +16,7 @@ public class FavoritesServiceImpl implements FavoritesService {
     private RedisTemplate<String, Object> redisTemplate;
 
     private static final String FAVORITES_KEY_PREFIX = "favorites:user:";
-    private static final long CACHE_TTL = 1800; // 30分钟
+    private static final long CACHE_TTL = 1800; // 30 minutes
 
     @Override
     public Map<String, Object> toggleFavorite(String itemType, Long itemId, String itemName, String itemImage, Double itemPrice) {

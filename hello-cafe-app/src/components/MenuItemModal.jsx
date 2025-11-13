@@ -21,7 +21,7 @@ function MenuItemModal({ item, onClose }) {
   };
 
   const handleAddToCart = async () => {
-    // 检查是否需要选择口味但还未选择
+    // Check if flavors need to be selected but haven't been
     const requiredFlavors = item.flavors || [];
     const hasUnselectedFlavors = requiredFlavors.some(flavor => !selectedFlavors[flavor.name]);
 
@@ -35,17 +35,17 @@ function MenuItemModal({ item, onClose }) {
 
     setIsAdding(true);
     try {
-      // 将口味选择转换为字符串格式
+      // Convert flavor selections to string format
       const flavorString = Object.entries(selectedFlavors)
         .map(([name, value]) => `${name}:${value}`)
         .join(', ');
 
-      // 添加到购物车多次（根据数量）
+      // Add to cart multiple times (based on quantity)
       for (let i = 0; i < quantity; i++) {
         const response = await shoppingCartAPI.addItem(
           item.id,
           flavorString,
-          null // 不是套餐
+          null // Not a combo
         );
 
         if (response.data.code !== 1) {
@@ -60,7 +60,7 @@ function MenuItemModal({ item, onClose }) {
 
       await refreshCartCount();
 
-      // 延迟关闭模态框，让用户看到成功提示
+      // Delay closing modal to let user see success message
       setTimeout(() => {
         onClose();
       }, 1000);
@@ -120,7 +120,7 @@ function MenuItemModal({ item, onClose }) {
     }
   };
 
-  // 获取收藏状态
+  // Get favorite status
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       try {

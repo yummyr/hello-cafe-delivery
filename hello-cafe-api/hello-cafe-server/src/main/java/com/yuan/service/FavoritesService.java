@@ -5,22 +5,22 @@ import java.util.Map;
 
 public interface FavoritesService {
     /**
-     * 切换收藏状态
+     * Toggle favorite status
      */
     Map<String, Object> toggleFavorite(String itemType, Long itemId, String itemName, String itemImage, Double itemPrice);
 
     /**
-     * 检查收藏状态
+     * Check favorite status
      */
     boolean isFavorite(String itemType, Long itemId);
 
     /**
-     * 获取用户收藏列表
+     * Get user favorites list
      */
     List<Map<String, Object>> getUserFavorites();
 
     /**
-     * 清空用户收藏
+     * Clear user favorites
      */
     void clearFavorites();
 }

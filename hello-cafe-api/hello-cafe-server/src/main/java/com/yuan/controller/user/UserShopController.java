@@ -14,7 +14,7 @@ public class UserShopController {
     private final com.yuan.service.ShopService shopService;
 
     /**
-     * 获取营业状态
+     * Get business status
      */
     @GetMapping("/status")
     public Result<Integer> getStatus() {

@@ -19,7 +19,7 @@ public class UserCategoryController {
     private final CategoryRepository categoryRepository;
 
     /**
-     * 条件查询
+     * Conditional query
      */
     @GetMapping("/list")
     public Result<List<Category>> list(@RequestParam(required = false) Integer type) {

@@ -19,7 +19,7 @@ public class UserShoppingCartController {
     private final ShoppingCartService shoppingCartService;
 
     /**
-     * 添加购物车
+     * Add to shopping cart
      */
     @PostMapping("/add")
     public Result<String> add(@RequestBody ShoppingCartDTO shoppingCartDTO) {
@@ -34,7 +34,7 @@ public class UserShoppingCartController {
     }
 
     /**
-     * 查看购物车
+     * View shopping cart
      */
     @GetMapping("/list")
     public Result<List<ShoppingCartVO>> list() {
@@ -49,7 +49,7 @@ public class UserShoppingCartController {
     }
 
     /**
-     * 删除购物车中一个商品
+     * Remove item from shopping cart
      */
     @PostMapping("/sub")
     public Result<String> sub(@RequestBody ShoppingCartDTO shoppingCartDTO) {
@@ -64,7 +64,7 @@ public class UserShoppingCartController {
     }
 
     /**
-     * 清空购物车
+     * Clear shopping cart
      */
     @DeleteMapping("/clean")
     public Result<String> clean() {

@@ -11,13 +11,13 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class DishVO {
-    private Long id;                    // 菜品id
-    private String name;                // 菜品名称
-    private String categoryName;        // 分类名称
-    private String description;         // 菜品描述
-    private String image;               // 菜品图片路径
-    private Double price;               // 价格
-    private Integer status;             // 状态
-    private LocalDateTime updateTime;   // 更新时间
-    private List<MenuItemFlavorVO> flavors; // 菜品口味
+    private Long id;                    // Dish id
+    private String name;                // Dish name
+    private String categoryName;        // Category name
+    private String description;         // Dish description
+    private String image;               // Dish image path
+    private Double price;               // Price
+    private Integer status;             // Status
+    private LocalDateTime updateTime;   // Update time
+    private List<MenuItemFlavorVO> flavors; // Dish flavors
 }

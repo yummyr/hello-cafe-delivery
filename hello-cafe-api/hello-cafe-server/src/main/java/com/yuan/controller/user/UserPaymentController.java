@@ -23,7 +23,7 @@ public class UserPaymentController {
     private String webhookSecret;
 
     @PostMapping("/webhook")
-    @Operation(summary = "Stripe支付Webhook")
+    @Operation(summary = "Stripe payment webhook")
     public String handleStripeWebhook(@RequestBody String payload, @RequestHeader("Stripe-Signature") String sigHeader) {
         log.info("Received Stripe webhook");
 
@@ -55,20 +55,20 @@ public class UserPaymentController {
     }
 
     @GetMapping("/success")
-    @Operation(summary = "支付成功页面")
+    @Operation(summary = "Payment success page")
     public String paymentSuccess(@RequestParam String session_id, @RequestParam Long order_id) {
         log.info("Payment success for session: {}, order: {}", session_id, order_id);
 
-        // 这里可以重定向到前端的成功页面
+        // Can redirect to frontend success page here
         return "Payment successful! Order ID: " + order_id;
     }
 
     @GetMapping("/cancel")
-    @Operation(summary = "支付取消页面")
+    @Operation(summary = "Payment cancel page")
     public String paymentCancel(@RequestParam Long order_id) {
         log.info("Payment cancelled for order: {}", order_id);
 
-        // 这里可以重定向到前端的取消页面
+        // Can redirect to frontend cancel page here
         return "Payment cancelled! Order ID: " + order_id;
     }
 
@@ -79,11 +79,11 @@ public class UserPaymentController {
 
             log.info("Processing successful payment for order: {}, session: {}", orderId, session.getId());
 
-            // 更新订单状态为已支付
+            // Update order status to paid
             OrdersRepository ordersRepository = this.ordersRepository;
             ordersRepository.findById(orderId).ifPresent(order -> {
-                order.setPayStatus(1); // 已支付
-                order.setStatus(2); // 待处理
+                order.setPayStatus(1); // Paid
+                order.setStatus(2); // Pending processing
                 order.setCheckoutTime(java.time.LocalDateTime.now());
                 ordersRepository.save(order);
                 log.info("Updated order {} to paid status", orderId);
@@ -97,8 +97,8 @@ public class UserPaymentController {
             Long orderId = Long.valueOf(orderIdStr);
             log.info("Payment expired for order: {}, session: {}", orderId, session.getId());
 
-            // 可以在这里处理支付过期的逻辑
-            // 例如将订单状态更新为已过期或保持待付款状态
+            // Can handle payment expiration logic here
+            // For example, update order status to expired or keep pending payment status
         }
     }
 }

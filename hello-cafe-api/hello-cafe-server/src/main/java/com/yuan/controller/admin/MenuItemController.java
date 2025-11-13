@@ -36,7 +36,7 @@ public class MenuItemController {
     @DeleteMapping
     public Result delete(@RequestBody List<Long> idList) {
         try {
-            // log.info("开始Start to delete menu item by id");
+            // log.info("Starting to delete menu item by id");
             List<MenuItem> items = menuItemService.findByIds(idList);
 
             for (MenuItem item : items) {
@@ -62,7 +62,7 @@ public class MenuItemController {
             @RequestParam(value = "image", required = false) MultipartFile image
     ) {
         try {
-            // log.info("Adding menu item：name={}, price={}, categoryId={}", name, price, categoryId);
+            // log.info("Adding menu item: name={}, price={}, categoryId={}", name, price, categoryId);
             if (image.getSize() > FileConstant.MAX_IMAGE_SIZE) { // 5MB
                 return Result.error("File too large");
             }
@@ -89,7 +89,7 @@ public class MenuItemController {
 
         } catch (Exception e) {
             log.error("Failed to add menu item", e);
-            return Result.error("Failed to add menu item：" + e.getMessage());
+            return Result.error("Failed to add menu item: " + e.getMessage());
         }
     }
 
@@ -109,7 +109,7 @@ public class MenuItemController {
                                  @RequestParam(value = "image", required = false) MultipartFile image,
                                  @RequestParam(value = "oldImageUrl", required = false) String oldImageUrl) {
         try {
-            // log.info("开始Updating menu item:id: {},image: {}, oldImageUrl: {}", id, image, oldImageUrl);
+            // log.info("Updating menu item: id: {}, image: {}, oldImageUrl: {}", id, image, oldImageUrl);
             MenuItemDTO dto = new MenuItemDTO();
             dto.setId(id);
             dto.setName(name);

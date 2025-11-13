@@ -2,10 +2,35 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Heart, X, ShoppingCart, Star } from 'lucide-react';
 import UserLayout from '../layouts/UserLayout';
-import { favoritesAPI } from '../../../api/favorites';
+import api from '../../../api/index';
 import { shoppingCartAPI } from '../../../api/shoppingCart';
 import { refreshCartCount } from '../../../hooks/useShoppingCart';
 import ToastNotification from '../../../components/ToastNotification';
+
+// Favorites API functions
+const favoritesAPI = {
+  // Toggle favorite status
+  toggleFavorite: (favoriteData) => {
+    return api.post('user/favorites/toggle', favoriteData);
+  },
+
+  // Check favorite status
+  checkFavoriteStatus: (itemType, itemId) => {
+    return api.get('user/favorites/status', {
+      params: { itemType, itemId }
+    });
+  },
+
+  // Get user favorites list
+  getUserFavorites: () => {
+    return api.get('user/favorites/list');
+  },
+
+  // Clear favorites
+  clearFavorites: () => {
+    return api.delete('user/favorites/clear');
+  }
+};
 
 function FavoritesPage() {
   const navigate = useNavigate();

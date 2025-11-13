@@ -5,14 +5,39 @@ import {
   Clock,
   Star,
   ChevronRight,
-  Info,
   NotebookText,
+  Heart,
 } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import api from "../../../api";
 import { shoppingCartAPI } from "../../../api/shoppingCart";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
 import ToastNotification from "../../../components/ToastNotification";
+
+// Favorites API functions
+const favoritesAPI = {
+  // Toggle favorite status
+  toggleFavorite: (favoriteData) => {
+    return api.post('user/favorites/toggle', favoriteData);
+  },
+
+  // Check favorite status
+  checkFavoriteStatus: (itemType, itemId) => {
+    return api.get('user/favorites/status', {
+      params: { itemType, itemId }
+    });
+  },
+
+  // Get user favorites list
+  getUserFavorites: () => {
+    return api.get('user/favorites/list');
+  },
+
+  // Clear favorites
+  clearFavorites: () => {
+    return api.delete('user/favorites/clear');
+  }
+};
 
 
 function UserDashboard() {
@@ -28,6 +53,7 @@ function UserDashboard() {
   };
   const [featuredItems, setFeaturedItems] = useState([]);
   const [toast, setToast] = useState({ message: "", isVisible: false });
+  const [favoriteItems, setFavoriteItems] = useState(new Set());
 
   const categories = [
     {
@@ -110,11 +136,27 @@ function UserDashboard() {
     }
   };
 
+  // Fetch user favorites to set initial favorite state
+  const fetchUserFavorites = async () => {
+    try {
+      const response = await favoritesAPI.getUserFavorites();
+      if (response.data.code === 1) {
+        const favorites = response.data.data || [];
+        const favoriteKeys = new Set(
+          favorites.map(fav => `${fav.itemType}-${fav.itemId}`)
+        );
+        setFavoriteItems(favoriteKeys);
+      }
+    } catch (error) {
+      console.error("Failed to fetch user favorites:", error);
+    }
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
       try {
-        await Promise.all([fetchFeaturedItems()]);
+        await Promise.all([fetchFeaturedItems(), fetchUserFavorites()]);
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -123,6 +165,7 @@ function UserDashboard() {
     };
     fetchData();
     fetchFeaturedItems();
+    fetchUserFavorites();
   }, []);
 
   const handleCategoryClick = (categoryId) => {
@@ -134,7 +177,7 @@ function UserDashboard() {
   };
 
   const handleAddToCart = async (e, item) => {
-    e.stopPropagation(); 
+    e.stopPropagation();
 
     try {
       const response = await shoppingCartAPI.addItem(item.id);
@@ -155,6 +198,48 @@ function UserDashboard() {
       console.error("Error adding item to cart:", error);
       setToast({
         message: "Error adding item to cart",
+        isVisible: true,
+      });
+    }
+  };
+
+  const handleToggleFavorite = async (e, item) => {
+    e.stopPropagation();
+
+    try {
+      const favoriteData = {
+        itemType: 'menu_item',
+        itemId: item.id,
+        itemName: item.name,
+      };
+
+      const response = await favoritesAPI.toggleFavorite(favoriteData);
+      if (response.data.code === 1) {
+        setFavoriteItems(prev => {
+          const newFavorites = new Set(prev);
+          const itemKey = `menu_item-${item.id}`;
+
+          if (newFavorites.has(itemKey)) {
+            newFavorites.delete(itemKey);
+            setToast({
+              message: `${item.name} removed from favorites`,
+              isVisible: true,
+            });
+          } else {
+            newFavorites.add(itemKey);
+            setToast({
+              message: `${item.name} added to favorites`,
+              isVisible: true,
+            });
+          }
+
+          return newFavorites;
+        });
+      }
+    } catch (error) {
+      console.error("Error toggling favorite:", error);
+      setToast({
+        message: "Error updating favorites",
         isVisible: true,
       });
     }
@@ -238,6 +323,18 @@ function UserDashboard() {
                       {item.badge}
                     </div>
                   )}
+                  <button
+                    onClick={(e) => handleToggleFavorite(e, item)}
+                    className="absolute top-3 right-3 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-red-50 transition hover:scale-110"
+                  >
+                    <Heart
+                      className={`w-5 h-5 ${
+                        favoriteItems.has(`menu_item-${item.id}`)
+                          ? 'fill-red-500 text-red-500'
+                          : 'text-gray-400 hover:text-red-500'
+                      }`}
+                    />
+                  </button>
                   <button
                     onClick={(e) => handleAddToCart(e, item)}
                     className="absolute bottom-3 right-3 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition hover:scale-110"

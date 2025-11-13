@@ -12,14 +12,14 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ComboVO {
-    private Long id;                    // 套餐id
-    private String name;                // 套餐名称
-    private Long categoryId;            // 分类id
-    private String categoryName;        // 分类名称
-    private Double price;               // 套餐价格
-    private String image;               // 套餐图片
-    private String description;         // 套餐描述
-    private Integer status;             // 套餐状态
-    private LocalDateTime updateTime;   // 更新时间
-    private List<Combos> combos; // 套餐包含的菜品
+    private Long id;                    // Combo id
+    private String name;                // Combo name
+    private Long categoryId;            // Category id
+    private String categoryName;        // Category name
+    private Double price;               // Combo price
+    private String image;               // Combo image
+    private String description;         // Combo description
+    private Integer status;             // Combo status
+    private LocalDateTime updateTime;   // Update time
+    private List<Combos> combos; // Menu items included in combo
 }
