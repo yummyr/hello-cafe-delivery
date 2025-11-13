@@ -10,8 +10,8 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrderSubmitVO {
-    private Long id;                   // 订单id
-    private String orderNumber;        // 订单号
-    private Double orderAmount;        // 订单金额
-    private LocalDateTime orderTime;   // 下单时间
+    private Long id;                   // order id
+    private String orderNumber;        // order number
+    private Double orderAmount;        // order amount
+    private LocalDateTime orderTime;   // order place time
 }

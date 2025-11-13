@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.Map;
 
-@RestController("userFavoritesController")
+@RestController
 @RequestMapping("/api/user/favorites")
 public class UserFavoritesController {
 
@@ -16,7 +16,7 @@ public class UserFavoritesController {
     private FavoritesService favoritesService;
 
     /**
-     * 切换收藏状态
+     * toggle favorite item
      */
     @PostMapping("/toggle")
     public Result<Map<String, Object>> toggleFavorite(@RequestBody Map<String, Object> request) {

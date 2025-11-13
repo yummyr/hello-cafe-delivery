@@ -24,21 +24,21 @@ public class FavoritesServiceImpl implements FavoritesService {
         String favoritesKey = FAVORITES_KEY_PREFIX + userId;
 
         try {
-            // 获取当前收藏列表
+            // get current favorites from cache
             List<Map<String, Object>> favorites = getUserFavoritesFromCache(favoritesKey);
 
-            // 查找是否已存在该收藏项
+            // check if the item is already favorite or not
             Optional<Map<String, Object>> existingFavorite = favorites.stream()
                 .filter(fav -> Objects.equals(fav.get("itemType"), itemType) && Objects.equals(fav.get("itemId"), itemId))
                 .findFirst();
 
             boolean isFavorite;
             if (existingFavorite.isPresent()) {
-                // 如果已存在，则移除（取消收藏）
+                // if the item is favorite, remove it
                 favorites.removeIf(fav -> Objects.equals(fav.get("itemType"), itemType) && Objects.equals(fav.get("itemId"), itemId));
                 isFavorite = false;
             } else {
-                // 如果不存在，则添加（收藏）
+                // if the item is not favorite, add it
                 Map<String, Object> favoriteItem = new HashMap<>();
                 favoriteItem.put("itemType", itemType);
                 favoriteItem.put("itemId", itemId);
@@ -51,7 +51,7 @@ public class FavoritesServiceImpl implements FavoritesService {
                 isFavorite = true;
             }
 
-            // 更新缓存
+            // update favorites in cache
             redisTemplate.opsForValue().set(favoritesKey, favorites, CACHE_TTL, TimeUnit.MINUTES);
 
             return Map.of(
@@ -92,7 +92,7 @@ public class FavoritesServiceImpl implements FavoritesService {
         redisTemplate.delete(favoritesKey);
     }
 
-    @SuppressWarnings("unchecked")
+
     private List<Map<String, Object>> getUserFavoritesFromCache(String favoritesKey) {
         List<Map<String, Object>> favorites = (List<Map<String, Object>>) redisTemplate.opsForValue().get(favoritesKey);
         if (favorites == null) {

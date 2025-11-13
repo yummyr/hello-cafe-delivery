@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ShoppingCartDTO {
-    private Long dishId;       // 菜品id
-    private Long setmealId;    // 套餐id
-    private String flavor;  // 口味
+    private Long menuItemId;
+    private Long comboId;
+    private String flavor;
 }

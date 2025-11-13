@@ -8,6 +8,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class OrdersPaymentDTO {
-    private String orderNumber; // 订单号
-    private Integer payMethod;   // 支付方式
+    private String orderNumber;
+    private Integer payMethod;
 }

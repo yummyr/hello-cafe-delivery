@@ -1,7 +1,9 @@
 package com.yuan.controller.user;
 
+import com.yuan.entity.Category;
 import com.yuan.entity.MenuItem;
 import com.yuan.entity.MenuItemFlavor;
+import com.yuan.repository.CategoryRepository;
 import com.yuan.repository.MenuItemFlavorRepository;
 import com.yuan.repository.MenuItemRepository;
 import com.yuan.result.Result;
@@ -25,16 +27,17 @@ public class UserMenuItemController {
     private final MenuItemRepository menuItemRepository;
     private final MenuItemFlavorRepository menuItemFlavorRepository;
     private final MenuItemService menuItemService;
+    private final CategoryRepository categoryRepository;
 
     /**
-     * 根据分类id查询菜品
+     * query menu items by category
      */
     @GetMapping("/list")
     public Result<List<DishVO>> list(@RequestParam Long categoryId) {
         try {
             log.info("Querying menu items by category id: {}", categoryId);
 
-            // 只查询起售状态的菜品
+            // only query active menu items
             List<MenuItem> menuItems = menuItemRepository.findByCategoryIdAndStatus(categoryId, 1);
 
             List<DishVO> dishVOList = menuItems.stream()
@@ -58,11 +61,20 @@ public class UserMenuItemController {
         dishVO.setStatus(menuItem.getStatus());
         dishVO.setUpdateTime(menuItem.getUpdateTime());
 
-        // 查询分类名称
-        // TODO: 查询分类名称，这里先设置为默认值
-        dishVO.setCategoryName("默认分类");
+        // query category
+        if (menuItem.getCategoryId() != null) {
+            try {
+                Category category = categoryRepository.findById(menuItem.getCategoryId()).orElse(null);
+                dishVO.setCategoryName(category != null ? category.getName() : "Unknown");
+            } catch (Exception e) {
+                log.warn("Failed to fetch category for menu item {}: {}", menuItem.getId(), e.getMessage());
+                dishVO.setCategoryName("Unknown");
+            }
+        } else {
+            dishVO.setCategoryName("Uncategorized");
+        }
 
-        // 查询口味信息
+        // query flavors
         List<MenuItemFlavor> flavors = menuItemFlavorRepository.findByMenuItemId(menuItem.getId());
         List<MenuItemFlavorVO> flavorVOs = flavors.stream()
                 .map(this::convertToDishFlavorVO)
@@ -77,12 +89,12 @@ public class UserMenuItemController {
         flavorVO.setId(flavor.getId());
         flavorVO.setId(flavor.getMenuItemId());
         flavorVO.setName(flavor.getName());
-        flavorVO.setValue(flavor.getValue().toString()); // 将List转换为字符串
+        flavorVO.setValue(flavor.getValue().toString()); // convert to string
         return flavorVO;
     }
 
     /**
-     * 获取所有活跃的菜单项
+     * get all active menu items list
      */
     @GetMapping("/all")
     public Result<List<MenuItemVO>> getAllActiveMenuItems() {

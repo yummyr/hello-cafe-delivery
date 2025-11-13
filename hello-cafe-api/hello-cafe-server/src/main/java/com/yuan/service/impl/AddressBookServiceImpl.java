@@ -19,7 +19,6 @@ public class AddressBookServiceImpl implements AddressBookService {
 
     private final AddressBookRepository addressBookRepository;
 
-
     @Override
     @Transactional
     public void addAddress(AddressBook addressBook) {

@@ -76,27 +76,27 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     @Override
     @Transactional
     public void addToCart(ShoppingCartDTO shoppingCartDTO) {
-        log.info("Adding to cart: dishId={}, setmealId={}, flavor={}", shoppingCartDTO.getDishId(), shoppingCartDTO.getSetmealId(), shoppingCartDTO.getFlavor());
+        log.info("Adding to cart: menuItemId={}, comboId={}, flavor={}", shoppingCartDTO.getMenuItemId(), shoppingCartDTO.getComboId(), shoppingCartDTO.getFlavor());
 
         ShoppingCart shoppingCart = new ShoppingCart();
 
-        if (shoppingCartDTO.getDishId() != null) {
+        if (shoppingCartDTO.getMenuItemId() != null) {
             // handle menu item case
-            MenuItem menuItem = menuItemRepository.findById(shoppingCartDTO.getDishId())
+            MenuItem menuItem = menuItemRepository.findById(shoppingCartDTO.getMenuItemId())
                     .orElseThrow(() -> new RuntimeException("Dish not found"));
 
             shoppingCart.setName(menuItem.getName());
             shoppingCart.setImage(menuItem.getImage());
-            shoppingCart.setMenuItemId(shoppingCartDTO.getDishId());
+            shoppingCart.setMenuItemId(shoppingCartDTO.getMenuItemId());
             shoppingCart.setUnitPrice(menuItem.getPrice());
-        } else if (shoppingCartDTO.getSetmealId() != null) {
+        } else if (shoppingCartDTO.getComboId() != null) {
             // handle combo case
-            Combo combo = comboRepository.findById(shoppingCartDTO.getSetmealId())
+            Combo combo = comboRepository.findById(shoppingCartDTO.getComboId())
                     .orElseThrow(() -> new RuntimeException("Combo not found"));
 
             shoppingCart.setName(combo.getName());
             shoppingCart.setImage(combo.getImage());
-            shoppingCart.setComboId(shoppingCartDTO.getSetmealId());
+            shoppingCart.setComboId(shoppingCartDTO.getComboId());
             shoppingCart.setUnitPrice(combo.getPrice());
         } else {
             throw new RuntimeException("Either dishId or setmealId must be provided");
@@ -109,12 +109,12 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
         // check if item already exists
         ShoppingCart existingCart = null;
-        if (shoppingCartDTO.getDishId() != null) {
+        if (shoppingCartDTO.getMenuItemId() != null) {
             existingCart = shoppingCartRepository.findByUserIdAndMenuItemIdAndFlavor(
-                    UserUtils.getCurrentUserId(), shoppingCartDTO.getDishId(), shoppingCartDTO.getFlavor());
-        } else if (shoppingCartDTO.getSetmealId() != null) {
+                    UserUtils.getCurrentUserId(), shoppingCartDTO.getMenuItemId(), shoppingCartDTO.getFlavor());
+        } else if (shoppingCartDTO.getComboId() != null) {
             existingCart = shoppingCartRepository.findByUserIdAndComboId(
-                    UserUtils.getCurrentUserId(), shoppingCartDTO.getSetmealId());
+                    UserUtils.getCurrentUserId(), shoppingCartDTO.getComboId());
         }
 
         if (existingCart != null) {
@@ -177,15 +177,15 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     @Override
     @Transactional
     public void subtractFromCart(ShoppingCartDTO shoppingCartDTO) {
-        log.info("Subtracting from cart: dishId={}, setmealId={}, flavor={}", shoppingCartDTO.getDishId(), shoppingCartDTO.getSetmealId(), shoppingCartDTO.getFlavor());
+        log.info("Subtracting from cart: dishId={}, setmealId={}, flavor={}", shoppingCartDTO.getMenuItemId(), shoppingCartDTO.getComboId(), shoppingCartDTO.getFlavor());
 
         ShoppingCart existingCart = null;
-        if (shoppingCartDTO.getDishId() != null) {
+        if (shoppingCartDTO.getMenuItemId() != null) {
             existingCart = shoppingCartRepository.findByUserIdAndMenuItemIdAndFlavor(
-                    UserUtils.getCurrentUserId(), shoppingCartDTO.getDishId(), shoppingCartDTO.getFlavor());
-        } else if (shoppingCartDTO.getSetmealId() != null) {
+                    UserUtils.getCurrentUserId(), shoppingCartDTO.getMenuItemId(), shoppingCartDTO.getFlavor());
+        } else if (shoppingCartDTO.getComboId() != null) {
             existingCart = shoppingCartRepository.findByUserIdAndComboId(
-                    UserUtils.getCurrentUserId(), shoppingCartDTO.getSetmealId());
+                    UserUtils.getCurrentUserId(), shoppingCartDTO.getComboId());
         }
 
         if (existingCart == null) {

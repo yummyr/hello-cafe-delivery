@@ -46,8 +46,9 @@ function ShoppingCartPage() {
 
     try {
       const response = await shoppingCartAPI.addItem(
-        item.menuItemId || item.comboId,
-        item.flavor
+        item.menuItemId,
+        item.flavor,
+        item.comboId
       );
       if (response.data.code === 1) {
         await fetchCart(); // 重新获取购物车数据
@@ -80,8 +81,9 @@ function ShoppingCartPage() {
 
     try {
       const response = await shoppingCartAPI.removeItem(
-        item.menuItemId || item.comboId,
-        item.flavor
+        item.menuItemId,
+        item.flavor,
+        item.comboId
       );
       if (response.data.code === 1) {
         await fetchCart(); // 重新获取购物车数据
@@ -298,7 +300,10 @@ function ShoppingCartPage() {
                   >
                     Continue Shopping
                   </button>
-                  <button className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium flex items-center gap-2">
+                  <button
+                    onClick={() => navigate("/user/checkout", { state: { cartItems } })}
+                    className="px-6 py-3 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors font-medium flex items-center gap-2"
+                  >
                     <Check className="w-5 h-5" />
                     Proceed to Checkout
                   </button>

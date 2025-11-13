@@ -2,10 +2,10 @@ import api from "./index";
 
 export const shoppingCartAPI = {
   // 添加商品到购物车
-  addItem: (dishId, flavor = null, setmealId = null) => {
+  addItem: (menuItemId, flavor = null, comboId = null) => {
     return api.post("/user/shoppingCart/add", {
-      dishId,
-      setmealId, // 套餐ID
+      menuItemId,
+      comboId, // 套餐ID
       flavor,
     });
   },
@@ -16,10 +16,10 @@ export const shoppingCartAPI = {
   },
 
   // 减少购物车中的商品
-  removeItem: (dishId, flavor = null) => {
+  removeItem: (menuItemId, flavor = null, comboId = null) => {
     return api.post("/user/shoppingCart/sub", {
-      dishId,
-      setmealId: null,
+      menuItemId,
+      comboId,
       flavor,
     });
   },

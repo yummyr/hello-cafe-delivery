@@ -96,17 +96,20 @@ public class MenuItemServiceImpl implements MenuItemService {
 
         // convert formation to menu item VO
         List<MenuItemVO> voList = page.getContent().stream()
-                .map(item -> new MenuItemVO(
-                        item.getId(),
-                        item.getName(),
-                        categoryMap.getOrDefault(item.getCategoryId(), "Unknown"),
-                        item.getPrice(),
-                        item.getImage(),
-                        item.getDescription(),
-                        item.getStatus(),
-                        item.getUpdateTime()
-                ))
-                .toList();
+                .map(item -> {
+                    MenuItemVO vo = new MenuItemVO();
+                    vo.setId(item.getId());
+                    vo.setName(item.getName());
+                    vo.setCategoryName(categoryMap.getOrDefault(item.getCategoryId(), "Unknown"));
+                    vo.setPrice(item.getPrice());
+                    vo.setImage(item.getImage());
+                    vo.setDescription(item.getDescription());
+                    vo.setStatus(item.getStatus());
+                    vo.setUpdateTime(item.getUpdateTime());
+                    vo.setCopies(0); // Default value for menu items
+                    return vo;
+                })
+                .collect(Collectors.toList());
 
         return new PageResult(page.getTotalElements(), voList);
     }

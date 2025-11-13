@@ -7,7 +7,7 @@ import com.yuan.repository.CombosRepository;
 import com.yuan.repository.ComboRepository;
 import com.yuan.repository.MenuItemRepository;
 import com.yuan.result.Result;
-import com.yuan.vo.DishItemVO;
+import com.yuan.vo.MenuItemVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -26,14 +26,14 @@ public class UserComboController {
     private final MenuItemRepository menuItemRepository;
 
     /**
-     * 根据分类id查询套餐
+     * query combos by category
      */
     @GetMapping("/list")
     public Result<List<Combo>> list(@RequestParam Long categoryId) {
         try {
             log.info("Querying combos by category id: {}", categoryId);
 
-            // 只查询起售状态的套餐
+            // only query active combos
             List<Combo> combos = comboRepository.findByCategoryIdAndStatus(categoryId, 1);
 
             return Result.success(combos);
@@ -47,38 +47,42 @@ public class UserComboController {
      * 根据套餐id查询包含的菜品
      */
     @GetMapping("/menu_item/{id}")
-    public Result<List<DishItemVO>> getComboMenuItems(@PathVariable Long id) {
+    public Result<List<MenuItemVO>> getComboMenuItems(@PathVariable Long id) {
         try {
             log.info("Querying menu items for combo id: {}", id);
 
             // 查询套餐包含的菜品
             List<Combos> combos = combosRepository.findByComboId(id);
 
-            List<DishItemVO> dishItems = combos.stream()
+            List<MenuItemVO> menuItems = combos.stream()
                     .map(comboItem -> {
-                        DishItemVO dishItem = new DishItemVO();
+                        MenuItemVO menuItemVO = new MenuItemVO();
 
-                        // 获取菜品信息
+                        // get menu item info
                         MenuItem menuItem = menuItemRepository.findById(comboItem.getMenuItemId())
                                 .orElse(null);
 
                         if (menuItem != null) {
-                            dishItem.setName(menuItem.getName());
-                            dishItem.setDescription(menuItem.getDescription());
-                            dishItem.setImage(menuItem.getImage());
+                            menuItemVO.setId(menuItem.getId());
+                            menuItemVO.setName(menuItem.getName());
+                            menuItemVO.setDescription(menuItem.getDescription());
+                            menuItemVO.setImage(menuItem.getImage());
+                            menuItemVO.setPrice(menuItem.getPrice());
+                            menuItemVO.setStatus(menuItem.getStatus());
+                            menuItemVO.setUpdateTime(menuItem.getUpdateTime());
                         } else {
-                            dishItem.setName(comboItem.getName());
-                            dishItem.setDescription("");
-                            dishItem.setImage("");
+                            menuItemVO.setName(comboItem.getName());
+                            menuItemVO.setDescription("");
+                            menuItemVO.setImage("");
                         }
 
-                        dishItem.setCopies(comboItem.getQuantity());
+                        menuItemVO.setCopies(comboItem.getQuantity());
 
-                        return dishItem;
+                        return menuItemVO;
                     })
                     .collect(Collectors.toList());
 
-            return Result.success(dishItems);
+            return Result.success(menuItems);
         } catch (Exception e) {
             log.error("Failed to query combo menu items", e);
             return Result.error("Failed to query combo menu items: " + e.getMessage());
@@ -86,7 +90,7 @@ public class UserComboController {
     }
 
     /**
-     * 获取所有活跃的套餐
+     * query all active combos
      */
     @GetMapping("/all")
     public Result<List<Combo>> getAllActiveCombos() {

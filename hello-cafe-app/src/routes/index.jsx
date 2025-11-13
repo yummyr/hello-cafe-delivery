@@ -16,6 +16,7 @@ import {  UserDashboard, UserOrders, AddressBookPage } from "@/views/user";
 import MenuItemForm from "../views/admin/components/MenuItemForm";
 import UserMenuPage from '../views/user/pages/UserMenuPage';
 import ShoppingCartPage from '../views/user/pages/ShoppingCartPage';
+import CheckoutPage from '../views/user/pages/CheckoutPage';
 import CombosPage from '../views/user/pages/CombosPage';
 import FavoritesPage from '../views/user/pages/FavoritesPage';
 
@@ -50,6 +51,7 @@ function AppRoutes() {
         <Route path="menu" element={<UserMenuPage />} />
         <Route path="combos" element={<CombosPage />} />
         <Route path="cart" element={<ShoppingCartPage />} />
+        <Route path="checkout" element={<CheckoutPage />} />
         <Route path="favorites" element={<FavoritesPage />} />
       </Route>
 
