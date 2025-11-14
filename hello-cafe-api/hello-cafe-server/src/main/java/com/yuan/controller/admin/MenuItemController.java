@@ -95,6 +95,7 @@ public class MenuItemController {
 
     @PutMapping("/status/{id}")
     public Result toggleStatus(@PathVariable Long id) {
+        log.info("开始修改menu item 状态 with {}",id);
         menuItemService.changeItemStatus(id);
         return Result.success(id);
     }

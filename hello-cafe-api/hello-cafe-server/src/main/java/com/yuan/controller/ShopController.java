@@ -19,12 +19,16 @@ public class ShopController {
 
     @GetMapping("/status")
     public Result getShopStatus() {
+        log.info("trying to fetch shop status in shop controller~");
+
         Integer status = shopService.getShopStatus();
+        log.info("fetch shop status:{}",status);
         return Result.success(status);
     }
 
     @PutMapping("/status")
     public Result updateShopStatus(@RequestBody Map<String, Integer> req) {
+        log.info("update shop status in shop controller using method updateShopStatus");
         try {
             Integer status = req.get("status");
             if (status == null || (status != 0 && status != 1)) {

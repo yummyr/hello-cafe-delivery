@@ -47,13 +47,7 @@ function AdminSidebar() {
         })}
       </nav>
 
-      <div
-        onClick={() => navigate("/admin/settings")}
-        className="px-4 py-4 border-t border-gray-700 flex items-center gap-2 hover:bg-[#3d3d3d] transition-all cursor-pointer"
-      >
-        <Settings className="w-5 h-5" />
-        <span>Settings</span>
-      </div>
+   
     </aside>
   );
 }

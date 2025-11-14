@@ -45,18 +45,6 @@ public class Orders implements Serializable {
     @Column()
     private String notes;
 
-    @Column(length = 15)
-    private String phone;
-
-    @Column
-    private String address;
-
-    @Column(name = "user_name", length = 32)
-    private String userName;
-
-    @Column(length = 32)
-    private String name;
-
     @Column(name = "cancel_reason", length = 255)
     private String cancelReason;
 
@@ -75,8 +63,8 @@ public class Orders implements Serializable {
     @Column(name = "delivery_time")
     private LocalDateTime deliveryTime;
 
-    @Column(name = "pack_amount")
-    private Integer packAmount;
+    @Column(name = "delivery_fee")
+    private double deliveryFee;
 
     @Column(name = "tableware_number")
     private Integer tablewareNumber;

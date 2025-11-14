@@ -13,9 +13,13 @@ import java.util.List;
 public class OrderDetailVO {
     private String orderNo;
     private LocalDateTime orderTime;
-    private String userName;
-    private String phone;
-    private String address;
+    private Long addressBookId;
+    private String addressName;  // name from address book
+    private String addressPhone;  // phone from address book
+    private String address;      // full address from address book (city, state, zipcode)
+    private String addressDetail; // street address from address book
+    private Double amount;         // order total amount
+    private Double deliveryFee;    // delivery fee
     private Integer status;
     private Integer payStatus;
     private Integer payMethod;

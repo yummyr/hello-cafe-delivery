@@ -71,7 +71,14 @@ public class EmployeeServiceImpl implements EmployeeService {
         try {
             Employee employee = employeeRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException(MessageConstant.ACCOUNT_NOT_FOUND));
-            Integer newStatus = employee.getStatus() == 1 ? 0 : 1;
+
+            // Handle null status by defaulting to 0 (inactive) if null
+            Integer currentStatus = employee.getStatus();
+            if (currentStatus == null) {
+                currentStatus = StatusConstant.DISABLE; // Default to active if status is null
+            }
+
+            Integer newStatus = currentStatus == 1 ? 0 : 1;
             employee.setStatus(newStatus);
             employeeRepository.save(employee);
         } catch (Exception e) {

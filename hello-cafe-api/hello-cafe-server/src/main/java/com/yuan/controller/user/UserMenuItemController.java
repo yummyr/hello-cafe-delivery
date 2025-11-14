@@ -1,5 +1,6 @@
 package com.yuan.controller.user;
 
+import com.yuan.constant.StatusConstant;
 import com.yuan.entity.Category;
 import com.yuan.entity.MenuItem;
 import com.yuan.entity.MenuItemFlavor;
@@ -21,7 +22,7 @@ import java.util.stream.Collectors;
 @RestController
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/user/menu_item")
+@RequestMapping("/api/user/menu")
 public class UserMenuItemController {
 
     private final MenuItemRepository menuItemRepository;
@@ -91,6 +92,58 @@ public class UserMenuItemController {
         flavorVO.setName(flavor.getName());
         flavorVO.setValue(flavor.getValue().toString()); // convert to string
         return flavorVO;
+    }
+
+    /**
+     * get featured items
+     */
+    @GetMapping("/featured")
+    public Result<List<MenuItemVO>> getFeaturedItems() {
+        try {
+            log.info("Fetching featured menu items");
+            // Get active menu items and limit to 6 items for featured section
+            List<MenuItemVO> featuredItems = menuItemService.findByStatus(StatusConstant.ENABLE);
+
+            // If we have more than 6 items, return only the first 6
+            if (featuredItems.size() > 6) {
+                featuredItems = featuredItems.subList(0, 6);
+            }
+
+            return Result.success(featuredItems);
+        } catch (Exception e) {
+            log.error("Failed to fetch featured menu items", e);
+            return Result.error("Failed to fetch featured menu items: " + e.getMessage());
+        }
+    }
+
+    /**
+     * get menu items by category
+     */
+    @GetMapping("/category/{categoryId}")
+    public Result<List<MenuItemVO>> getMenuItemsByCategory(@PathVariable Long categoryId) {
+        try {
+            log.info("开始Fetching menu items for category: {}", categoryId);
+            List<MenuItemVO> menuItems = menuItemService.findByCategoryIdAndStatus(categoryId, StatusConstant.ENABLE);
+            return Result.success(menuItems);
+        } catch (Exception e) {
+            log.error("Failed to fetch menu items for category: {}", categoryId, e);
+            return Result.error("Failed to fetch menu items: " + e.getMessage());
+        }
+    }
+
+    /**
+     * get menu item by id
+     */
+    @GetMapping("/item/{id}")
+    public Result<MenuItemVO> getMenuItemById(@PathVariable Long id) {
+        try {
+            log.info("Fetching menu item details for id: {}", id);
+            MenuItemVO menuItem = menuItemService.getMenuItemVOById(id);
+            return Result.success(menuItem);
+        } catch (Exception e) {
+            log.error("Failed to fetch menu item details for id: {}", id, e);
+            return Result.error("Failed to fetch menu item details: " + e.getMessage());
+        }
     }
 
     /**

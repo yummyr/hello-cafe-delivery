@@ -12,7 +12,7 @@ public class OrdersSubmitDTO {
     private Double amount;                 // Total amount
     private Integer deliveryStatus;        // Delivery status: 1 immediate delivery, 0 specific time
     private String estimatedDeliveryTime; // Estimated delivery time
-    private Integer packAmount;            // Packing fee
+    private Double deliveryFee;           // Delivery fee
     private Integer payMethod;             // Payment method
     private String remark;                 // Remarks
     private Integer tablewareNumber;       // Tableware quantity

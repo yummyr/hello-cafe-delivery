@@ -85,6 +85,7 @@ function UserTopBar({ onLogout }) {
   }, [onLogout]);
 
   const { shopState, fetchStatus } = useShopStatus(handleTokenExpired, {
+  
     canToggle: false // Users cannot toggle shop status
   });
 

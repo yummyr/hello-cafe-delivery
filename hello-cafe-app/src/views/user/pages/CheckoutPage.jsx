@@ -12,9 +12,10 @@ import {
   User,
 } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
-import api from "../../../api";
-import { shoppingCartAPI } from "../../../api/shoppingCart";
 import ToastNotification from "../../../components/ToastNotification";
+import shoppingCartAPI from "../../../api/shoppingCart";
+import api from "../../../api";
+
 
 function CheckoutPage() {
   const navigate = useNavigate();
@@ -24,8 +25,11 @@ function CheckoutPage() {
   const [cartItems, setCartItems] = useState([]);
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
+  const [showAddressDropdown, setShowAddressDropdown] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState("credit_card");
   const [orderNotes, setOrderNotes] = useState("");
+  const [tablewareNumber, setTablewareNumber] = useState(1);
+  const [tablewareStatus, setTablewareStatus] = useState(1); // 1: by meal portion, 0: specific quantity
   const [toast, setToast] = useState({ message: "", isVisible: false });
   const [estimatedDelivery, setEstimatedDelivery] = useState("30-40 minutes");
 
@@ -71,6 +75,12 @@ function CheckoutPage() {
     }
   };
 
+  // Handle address selection from dropdown
+  const handleAddressSelect = (addressId) => {
+    setSelectedAddress(addressId);
+    setShowAddressDropdown(false);
+  };
+
   useEffect(() => {
     getCartData();
     fetchAddresses();
@@ -107,23 +117,19 @@ function CheckoutPage() {
     try {
       // Create order data
       const orderData = {
-        addressId: selectedAddress,
-        paymentMethod: paymentMethod,
-        orderNotes: orderNotes,
-        items: cartItems.map(item => ({
-          menuItemId: item.menuItemId,
-          comboId: item.comboId,
-          quantity: item.quantity,
-          flavor: item.flavor,
-          unitPrice: item.unitPrice
-        })),
-        totalAmount: total,
+        addressBookId: selectedAddress,
+        amount: total,
         deliveryFee: deliveryFee,
-        tax: tax
+        payMethod: paymentMethod === "credit_card" ? 1 : 2,
+        remark: orderNotes,
+        tablewareNumber: tablewareNumber,
+        tablewareStatus: tablewareStatus,
+        deliveryStatus: 1, // 1: immediate delivery
+        estimatedDeliveryTime: new Date(Date.now() + 40 * 60000).toISOString() // 40 minutes from now
       };
 
-      // Submit order (assuming there's an order creation API)
-      const response = await api.post("/user/order", orderData);
+      // Submit order
+      const response = await api.post("/user/order/submit", orderData);
 
       if (response.data.code === 1) {
         // Clear cart after successful order
@@ -220,45 +226,137 @@ function CheckoutPage() {
                     <MapPin className="w-12 h-12 text-gray-400 mx-auto mb-3" />
                     <p className="text-gray-600 mb-4">No delivery addresses found</p>
                     <button
-                      onClick={() => navigate("/user/addresses")}
+                      onClick={() => setShowAddressDropdown(true)}
                       className="px-4 py-2 bg-amber-600 text-white rounded-lg hover:bg-amber-700 transition-colors"
                     >
                       Add Address
                     </button>
                   </div>
                 ) : (
-                  <div className="space-y-3">
-                    {addresses.map((address) => (
-                      <label
-                        key={address.id}
-                        className="flex items-start gap-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
-                      >
-                        <input
-                          type="radio"
-                          name="address"
-                          value={address.id}
-                          checked={selectedAddress === address.id}
-                          onChange={(e) => setSelectedAddress(Number(e.target.value))}
-                          className="mt-1"
-                        />
-                        <div className="flex-1">
-                          <div className="font-medium text-gray-800">
-                            {address.name}
-                            {address.isDefault === 1 && (
-                              <span className="ml-2 px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">
-                                Default
-                              </span>
-                            )}
+                  <div>
+                    {/* Current selected address display */}
+                    {selectedAddress && (
+                      <div className="mb-4 p-4 border-2 border-amber-200 bg-amber-50 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="font-medium text-gray-900">Selected Address:</span>
+                          <button
+                            onClick={() => setShowAddressDropdown(true)}
+                            className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+                          >
+                            Change
+                          </button>
+                        </div>
+                        {(() => {
+                          const selected = addresses.find(addr => addr.id === selectedAddress);
+                          return selected ? (
+                            <div className="text-sm">
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium">{selected.name}</span>
+                                {selected.isDefault === 1 && (
+                                  <span className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded-full">Default</span>
+                                )}
+                              </div>
+                              <div className="text-gray-600 mb-1">{selected.phone}</div>
+                              <div className="text-gray-800">
+                                {selected.address}, {selected.city}, {selected.state} {selected.zipcode}
+                              </div>
+                            </div>
+                          ) : null;
+                        })()}
+                      </div>
+                    )}
+
+                    {/* Address selection dropdown */}
+                    {showAddressDropdown && (
+                      <div className="relative z-50">
+                        <div className="absolute inset-0 bg-black bg-opacity-25" onClick={() => setShowAddressDropdown(false)}></div>
+                        <div className="relative bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                          <div className="p-2 border-b border-gray-200">
+                            <h4 className="font-medium text-gray-900">Select Delivery Address</h4>
                           </div>
-                          <div className="text-sm text-gray-600 mt-1">
-                            {address.phone}
-                          </div>
-                          <div className="text-sm text-gray-600 mt-1">
-                            {address.address}, {address.city}, {address.state} {address.zipcode}
+                          {addresses.map((address) => (
+                            <button
+                              key={address.id}
+                              onClick={() => handleAddressSelect(address.id)}
+                              className={`w-full text-left p-3 hover:bg-gray-50 transition-colors border-b border-gray-100 last:border-b-0 ${
+                                selectedAddress === address.id ? 'bg-amber-50 border-l-4 border-l-amber-500' : ''
+                              }`}
+                            >
+                              <div className="flex items-center gap-2 mb-1">
+                                <span className="font-medium text-gray-900">{address.name}</span>
+                                {address.isDefault === 1 && (
+                                  <span className="px-2 py-1 text-xs bg-amber-100 text-amber-700 rounded-full">Default</span>
+                                )}
+                                {selectedAddress === address.id && (
+                                  <Check className="w-4 h-4 text-amber-600" />
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-600 mb-1">{address.phone}</div>
+                              <div className="text-sm text-gray-800">
+                                {address.address}, {address.city}, {address.state} {address.zipcode}
+                              </div>
+                            </button>
+                          ))}
+                          <div className="p-2 border-t border-gray-200">
+                            <button
+                              onClick={() => {
+                                setShowAddressDropdown(false);
+                                navigate("/user/addresses");
+                              }}
+                              className="w-full px-3 py-2 text-sm bg-amber-600 text-white rounded hover:bg-amber-700 transition-colors"
+                            >
+                              + Add New Address
+                            </button>
                           </div>
                         </div>
-                      </label>
-                    ))}
+                      </div>
+                    )}
+
+                    {/* Alternative address list view (when dropdown is not shown and no address selected) */}
+                    {!showAddressDropdown && !selectedAddress && (
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between mb-3">
+                          <span className="text-sm font-medium text-gray-700">Select a delivery address:</span>
+                          <button
+                            onClick={() => setShowAddressDropdown(true)}
+                            className="text-sm text-amber-600 hover:text-amber-700 font-medium"
+                          >
+                            Quick Select
+                          </button>
+                        </div>
+                        {addresses.map((address) => (
+                          <label
+                            key={address.id}
+                            className="flex items-start gap-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors"
+                          >
+                            <input
+                              type="radio"
+                              name="address"
+                              value={address.id}
+                              checked={selectedAddress === address.id}
+                              onChange={(e) => setSelectedAddress(Number(e.target.value))}
+                              className="mt-1"
+                            />
+                            <div className="flex-1">
+                              <div className="font-medium text-gray-800">
+                                {address.name}
+                                {address.isDefault === 1 && (
+                                  <span className="ml-2 px-2 py-1 bg-amber-100 text-amber-700 text-xs rounded-full">
+                                    Default
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-sm text-gray-600 mt-1">
+                                {address.phone}
+                              </div>
+                              <div className="text-sm text-gray-600 mt-1">
+                                {address.address}, {address.city}, {address.state} {address.zipcode}
+                              </div>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -342,6 +440,70 @@ function CheckoutPage() {
                       </div>
                     </div>
                   </label>
+                </div>
+              </div>
+
+              {/* Tableware Selection */}
+              <div className="bg-white rounded-lg shadow-md p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertCircle className="w-5 h-5 text-amber-600" />
+                  <h2 className="text-xl font-semibold text-gray-800">Tableware</h2>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Tableware Option
+                    </label>
+                    <div className="space-y-2">
+                      <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="tablewareOption"
+                          value="byMeal"
+                          checked={tablewareStatus === 1}
+                          onChange={() => setTablewareStatus(1)}
+                          className="w-4 h-4 text-amber-600 focus:ring-amber-500 border-gray-300"
+                        />
+                        <div>
+                          <div className="font-medium">By Meal Portion</div>
+                          <div className="text-sm text-gray-600">Provide tableware based on number of meals</div>
+                        </div>
+                      </label>
+                      <label className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                        <input
+                          type="radio"
+                          name="tablewareOption"
+                          value="specific"
+                          checked={tablewareStatus === 0}
+                          onChange={() => setTablewareStatus(0)}
+                          className="w-4 h-4 text-amber-600 focus:ring-amber-500 border-gray-300"
+                        />
+                        <div>
+                          <div className="font-medium">Specific Quantity</div>
+                          <div className="text-sm text-gray-600">Specify the exact number of tableware needed</div>
+                        </div>
+                      </label>
+                    </div>
+                  </div>
+
+                  {tablewareStatus === 0 && (
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Number of Tableware
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="20"
+                        value={tablewareNumber}
+                        onChange={(e) => setTablewareNumber(Math.max(1, parseInt(e.target.value) || 1))}
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-amber-500"
+                        placeholder="Enter number of tableware"
+                      />
+                      <p className="text-sm text-gray-500 mt-1">Please specify how many sets of tableware you need</p>
+                    </div>
+                  )}
                 </div>
               </div>
 

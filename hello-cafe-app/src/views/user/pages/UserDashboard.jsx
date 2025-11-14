@@ -9,35 +9,11 @@ import {
   Heart,
 } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
-import api from "../../../api";
-import { shoppingCartAPI } from "../../../api/shoppingCart";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
 import ToastNotification from "../../../components/ToastNotification";
-
-// Favorites API functions
-const favoritesAPI = {
-  // Toggle favorite status
-  toggleFavorite: (favoriteData) => {
-    return api.post('user/favorites/toggle', favoriteData);
-  },
-
-  // Check favorite status
-  checkFavoriteStatus: (itemType, itemId) => {
-    return api.get('user/favorites/status', {
-      params: { itemType, itemId }
-    });
-  },
-
-  // Get user favorites list
-  getUserFavorites: () => {
-    return api.get('user/favorites/list');
-  },
-
-  // Clear favorites
-  clearFavorites: () => {
-    return api.delete('user/favorites/clear');
-  }
-};
+import shoppingCartAPI from "../../../api/shoppingCart";
+import favoritesAPI from "../../../api/favorites";
+import api from "../../../api";
 
 
 function UserDashboard() {
@@ -211,6 +187,8 @@ function UserDashboard() {
         itemType: 'menu_item',
         itemId: item.id,
         itemName: item.name,
+        itemImage: item.image,
+        itemPrice: item.price
       };
 
       const response = await favoritesAPI.toggleFavorite(favoriteData);
@@ -317,6 +295,9 @@ function UserDashboard() {
                     src={item.image}
                     alt={item.name}
                     className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      e.target.src = '/assets/default-no-img.png';
+                    }}
                   />
                   {item.badge && (
                     <div className="absolute top-3 left-3 bg-green-500 text-white px-3 py-1 rounded-full text-sm font-semibold">

@@ -9,9 +9,10 @@ import {
   Check,
 } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
-import { shoppingCartAPI } from "../../../api/shoppingCart";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
 import ToastNotification from "../../../components/ToastNotification";
+import shoppingCartAPI from "../../../api/shoppingCart";
+
 
 function ShoppingCartPage() {
   const navigate = useNavigate();

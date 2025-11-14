@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { shoppingCartAPI } from "../api/shoppingCart";
+import shoppingCartAPI from "../api/shoppingCart";
 
 // Create a global shopping cart state
 let globalCartState = {

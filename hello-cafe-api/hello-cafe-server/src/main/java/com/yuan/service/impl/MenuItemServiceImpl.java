@@ -161,7 +161,13 @@ public class MenuItemServiceImpl implements MenuItemService {
         MenuItem item = menuItemRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("MenuItem not found: " + id));
 
-        Integer newStatus = (item.getStatus() == 1) ? 0 : 1;
+        // Handle null status by defaulting to 0 (inactive) if null
+        Integer currentStatus = item.getStatus();
+        if (currentStatus == null) {
+            currentStatus = StatusConstant.DISABLE; // Default to inactive if status is null
+        }
+
+        Integer newStatus = (currentStatus == 1) ? 0 : 1;
         item.setStatus(newStatus);
 
         menuItemRepository.save(item);

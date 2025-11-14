@@ -53,7 +53,7 @@ public class OrderServiceImpl implements OrderService {
                 Sort.by(Sort.Direction.DESC, "orderTime")
         );
 
-        Page<Orders> page = ordersRepository.findAll(dto.getNumber(), dto.getPhone(), dto.getStatus(), dto.getBeginTime(), dto.getEndTime(), pageable);
+        Page<Orders> page = ordersRepository.findAll(dto.getNumber(), dto.getStatus(), dto.getBeginTime(), dto.getEndTime(), pageable);
 
         // Convert to OrderVO
         List<OrderVO> voList = page.getContent().stream()
@@ -83,11 +83,22 @@ public class OrderServiceImpl implements OrderService {
         orderDetailVO.setOrderNo(order.getNumber());
         orderDetailVO.setOrderTime(order.getOrderTime());
         orderDetailVO.setPayStatus(order.getPayStatus());
-        orderDetailVO.setPhone(order.getPhone());
-        orderDetailVO.setAddress(order.getAddress());
-        orderDetailVO.setUserName(order.getUserName());
         orderDetailVO.setStatus(order.getStatus());
         orderDetailVO.setPayMethod(order.getPayMethod());
+        orderDetailVO.setAmount(order.getAmount());
+        orderDetailVO.setDeliveryFee(order.getDeliveryFee());
+
+        // Get address information from AddressBook
+        if (order.getAddressBookId() != null) {
+            AddressBook addressBook = addressBookRepository.findById(order.getAddressBookId()).orElse(null);
+            if (addressBook != null) {
+                orderDetailVO.setAddressBookId(order.getAddressBookId());
+                orderDetailVO.setAddressName(addressBook.getName());
+                orderDetailVO.setAddressPhone(addressBook.getPhone());
+                orderDetailVO.setAddressDetail(addressBook.getAddress());
+                orderDetailVO.setAddress(addressBook.getAddress() + ", " + addressBook.getCity() + ", " + addressBook.getState() + " " + addressBook.getZipcode());
+            }
+        }
 
         return orderDetailVO;
     }
@@ -229,10 +240,17 @@ public class OrderServiceImpl implements OrderService {
         WaitingAcceptanceVO.WaitingOrderSummary summary = new WaitingAcceptanceVO.WaitingOrderSummary();
         summary.setId(order.getId());
         summary.setNumber(order.getNumber());
-        summary.setUserName(order.getUserName());
-        summary.setPhone(order.getPhone());
         summary.setAmount(order.getAmount());
         summary.setOrderTime(order.getOrderTime());
+
+        // Get address information from AddressBook
+        if (order.getAddressBookId() != null) {
+            AddressBook addressBook = addressBookRepository.findById(order.getAddressBookId()).orElse(null);
+            if (addressBook != null) {
+                summary.setUserName(addressBook.getName());
+                summary.setPhone(addressBook.getPhone());
+            }
+        }
 
         // calculate waiting minutes
         if (order.getOrderTime() != null) {
@@ -275,14 +293,13 @@ public class OrderServiceImpl implements OrderService {
         order.setAddressBookId(ordersSubmitDTO.getAddressBookId());
         order.setOrderTime(LocalDateTime.now());
         order.setAmount(ordersSubmitDTO.getAmount());
+        order.setDeliveryFee(ordersSubmitDTO.getDeliveryFee());
         order.setPayMethod(ordersSubmitDTO.getPayMethod());
         order.setPayStatus(0); // Unpaid
         order.setStatus(1); // Pending payment
         order.setNotes(ordersSubmitDTO.getRemark());
-        order.setPhone(addressBook.getPhone());
         order.setDeliveryStatus(ordersSubmitDTO.getDeliveryStatus());
         order.setEstimatedDeliveryTime(LocalDateTime.parse(ordersSubmitDTO.getEstimatedDeliveryTime()));
-        order.setPackAmount(ordersSubmitDTO.getPackAmount());
         order.setTablewareNumber(ordersSubmitDTO.getTablewareNumber());
         order.setTablewareStatus(ordersSubmitDTO.getTablewareStatus());
 
@@ -356,7 +373,18 @@ public class OrderServiceImpl implements OrderService {
         orderVO.setStatus(order.getStatus());
         orderVO.setOrderTime(order.getOrderTime());
         orderVO.setAmount(order.getAmount());
-        orderVO.setPhone(order.getPhone());
+        orderVO.setDeliveryFee(order.getDeliveryFee());
+
+        // Get address information from AddressBook
+        if (order.getAddressBookId() != null) {
+            AddressBook addressBook = addressBookRepository.findById(order.getAddressBookId()).orElse(null);
+            if (addressBook != null) {
+                orderVO.setAddressBookId(order.getAddressBookId());
+                orderVO.setAddressName(addressBook.getName());
+                orderVO.setAddressPhone(addressBook.getPhone());
+                orderVO.setAddress(addressBook.getAddress() + ", " + addressBook.getCity() + ", " + addressBook.getState() + " " + addressBook.getZipcode());
+            }
+        }
 
         return orderVO;
     }
@@ -517,8 +545,18 @@ public class OrderServiceImpl implements OrderService {
         orderVO.setStatus(order.getStatus());
         orderVO.setOrderTime(order.getOrderTime());
         orderVO.setAmount(order.getAmount());
-        orderVO.setPhone(order.getPhone());
-        orderVO.setUserName(order.getUserName());
+        orderVO.setDeliveryFee(order.getDeliveryFee());
+
+        // Get address information from AddressBook
+        if (order.getAddressBookId() != null) {
+            AddressBook addressBook = addressBookRepository.findById(order.getAddressBookId()).orElse(null);
+            if (addressBook != null) {
+                orderVO.setAddressBookId(order.getAddressBookId());
+                orderVO.setAddressName(addressBook.getName());
+                orderVO.setAddressPhone(addressBook.getPhone());
+                orderVO.setAddress(addressBook.getAddress() + ", " + addressBook.getCity() + ", " + addressBook.getState() + " " + addressBook.getZipcode());
+            }
+        }
 
         return orderVO;
     }

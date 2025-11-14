@@ -13,9 +13,12 @@ import java.util.List;
 public class OrderVO {
     private Long id;
     private String number;// orderNo
-    private String userName;  // customer
-    private String phone;
+    private Long addressBookId;  // address book id
+    private String addressName;  // name from address book
+    private String addressPhone;  // phone from address book
+    private String address;      // full address from address book
     private Double amount;  // order total amount
+    private Double deliveryFee; // delivery fee
     private LocalDateTime orderTime;
     private Integer status;
     // private Long userId;                       // user id
@@ -32,7 +35,7 @@ public class OrderVO {
     // private LocalDateTime estimatedDeliveryTime; // estimated delivery time
     // private Integer deliveryStatus;            // delivery status
     // private LocalDateTime deliveryTime;        // delivery time
-    // private Integer packAmount;                // packing fee
+    // private Double deliveryFee;                 // delivery fee
     // private Integer tablewareNumber;           // tableware number
     // private Integer tablewareStatus;           // tableware status
     // private String orderDishes;                      // order dishes (string format)

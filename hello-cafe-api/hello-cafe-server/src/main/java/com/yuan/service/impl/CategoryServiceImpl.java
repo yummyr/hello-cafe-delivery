@@ -72,7 +72,13 @@ public class CategoryServiceImpl implements CategoryService {
         Category existingCate = categoryRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException(MessageConstant.ACCOUNT_NOT_FOUND));
 
-        Integer newStatus = existingCate.getStatus() == 1 ? 0 : 1;
+        // Handle null status by defaulting to 0 (inactive) if null
+        Integer currentStatus = existingCate.getStatus();
+        if (currentStatus == null) {
+            currentStatus = StatusConstant.DISABLE; // Default to inactive if status is null
+        }
+
+        Integer newStatus = currentStatus == 1 ? 0 : 1;
         existingCate.setStatus(newStatus);
 
         categoryRepository.save(existingCate);

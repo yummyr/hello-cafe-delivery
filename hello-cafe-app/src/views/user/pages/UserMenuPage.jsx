@@ -3,35 +3,11 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { Search, Star, ChevronLeft, ChevronRight, Heart } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import api from "../../../api";
-import { shoppingCartAPI } from "../../../api/shoppingCart";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
 import ToastNotification from "../../../components/ToastNotification";
 import MenuItemModal from "../../../components/MenuItemModal";
-
-// Favorites API functions
-const favoritesAPI = {
-  // Toggle favorite status
-  toggleFavorite: (favoriteData) => {
-    return api.post('user/favorites/toggle', favoriteData);
-  },
-
-  // Check favorite status
-  checkFavoriteStatus: (itemType, itemId) => {
-    return api.get('user/favorites/status', {
-      params: { itemType, itemId }
-    });
-  },
-
-  // Get user favorites list
-  getUserFavorites: () => {
-    return api.get('user/favorites/list');
-  },
-
-  // Clear favorites
-  clearFavorites: () => {
-    return api.delete('user/favorites/clear');
-  }
-};
+import shoppingCartAPI from "../../../api/shoppingCart";
+import favoritesAPI from "../../../api/favorites";
 
 function UserMenuPage() {
   const navigate = useNavigate();
@@ -60,7 +36,7 @@ function UserMenuPage() {
 
       if (categoryId === 'null' || categoryId === null) {
         // Fetch all menu items
-        response = await api.get("/user/menu_item/all");
+        response = await api.get("/user/menu/all");
       } else {
         // Fetch items by category
         response = await api.get(`/user/menu/category/${categoryId}`);

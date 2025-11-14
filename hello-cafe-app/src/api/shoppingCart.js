@@ -1,18 +1,19 @@
 import api from "./index";
 
-export const shoppingCartAPI = {
+// Shopping Cart API functions
+const shoppingCartAPI = {
+  // Get shopping cart list
+  getCart: () => {
+    return api.get("/user/shoppingCart/list");
+  },
+
   // Add item to shopping cart
   addItem: (menuItemId, flavor = null, comboId = null) => {
     return api.post("/user/shoppingCart/add", {
       menuItemId,
-      comboId, // Combo ID
+      comboId,
       flavor,
     });
-  },
-
-  // Get shopping cart list
-  getCart: () => {
-    return api.get("/user/shoppingCart/list");
   },
 
   // Remove item from shopping cart
@@ -29,3 +30,5 @@ export const shoppingCartAPI = {
     return api.delete("/user/shoppingCart/clean");
   },
 };
+
+export default shoppingCartAPI;

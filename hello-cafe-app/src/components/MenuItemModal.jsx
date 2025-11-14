@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { X, Plus, Star, Heart } from "lucide-react";
 import FlavorSelector from "./FlavorSelector";
-import { shoppingCartAPI } from "../api/shoppingCart";
 import { refreshCartCount } from "../hooks/useShoppingCart";
 import ToastNotification from "./ToastNotification";
 import api from "../api";
+import shoppingCartAPI from "../api/shoppingCart";
+
 
 function MenuItemModal({ item, onClose }) {
   const [quantity, setQuantity] = useState(1);

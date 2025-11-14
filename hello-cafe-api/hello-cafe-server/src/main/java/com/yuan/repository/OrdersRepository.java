@@ -61,13 +61,11 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
 
     @Query("SELECT o FROM Orders o WHERE " +
             "(:number IS NULL OR o.number LIKE %:number%) AND " +
-            "(:phone IS NULL OR o.phone LIKE %:phone%) AND " +
             "(:status IS NULL OR o.status = :status) AND " +
             "(:beginTime IS NULL OR o.orderTime >= :beginTime) AND " +
             "(:endTime IS NULL OR o.orderTime <= :endTime)")
     Page<Orders> findAll(
             @Param("number") String number,
-            @Param("phone") String phone,
             @Param("status") Integer status,
             @Param("beginTime") LocalDateTime beginTime,
             @Param("endTime") LocalDateTime endTime,

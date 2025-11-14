@@ -1,16 +1,88 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
-import {
-  getHistoryOrders,
-  getOrderDetail,
-  cancelOrder,
-  repeatOrder,
-  reminderOrder,
-  ORDER_STATUS,
-  ORDER_STATUS_TEXT,
-} from "@/api/orders";
+import api from "../../../api";
 import { formatDateTime } from "@/utils/date";
+
+// Order status constants
+const ORDER_STATUS = {
+  PENDING_PAYMENT: 1,
+  PENDING: 2,
+  PROCESSING: 3,
+  DELIVERED: 4,
+  COMPLETED: 5,
+  CANCELLED: 6,
+};
+
+const ORDER_STATUS_TEXT = {
+  [ORDER_STATUS.PENDING_PAYMENT]: "Pending Payment",
+  [ORDER_STATUS.PENDING]: "Pending",
+  [ORDER_STATUS.PROCESSING]: "Processing",
+  [ORDER_STATUS.DELIVERED]: "Delivered",
+  [ORDER_STATUS.COMPLETED]: "Completed",
+  [ORDER_STATUS.CANCELLED]: "Cancelled",
+};
+
+// Get history orders
+const getHistoryOrders = async (page = 1, pageSize = 10, status = null) => {
+  try {
+    const params = {
+      page,
+      pageSize,
+    };
+
+    if (status !== null) {
+      params.status = status;
+    }
+
+    const response = await api.get("/user/order/historyOrders", { params });
+    return response.data.data;
+  } catch (error) {
+    console.error("Failed to fetch history orders:", error);
+    throw error;
+  }
+};
+
+// Get order details
+const getOrderDetail = async (orderId) => {
+  try {
+    const response = await api.get(`/user/order/orderDetail/${orderId}`);
+    return response.data.data;
+  } catch (error) {
+    console.error("Failed to fetch order details:", error);
+    throw error;
+  }
+};
+
+// Cancel order
+const cancelOrder = async (orderId) => {
+  try {
+    await api.put(`/user/order/cancel/${orderId}`);
+  } catch (error) {
+    console.error("Failed to cancel order:", error);
+    throw error;
+  }
+};
+
+// Repeat order
+const repeatOrder = async (orderId) => {
+  try {
+    await api.post(`/user/order/repetition/${orderId}`);
+  } catch (error) {
+    console.error("Failed to repeat order:", error);
+    throw error;
+  }
+};
+
+// Send reminder for order
+const reminderOrder = async (orderId) => {
+  try {
+    await api.get(`/user/order/reminder/${orderId}`);
+  } catch (error) {
+    console.error("Failed to send reminder:", error);
+    throw error;
+  }
+};
 
 function UserOrders() {
   const navigate = useNavigate();
@@ -55,7 +127,10 @@ function UserOrders() {
         alert("Order has been cancelled");
         fetchOrders();
       } catch (error) {
-        alert("Failed to cancel order: " + (error.response?.data?.msg || error.message));
+        alert(
+          "Failed to cancel order: " +
+            (error.response?.data?.msg || error.message)
+        );
       }
     }
   };
@@ -67,7 +142,10 @@ function UserOrders() {
       alert("Items have been added to your cart");
       navigate("/cart");
     } catch (error) {
-      alert("Failed to repeat order: " + (error.response?.data?.msg || error.message));
+      alert(
+        "Failed to repeat order: " +
+          (error.response?.data?.msg || error.message)
+      );
     }
   };
 
@@ -77,7 +155,10 @@ function UserOrders() {
       await reminderOrder(orderId);
       alert("Reminder sent successfully, please wait patiently");
     } catch (error) {
-      alert("Failed to send reminder: " + (error.response?.data?.msg || error.message));
+      alert(
+        "Failed to send reminder: " +
+          (error.response?.data?.msg || error.message)
+      );
     }
   };
 
@@ -162,7 +243,9 @@ function UserOrders() {
 
           {/* Status Filter */}
           <div className="mb-8">
-            <span className="text-[#6B5B4A] font-medium mb-3 block">Filter by Status:</span>
+            <span className="text-[#6B5B4A] font-medium mb-3 block">
+              Filter by Status:
+            </span>
             <div className="flex flex-wrap gap-2">
               {statusOptions.map((option) => (
                 <button
@@ -230,12 +313,14 @@ function UserOrders() {
 
                   <div className="mb-4">
                     <div className="text-sm text-[#6B5B4A]">
-                      <span className="font-medium">Delivery Address:</span> {order.address} |
-                      <span className="font-medium"> Phone:</span> {order.phone}
+                      <span className="font-medium">Delivery Address:</span>{" "}
+                      {order.address} |
+                      <span className="font-medium"> Phone:</span> {order.addressPhone}
                     </div>
                     {order.estimatedDeliveryTime && (
                       <div className="text-sm text-[#8B7355] mt-1">
-                        <span className="font-medium">Estimated Delivery:</span> {formatDateTime(order.estimatedDeliveryTime)}
+                        <span className="font-medium">Estimated Delivery:</span>{" "}
+                        {formatDateTime(order.estimatedDeliveryTime)}
                       </div>
                     )}
                   </div>
@@ -296,12 +381,42 @@ function UserOrders() {
                     <span className="mr-2">ℹ️</span> Order Information
                   </h3>
                   <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div><span className="font-medium text-[#6B5B4A]">Order #:</span> {selectedOrder.number}</div>
-                    <div><span className="font-medium text-[#6B5B4A]">Status:</span> {ORDER_STATUS_TEXT[selectedOrder.status]}</div>
-                    <div><span className="font-medium text-[#6B5B4A]">Order Time:</span> {formatDateTime(selectedOrder.orderTime)}</div>
-                    <div><span className="font-medium text-[#6B5B4A]">Amount:</span> ${selectedOrder.amount?.toFixed(2)}</div>
-                    <div><span className="font-medium text-[#6B5B4A]">Payment Method:</span> {selectedOrder.payMethod === 1 ? "WeChat Pay" : "Alipay"}</div>
-                    <div><span className="font-medium text-[#6B5B4A]">Payment Status:</span> {selectedOrder.payStatus === 1 ? "Paid" : "Unpaid"}</div>
+                    <div>
+                      <span className="font-medium text-[#6B5B4A]">
+                        Order #:
+                      </span>{" "}
+                      {selectedOrder.number}
+                    </div>
+                    <div>
+                      <span className="font-medium text-[#6B5B4A]">
+                        Status:
+                      </span>{" "}
+                      {ORDER_STATUS_TEXT[selectedOrder.status]}
+                    </div>
+                    <div>
+                      <span className="font-medium text-[#6B5B4A]">
+                        Order Time:
+                      </span>{" "}
+                      {formatDateTime(selectedOrder.orderTime)}
+                    </div>
+                    <div>
+                      <span className="font-medium text-[#6B5B4A]">
+                        Amount:
+                      </span>{" "}
+                      ${selectedOrder.amount?.toFixed(2)}
+                    </div>
+                    <div>
+                      <span className="font-medium text-[#6B5B4A]">
+                        Payment Method:
+                      </span>{" "}
+                      {selectedOrder.payMethod === 1 ? "WeChat Pay" : "Alipay"}
+                    </div>
+                    <div>
+                      <span className="font-medium text-[#6B5B4A]">
+                        Payment Status:
+                      </span>{" "}
+                      {selectedOrder.payStatus === 1 ? "Paid" : "Unpaid"}
+                    </div>
                   </div>
                 </div>
 
@@ -310,9 +425,22 @@ function UserOrders() {
                     <span className="mr-2">📍</span> Delivery Information
                   </h3>
                   <div className="text-sm space-y-1">
-                    <div><span className="font-medium text-[#6B5B4A]">Recipient:</span> {selectedOrder.userName}</div>
-                    <div><span className="font-medium text-[#6B5B4A]">Phone:</span> {selectedOrder.phone}</div>
-                    <div><span className="font-medium text-[#6B5B4A]">Address:</span> {selectedOrder.address}</div>
+                    <div>
+                      <span className="font-medium text-[#6B5B4A]">
+                        Recipient:
+                      </span>{" "}
+                      {selectedOrder.addressName}
+                    </div>
+                    <div>
+                      <span className="font-medium text-[#6B5B4A]">Phone:</span>{" "}
+                      {selectedOrder.addressPhone}
+                    </div>
+                    <div>
+                      <span className="font-medium text-[#6B5B4A]">
+                        Address:
+                      </span>{" "}
+                      {selectedOrder.address}
+                    </div>
                   </div>
                 </div>
 
@@ -322,17 +450,30 @@ function UserOrders() {
                   </h3>
                   <div className="space-y-3">
                     {selectedOrder.orderDetailList?.map((item, index) => (
-                      <div key={index} className="flex justify-between items-center text-sm p-3 bg-white rounded-lg border border-[#E5D4C1]">
+                      <div
+                        key={index}
+                        className="flex justify-between items-center text-sm p-3 bg-white rounded-lg border border-[#E5D4C1]"
+                      >
                         <div className="flex-1">
-                          <div className="font-medium text-[#4A4A4A]">{item.name}</div>
+                          <div className="font-medium text-[#4A4A4A]">
+                            {item.name}
+                          </div>
                           {item.dishFlavor && (
-                            <div className="text-[#8B7355] mt-1">Flavor: {item.dishFlavor}</div>
+                            <div className="text-[#8B7355] mt-1">
+                              Flavor: {item.dishFlavor}
+                            </div>
                           )}
-                          <div className="text-[#8B7355] mt-1">Quantity: {item.number}</div>
+                          <div className="text-[#8B7355] mt-1">
+                            Quantity: {item.number}
+                          </div>
                         </div>
                         <div className="text-right">
-                          <div className="font-medium text-[#4A4A4A]">${item.amount?.toFixed(2)}</div>
-                          <div className="text-[#8B7355] text-xs">Unit Price: ${item.unitPrice?.toFixed(2)}</div>
+                          <div className="font-medium text-[#4A4A4A]">
+                            ${item.amount?.toFixed(2)}
+                          </div>
+                          <div className="text-[#8B7355] text-xs">
+                            Unit Price: ${item.unitPrice?.toFixed(2)}
+                          </div>
                         </div>
                       </div>
                     ))}
@@ -344,7 +485,9 @@ function UserOrders() {
                     <h3 className="font-semibold text-[#8B2A2A] mb-2 flex items-center">
                       <span className="mr-2">❌</span> Rejection Reason
                     </h3>
-                    <div className="text-sm text-[#8B2A2A]">{selectedOrder.rejectionReason}</div>
+                    <div className="text-sm text-[#8B2A2A]">
+                      {selectedOrder.rejectionReason}
+                    </div>
                   </div>
                 )}
 
@@ -353,7 +496,9 @@ function UserOrders() {
                     <h3 className="font-semibold text-[#8B2A2A] mb-2 flex items-center">
                       <span className="mr-2">🚫</span> Cancellation Reason
                     </h3>
-                    <div className="text-sm text-[#8B2A2A]">{selectedOrder.cancelReason}</div>
+                    <div className="text-sm text-[#8B2A2A]">
+                      {selectedOrder.cancelReason}
+                    </div>
                   </div>
                 )}
               </div>

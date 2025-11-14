@@ -2,35 +2,28 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Star, ChevronLeft, ChevronRight, Plus, Info, Heart } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
-import { combosAPI } from "../../../api/combos";
-import { shoppingCartAPI } from "../../../api/shoppingCart";
 import api from "../../../api";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
 import ToastNotification from "../../../components/ToastNotification";
+import shoppingCartAPI from "../../../api/shoppingCart";
+import favoritesAPI from "../../../api/favorites";
 
-// Favorites API functions
-const favoritesAPI = {
-  // Toggle favorite status
-  toggleFavorite: (favoriteData) => {
-    return api.post('user/favorites/toggle', favoriteData);
+// Combos API functions
+const combosAPI = {
+  // Get all active combos
+  getAllCombos: () => {
+    return api.get("/user/combo/all");
   },
 
-  // Check favorite status
-  checkFavoriteStatus: (itemType, itemId) => {
-    return api.get('user/favorites/status', {
-      params: { itemType, itemId }
-    });
+  // Get combos by category ID
+  getCombosByCategory: (categoryId) => {
+    return api.get(`/user/combo/list?categoryId=${categoryId}`);
   },
 
-  // Get user favorites list
-  getUserFavorites: () => {
-    return api.get('user/favorites/list');
+  // Get combo menu items
+  getComboMenuItems: (comboId) => {
+    return api.get(`/user/combo/menu_item/${comboId}`);
   },
-
-  // Clear favorites
-  clearFavorites: () => {
-    return api.delete('user/favorites/clear');
-  }
 };
 
 function CombosPage() {
