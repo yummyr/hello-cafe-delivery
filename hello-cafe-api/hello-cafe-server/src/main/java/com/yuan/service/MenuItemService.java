@@ -37,4 +37,6 @@ public interface MenuItemService {
     List<MenuItemVO> findAllActive();
 
     MenuItemVO getMenuItemVOById(Long id);
+
+    List<MenuItemVO> findNewestItems(Integer limit);
 }

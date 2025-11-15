@@ -1,8 +1,9 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Edit, Ban, Check, PlusCircle, X, Trash2 } from "lucide-react";
+import { Edit, Ban, Check, PlusCircle, Trash2 } from "lucide-react";
 import AdminLayout from "../layouts/AdminLayout";
 import Pagination from "../components/Pagination";
+import AdminImageCard from "../components/AdminImageCard";
 import api from "../../../api";
 import { formatDateTime } from "../../../utils/date";
 
@@ -17,6 +18,7 @@ function MenuPage() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
   const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const handleAddNew = () => {
     navigate("/admin/menu/new");
@@ -28,6 +30,7 @@ function MenuPage() {
 
   const fetchMenu = async () => {
     try {
+      setLoading(true);
       const params = {
         page: page,
         pageSize: pageSize,
@@ -53,22 +56,16 @@ function MenuPage() {
     } catch (err) {
       console.error(" Failed to fetch menu items:", err);
       alert("Failed to load menu items. Please try again.");
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Load menu list
+  // Load menu list - Only call fetchMenu when page/pageSize/filter changes
   useEffect(() => {
-    // fetchCategories();
     fetchMenu();
-  }, [page, pageSize, searchName, selectedStatus]);
-  // select all /none
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      fetchMenu();
-    }, 500);
-    return () => clearTimeout(timer);
-  }, [searchName, searchCategory]);
-
+  }, [page, pageSize, searchName, selectedStatus, searchCategory]);
+  
   const handleSelectIds = (e) => {
     if (e.target.checked) {
       setSelectedIds(menuItems.map((item) => item.id));
@@ -77,11 +74,15 @@ function MenuPage() {
     }
   };
 
+  // Debounced search functions
   const handleSearchName = (e) => {
     setSearchName(e.target.value);
+    setPage(1); // Reset to first page when searching
   };
+
   const handleSearchCategory = (e) => {
     setSearchCategory(e.target.value);
+    setPage(1); // Reset to first page when searching
   };
   // single select checkbox
   const handleCheckboxChange = (id) => {
@@ -225,8 +226,16 @@ function MenuPage() {
         </div>
 
         {/* ===== Table to display menu items ===== */}
+        <div className="relative">
+          {loading && (
+            <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-xl">
+              <div className="flex items-center gap-3">
+                <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#b08968]"></div>
+                <span className="text-gray-600">Loading...</span>
+              </div>
+            </div>
+          )}
 
-        <div>
           <table className="w-full bg-white rounded-xl shadow">
             <thead>
               <tr className="bg-[#f8f4ef] text-left text-[#4b3b2b] border-b border-gray-200">
@@ -266,21 +275,10 @@ function MenuPage() {
                   </td>
                   <td className={tdAndThStyle}>{item.name}</td>
                   <td className={tdAndThStyle}>
-                    {item.image ? (
-                      <div className="flex items-center justify-center">
-                        <img
-                          src={item.image}
-                          alt={item.name}
-                          className="w-12 h-12 object-cover rounded-lg border border-gray-200"
-                          onError={(e) => {
-                            e.target.src = "public/assets/default-no-img.png";
-                            e.target.alt = "Image not available";
-                          }}
-                        />
-                      </div>
-                    ) : (
-                      <span className="text-gray-400 text-sm">No image</span>
-                    )}
+                    <AdminImageCard
+                      src={item.image}
+                      alt={item.name}
+                    />
                   </td>
                   <td className={tdAndThStyle}>{item.categoryName}</td>
                   <td className={tdAndThStyle}>{item.price}</td>
@@ -335,14 +333,18 @@ function MenuPage() {
               pageSize={pageSize}
               currentPage={page}
               onPageChange={(p) => {
-                setPage(p);
-                fetchMenu(p, pageSize);
+                if (!loading) {
+                  setPage(p);
+                }
               }}
               onPageSizeChange={(size) => {
-                setPageSize(size);
-                setPage(1, size); // reset to first page
+                if (!loading) {
+                  setPageSize(size);
+                  setPage(1);
+                }
               }}
               showInfo={true}
+              disabled={loading}
             />
           </div>
         </div>

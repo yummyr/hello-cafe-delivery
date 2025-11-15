@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { PlusCircle, X, Edit2, Trash2, Power, PowerOff } from "lucide-react";
+import { useEffect, useState } from "react";
+import { PlusCircle, Edit2, Trash2, Power, PowerOff } from "lucide-react";
 import AdminLayout from "../layouts/AdminLayout";
-import EnhancedComboForm from "../../../components/admin/EnhancedComboForm";
+import ComboForm from "../components/ComboForm";
+import AdminImageCard from "../components/AdminImageCard";
 import api from "../../../api";
 
 function ComboPage() {
-  const [combos, setCombos] = useState([]);
+  const [combo, setCombo] = useState([]);
   const [filteredCombos, setFilteredCombos] = useState([]);
   const [filter, setFilter] = useState("active");
   const [showEnhancedModal, setShowEnhancedModal] = useState(false);
@@ -19,7 +20,7 @@ function ComboPage() {
   });
 
   // API functions
-  const getCombos = async (params = {}) => {
+  const getCombo = async (params = {}) => {
     try {
       const response = await api.get('/admin/combo/page', { params });
       console.log("Get combos:",response.data);
@@ -31,7 +32,7 @@ function ComboPage() {
     }
   };
 
-  const getCombosById = async (id) => {
+  const getComboById = async (id) => {
     try {
       const response = await api.get(`/admin/combo/${id}`);
       return response.data;
@@ -43,7 +44,35 @@ function ComboPage() {
 
   const createCombo = async (comboData) => {
     try {
-      const response = await api.post('/admin/combo', comboData);
+      const formData = new FormData();
+
+      // Append combo data as JSON string
+      const comboJson = {
+        id: comboData.id,
+        name: comboData.name,
+        categoryId: comboData.categoryId,
+        price: comboData.price,
+        description: comboData.description,
+        status: comboData.status,
+        image: comboData.image,
+        imageUrl: comboData.imageUrl,
+        imageChanged: comboData.imageChanged,
+        hasExistingImage: comboData.hasExistingImage,
+        items: comboData.items
+      };
+
+      formData.append('combo', JSON.stringify(comboJson));
+
+      // Append image file if available
+      if (comboData.image instanceof File) {
+        formData.append('image', comboData.image);
+      }
+
+      const response = await api.post('/admin/combo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       console.error('Error creating combo:', error);
@@ -53,7 +82,35 @@ function ComboPage() {
 
   const updateCombo = async (comboData) => {
     try {
-      const response = await api.put('/admin/combo', comboData);
+      const formData = new FormData();
+
+      // Append combo data as JSON string
+      const comboJson = {
+        id: comboData.id,
+        name: comboData.name,
+        categoryId: comboData.categoryId,
+        price: comboData.price,
+        description: comboData.description,
+        status: comboData.status,
+        image: comboData.image,
+        imageUrl: comboData.imageUrl,
+        imageChanged: comboData.imageChanged,
+        hasExistingImage: comboData.hasExistingImage,
+        items: comboData.items
+      };
+
+      formData.append('combo', JSON.stringify(comboJson));
+
+      // Append image file if available
+      if (comboData.image instanceof File) {
+        formData.append('image', comboData.image);
+      }
+
+      const response = await api.put('/admin/combo', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
       return response.data;
     } catch (error) {
       console.error('Error updating combo:', error);
@@ -61,11 +118,9 @@ function ComboPage() {
     }
   };
 
-  const deleteCombos = async (ids) => {
+  const deleteCombo = async (id) => {
     try {
-      const response = await api.delete('/admin/combo', {
-        params: { ids: ids.join(',') }
-      });
+      const response = await api.delete(`/admin/combo/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error deleting combos:', error);
@@ -87,10 +142,10 @@ function ComboPage() {
 
   // Load combo list
   useEffect(() => {
-    fetchCombos();
+    fetchCombo();
   }, [filter, pagination.page, pagination.pageSize]);
 
-  const fetchCombos = async () => {
+  const fetchCombo = async () => {
     try {
       setLoading(true);
       const params = {
@@ -99,12 +154,12 @@ function ComboPage() {
         status: filter === "active" ? 1 : filter === "inactive" ? 0 : undefined
       };
 
-      const response = await getCombos(params);
-      console.log("Get combos code:",response.code);
+      const response = await getCombo(params);
+      console.log("Get combo code:",response.code);
 
       if (response.code === 1 && response.data) {
         const comboData = response.data.records || [];
-        setCombos(comboData);
+        setCombo(comboData);
         setFilteredCombos(comboData);
         setPagination(prev => ({
           ...prev,
@@ -112,83 +167,23 @@ function ComboPage() {
         }));
       } else {
         console.error("Invalid response format:", response);
-        setCombos([]);
+        setCombo([]);
         setFilteredCombos([]);
       }
     } catch (err) {
       console.error("❌ Failed to fetch combos:", err);
-      setCombos([]);
+      setCombo([]);
       setFilteredCombos([]);
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle image upload
-  const handleImageChange = (e) => {
-    setNewCombo({ ...newCombo, image: e.target.files[0] });
-  };
-
-  // Handle combo submission (create or update)
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-
-    try {
-      const comboData = {
-        name: newCombo.name,
-        categoryId: newCombo.categoryId || null,
-        price: parseFloat(newCombo.price),
-        description: newCombo.description,
-        status: newCombo.status,
-        comboItems: newCombo.combos || []
-      };
-
-      let response;
-      if (isEditMode && currentCombo) {
-        // Update existing combo
-        comboData.id = currentCombo.id;
-        response = await updateCombo(comboData);
-      } else {
-        // Create new combo
-        response = await createCombo(comboData);
-      }
-
-      if (response.code === 1) {
-        await fetchCombos();
-        setShowModal(false);
-        resetForm();
-        alert(`✅ Combo ${isEditMode ? 'updated' : 'created'} successfully!`);
-      } else {
-        alert(`Failed to ${isEditMode ? 'update' : 'create'} combo: ${response.msg}`);
-      }
-    } catch (err) {
-      console.error(`❌ Failed to ${isEditMode ? 'update' : 'create'} combo:`, err);
-      alert(`Failed to ${isEditMode ? 'update' : 'create'} combo. Please try again.`);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Reset form
-  const resetForm = () => {
-    setNewCombo({
-      name: "",
-      categoryId: "",
-      price: "",
-      description: "",
-      status: 1,
-      combos: [],
-      image: null,
-    });
-    setIsEditMode(false);
-    setCurrentCombo(null);
-  };
-
+  
   // Handle edit combo
   const handleEditCombo = async (combo) => {
     try {
-      const response = await getCombosById(combo.id);
+      const response = await getComboById(combo.id);
       if (response.code === 1 && response.data) {
         const comboData = response.data;
         setCurrentCombo(comboData);
@@ -208,9 +203,9 @@ function ComboPage() {
     }
 
     try {
-      const response = await deleteCombos([comboId]);
+      const response = await deleteCombo([comboId]);
       if (response.code === 1) {
-        await fetchCombos();
+        await fetchCombo();
         alert("✅ Combo deleted successfully!");
       } else {
         alert("Failed to delete combo: " + response.msg);
@@ -229,7 +224,7 @@ function ComboPage() {
     try {
       const response = await changeComboStatus(comboId, newStatus);
       if (response.code === 1) {
-        await fetchCombos();
+        await fetchCombo();
         alert(`✅ Combo ${action}d successfully!`);
       } else {
         alert(`Failed to ${action} combo: ` + response.msg);
@@ -256,7 +251,7 @@ function ComboPage() {
       }
 
       if (response.code === 1) {
-        await fetchCombos();
+        await fetchCombo();
         setShowEnhancedModal(false);
         setIsEditMode(false);
         setCurrentCombo(null);
@@ -339,10 +334,10 @@ function ComboPage() {
               className="bg-white shadow rounded-lg p-4 hover:shadow-lg transition"
             >
               <div className="relative">
-                <img
-                  src={combo.image || "/assets/default-combo.png"}
+                <AdminImageCard
+                  src={combo.image}
                   alt={combo.name}
-                  className="w-full h-40 object-cover rounded-lg mb-4"
+                
                 />
                 <div className={`absolute top-2 right-2 px-2 py-1 rounded text-xs font-medium ${
                   combo.status === 1 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -412,7 +407,7 @@ function ComboPage() {
 
       {/* ===== Enhanced Combo Form Modal ===== */}
       {showEnhancedModal && (
-        <EnhancedComboForm
+        <ComboForm
           initialData={currentCombo || {}}
           onSubmit={handleEnhancedFormSubmit}
           onCancel={handleEnhancedFormCancel}

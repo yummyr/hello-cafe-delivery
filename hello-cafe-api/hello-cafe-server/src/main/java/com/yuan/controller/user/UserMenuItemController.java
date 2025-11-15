@@ -122,7 +122,7 @@ public class UserMenuItemController {
     @GetMapping("/category/{categoryId}")
     public Result<List<MenuItemVO>> getMenuItemsByCategory(@PathVariable Long categoryId) {
         try {
-            log.info("开始Fetching menu items for category: {}", categoryId);
+            log.info("Fetching menu items for category: {}", categoryId);
             List<MenuItemVO> menuItems = menuItemService.findByCategoryIdAndStatus(categoryId, StatusConstant.ENABLE);
             return Result.success(menuItems);
         } catch (Exception e) {
@@ -158,6 +158,21 @@ public class UserMenuItemController {
         } catch (Exception e) {
             log.error("Failed to fetch all active menu items", e);
             return Result.error("Failed to fetch menu items: " + e.getMessage());
+        }
+    }
+
+    /**
+     * get newest menu items (latest 3)
+     */
+    @GetMapping("/newest")
+    public Result<List<MenuItemVO>> getNewestMenuItems() {
+        try {
+            log.info("Fetching newest 3 menu items");
+            List<MenuItemVO> newestItems = menuItemService.findNewestItems(3);
+            return Result.success(newestItems);
+        } catch (Exception e) {
+            log.error("Failed to fetch newest menu items", e);
+            return Result.error("Failed to fetch newest menu items: " + e.getMessage());
         }
     }
 }

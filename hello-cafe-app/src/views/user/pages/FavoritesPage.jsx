@@ -4,7 +4,7 @@ import { Heart, X, ShoppingCart, Star } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import api from "../../../api/index";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
-import ToastNotification from "../../../components/ToastNotification";
+import ToastNotification from "../components/ToastNotification";
 import shoppingCartAPI from "../../../api/shoppingCart";
 import favoritesAPI from "../../../api/favorites";
 

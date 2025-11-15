@@ -70,13 +70,7 @@ public class UserComboController {
                             menuItemVO.setPrice(menuItem.getPrice());
                             menuItemVO.setStatus(menuItem.getStatus());
                             menuItemVO.setUpdateTime(menuItem.getUpdateTime());
-                        } else {
-                            menuItemVO.setName(comboItem.getName());
-                            menuItemVO.setDescription("");
-                            menuItemVO.setImage("");
                         }
-
-                        menuItemVO.setCopies(comboItem.getQuantity());
 
                         return menuItemVO;
                     })

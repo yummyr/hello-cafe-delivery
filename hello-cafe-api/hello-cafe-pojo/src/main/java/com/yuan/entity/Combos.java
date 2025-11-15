@@ -2,11 +2,13 @@ package com.yuan.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
-@Data
 @Entity
+@Data
+@NoArgsConstructor
 @Table(name = "combos")
 public class Combos implements Serializable {
     private static final long serialVersionUID = 1L;
@@ -21,12 +23,22 @@ public class Combos implements Serializable {
     @Column(name = "menu_item_id")
     private Long menuItemId;
 
-    @Column(length = 64)
-    private String name;
-
-    @Column(precision = 10)
-    private Double price;
-
-    @Column
+    @Column(name = "quantity")
     private Integer quantity;
+
+    // Constructor for creating new combos without id
+    public Combos(Long comboId, Long menuItemId, Integer quantity) {
+        this.comboId = comboId;
+        this.menuItemId = menuItemId;
+        this.quantity = quantity != null ? quantity : 1; // Default to 1 if not specified
+    }
+
+    // Constructor for existing combos with id
+    public Combos(Long id, Long comboId, Long menuItemId, Integer quantity) {
+        this.id = id;
+        this.comboId = comboId;
+        this.menuItemId = menuItemId;
+        this.quantity = quantity != null ? quantity : 1; // Default to 1 if not specified
+    }
+
 }

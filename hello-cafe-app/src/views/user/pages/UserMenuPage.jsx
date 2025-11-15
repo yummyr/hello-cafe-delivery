@@ -1,18 +1,19 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, Star, ChevronLeft, ChevronRight, Heart } from "lucide-react";
+import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import api from "../../../api";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
-import ToastNotification from "../../../components/ToastNotification";
-import MenuItemModal from "../../../components/MenuItemModal";
+import ToastNotification from "../components/ToastNotification";
+import MenuItemModal from "../components/MenuItemModal";
+import MenuItemCard from "../components/MenuItemCard";
 import shoppingCartAPI from "../../../api/shoppingCart";
 import favoritesAPI from "../../../api/favorites";
 
 function UserMenuPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const categoryId = searchParams.get('category');
+  const categoryId = searchParams.get("category");
 
   const [menuItems, setMenuItems] = useState([]);
   const [filteredItems, setFilteredItems] = useState([]);
@@ -34,7 +35,7 @@ function UserMenuPage() {
       setLoading(true);
       let response;
 
-      if (categoryId === 'null' || categoryId === null) {
+      if (categoryId === "null" || categoryId === null) {
         // Fetch all menu items
         response = await api.get("/user/menu/all");
       } else {
@@ -48,10 +49,10 @@ function UserMenuPage() {
           id: item.id,
           name: item.name,
           price: item.price,
-          image: item.image || "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=80",
+          image: item.image,
           categoryName: item.categoryName,
           description: item.description,
-          rating: 4.8 - (index * 0.05), // Simulated ratings
+          rating: 4.8 - index * 0.05, // Simulated ratings
         }));
         setMenuItems(transformedItems);
         setFilteredItems(transformedItems);
@@ -74,9 +75,10 @@ function UserMenuPage() {
     if (query.trim() === "") {
       newFilteredItems = menuItems;
     } else {
-      newFilteredItems = menuItems.filter(item =>
-        item.name.toLowerCase().includes(query.toLowerCase()) ||
-        item.description?.toLowerCase().includes(query.toLowerCase())
+      newFilteredItems = menuItems.filter(
+        (item) =>
+          item.name.toLowerCase().includes(query.toLowerCase()) ||
+          item.description?.toLowerCase().includes(query.toLowerCase())
       );
     }
     setFilteredItems(newFilteredItems);
@@ -98,7 +100,7 @@ function UserMenuPage() {
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      window.scrollTo({ top: 0, behavior: 'smooth' });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     }
   };
 
@@ -139,17 +141,17 @@ function UserMenuPage() {
 
     try {
       const favoriteData = {
-        itemType: 'menu_item',
+        itemType: "menu_item",
         itemId: item.id,
         itemName: item.name,
         itemImage: item.image,
-        itemPrice: item.price
+        itemPrice: item.price,
       };
 
       const response = await favoritesAPI.toggleFavorite(favoriteData);
       if (response.data.code === 1) {
         const isFavorite = response.data.data.isFavorite;
-        setFavoriteItems(prev => {
+        setFavoriteItems((prev) => {
           const newSet = new Set(prev);
           if (isFavorite) {
             newSet.add(item.id);
@@ -159,7 +161,9 @@ function UserMenuPage() {
           return newSet;
         });
         setToast({
-          message: isFavorite ? `${item.name} added to favorites!` : `${item.name} removed from favorites`,
+          message: isFavorite
+            ? `${item.name} added to favorites!`
+            : `${item.name} removed from favorites`,
           isVisible: true,
         });
       }
@@ -212,14 +216,17 @@ function UserMenuPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                {categoryId === 'null' || categoryId === null ? 'All Menu Items' : 'Menu Items'}
+                {categoryId === "null" || categoryId === null
+                  ? "All Menu Items"
+                  : "Menu Items"}
               </h1>
               <p className="text-gray-600">
-                {filteredItems.length} item{filteredItems.length !== 1 ? 's' : ''} found
+                {filteredItems.length} item
+                {filteredItems.length !== 1 ? "s" : ""} found
               </p>
             </div>
             <button
-              onClick={() => navigate('/user/dashboard')}
+              onClick={() => navigate("/user/dashboard")}
               className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
             >
               <ChevronLeft className="w-5 h-5" />
@@ -247,65 +254,14 @@ function UserMenuPage() {
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {currentPageItems.map((item) => (
-                <div
+                <MenuItemCard
                   key={item.id}
-                  onClick={() => handleItemClick(item)}
-                  className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-xl transition-all duration-300 cursor-pointer transform hover:-translate-y-1"
-                >
-                  <div className="relative">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="w-full h-48 object-cover"
-                    />
-                    {/* Favorite Button */}
-                    <button
-                      onClick={(e) => handleToggleFavorite(e, item)}
-                      className="absolute top-3 left-3 w-8 h-8 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-red-50 transition hover:scale-110"
-                    >
-                      <Heart
-                        className={`w-4 h-4 transition-colors ${
-                          favoriteItems.has(item.id)
-                            ? 'fill-red-500 text-red-500'
-                            : 'text-gray-400 hover:text-red-500'
-                        }`}
-                      />
-                    </button>
-                    {/* Add to Cart Button */}
-                    <button
-                      onClick={(e) => handleAddToCart(e, item)}
-                      className="absolute bottom-3 right-3 w-10 h-10 bg-white rounded-full shadow-lg flex items-center justify-center hover:bg-gray-100 transition hover:scale-110"
-                    >
-                      <span className="text-2xl">+</span>
-                    </button>
-                  </div>
-                  <div className="p-4">
-                    <h3 className="font-bold text-lg text-gray-900 mb-2">
-                      {item.name}
-                    </h3>
-                    {item.description && (
-                      <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                        {item.description}
-                      </p>
-                    )}
-                    <div className="flex items-center justify-between">
-                      <span className="text-xl font-bold text-gray-900">
-                        ${item.price.toFixed(2)}
-                      </span>
-                      <div className="flex items-center gap-1">
-                        <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-                        <span className="text-sm text-gray-600">
-                          {item.rating.toFixed(1)}
-                        </span>
-                      </div>
-                    </div>
-                    {item.categoryName && (
-                      <span className="inline-block mt-2 px-2 py-1 text-xs font-medium text-gray-600 bg-gray-100 rounded">
-                        {item.categoryName}
-                      </span>
-                    )}
-                  </div>
-                </div>
+                  item={item}
+                  onClick={handleItemClick}
+                  onAddToCart={handleAddToCart}
+                  onToggleFavorite={handleToggleFavorite}
+                  isFavorite={favoriteItems.has(item.id)}
+                />
               ))}
             </div>
 
@@ -339,8 +295,8 @@ function UserMenuPage() {
                         onClick={() => goToPage(pageNum)}
                         className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
                           currentPage === pageNum
-                            ? 'bg-blue-600 text-white'
-                            : 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50'
+                            ? "bg-blue-600 text-white"
+                            : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
                         }`}
                       >
                         {pageNum}
@@ -362,7 +318,9 @@ function UserMenuPage() {
         ) : (
           <div className="text-center py-12">
             <p className="text-gray-500 text-lg">
-              {searchQuery ? 'No menu items found matching your search.' : 'No menu items available in this category.'}
+              {searchQuery
+                ? "No menu items found matching your search."
+                : "No menu items available in this category."}
             </p>
           </div>
         )}

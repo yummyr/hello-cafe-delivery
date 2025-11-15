@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
-import ToastNotification from "../../../components/ToastNotification";
+import ToastNotification from "../components/ToastNotification";
 import shoppingCartAPI from "../../../api/shoppingCart";
 
 

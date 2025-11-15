@@ -48,4 +48,6 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
 
     // Fuzzy search menu items by name (case-insensitive) and status
     List<MenuItem> findByNameContainingIgnoreCaseAndStatus(String name, Integer status);
+
+    List<MenuItem> findByStatusOrderByCreateTimeDesc(Integer enable, Pageable pageable);
 }

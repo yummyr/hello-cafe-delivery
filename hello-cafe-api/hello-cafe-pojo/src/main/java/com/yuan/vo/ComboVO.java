@@ -1,6 +1,5 @@
 package com.yuan.vo;
 
-import com.yuan.entity.Combos;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,5 +20,5 @@ public class ComboVO {
     private String description;         // Combo description
     private Integer status;             // Combo status
     private LocalDateTime updateTime;   // Update time
-    private List<Combos> combos; // Menu items included in combo
+    private List<ComboItemVO> items; // Menu items included in combo with details
 }

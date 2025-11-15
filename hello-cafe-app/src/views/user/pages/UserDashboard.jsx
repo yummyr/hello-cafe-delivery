@@ -10,7 +10,7 @@ import {
 } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
-import ToastNotification from "../../../components/ToastNotification";
+import ToastNotification from "../components/ToastNotification";
 import shoppingCartAPI from "../../../api/shoppingCart";
 import favoritesAPI from "../../../api/favorites";
 import api from "../../../api";
@@ -78,7 +78,7 @@ function UserDashboard() {
   ];
   const [loading, setLoading] = useState(true);
   const handleFindNew = () => {
-    // navigate("/user/find-new");
+    navigate("/user/new-menu");
   };
 
   const handleMustHave = () => {

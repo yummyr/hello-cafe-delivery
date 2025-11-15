@@ -1,6 +1,5 @@
 package com.yuan.dto;
 
-import com.yuan.entity.Combos;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,7 +19,13 @@ public class ComboDTO implements Serializable {
     private Long categoryId;            // Category id
     private Double price;               // Combo price
     private String image;               // Combo image
+    private String imageUrl;            // Existing image URL reference
     private String description;         // Combo description
     private Integer status;             // Combo status: 1 for available, 0 for unavailable
-    private List<Combos> combos; // Menu items included in combo
+    private List<ComboItemDTO> items; // Menu items included in combo with quantity
+
+    // Image handling flags
+    private Boolean imageChanged;       // Flag to indicate if image was modified
+    private Boolean hasExistingImage;   // Flag to indicate if there was an existing image
+
 }

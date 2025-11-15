@@ -410,6 +410,10 @@ function MenuItemForm({ mode = "add", onSuccess, onCancel }) {
                       src={imagePreview}
                       alt="Preview"
                       className="w-48 h-48 object-cover rounded-lg border-2 border-gray-300 shadow-md"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = "/assets/default-no-img.png";
+                      }}
                     />
                     <button
                       type="button"

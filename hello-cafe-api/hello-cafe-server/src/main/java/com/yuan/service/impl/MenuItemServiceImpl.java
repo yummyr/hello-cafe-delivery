@@ -328,5 +328,24 @@ public class MenuItemServiceImpl implements MenuItemService {
         return vo;
     }
 
+    @Override
+    public List<MenuItemVO> findNewestItems(Integer limit) {
+        try {
+            log.info("Finding newest {} menu items", limit);
+
+            Pageable pageable = PageRequest.of(0, limit);
+            List<MenuItem> menuItems = menuItemRepository.findByStatusOrderByCreateTimeDesc(
+                    StatusConstant.ENABLE, pageable);
+
+            log.info("Found {} newest menu items", menuItems.size());
+
+            return menuItems.stream()
+                    .map(this::convertToVO)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Failed to find newest menu items", e);
+            throw new RuntimeException("Failed to retrieve newest menu items: " + e.getMessage());
+        }
+    }
 
 }

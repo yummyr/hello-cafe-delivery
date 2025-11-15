@@ -3,6 +3,7 @@ package com.yuan.service.impl;
 import com.yuan.constant.MessageConstant;
 import com.yuan.constant.StatusConstant;
 import com.yuan.dto.ComboDTO;
+import com.yuan.dto.ComboItemDTO;
 import com.yuan.dto.ComboPageQueryDTO;
 import com.yuan.entity.Category;
 import com.yuan.entity.Combo;
@@ -14,6 +15,7 @@ import com.yuan.repository.ComboRepository;
 import com.yuan.repository.MenuItemRepository;
 import com.yuan.result.PageResult;
 import com.yuan.service.ComboService;
+import com.yuan.vo.ComboItemVO;
 import com.yuan.vo.ComboVO;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +26,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.Map;
@@ -43,6 +46,12 @@ public class ComboServiceImpl implements ComboService {
     @Override
     @Transactional
     public Combo addCombo(ComboDTO comboDTO) {
+        return addCombo(comboDTO, null);
+    }
+
+    @Override
+    @Transactional
+    public Combo addCombo(ComboDTO comboDTO, MultipartFile imageFile) {
         Optional<Combo> existing = comboRepository.findByName(comboDTO.getName());
         if (existing.isPresent()) {
             throw new IllegalArgumentException(MessageConstant.ALREADY_EXISTS);
@@ -51,31 +60,221 @@ public class ComboServiceImpl implements ComboService {
         Combo combo = new Combo();
         BeanUtils.copyProperties(comboDTO, combo);
         combo.setStatus(StatusConstant.DISABLE);
+        combo.setCategoryId(11L);
+
+        // Handle image upload if provided
+        if (imageFile != null && !imageFile.isEmpty()) {
+            String imageUrl = s3Service.uploadFile(imageFile);
+            combo.setImage(imageUrl);
+        } else if (comboDTO.getImage() != null && !comboDTO.getImage().isEmpty()) {
+            // Handle case where image is passed as URL string
+            combo.setImage(comboDTO.getImage());
+        }
 
         Combo savedCombo = comboRepository.save(combo);
 
-        // Save combo items if provided
-        List<Combos> combos = comboDTO.getCombos();
-        if (combos != null && !combos.isEmpty()) {
-            for (Combos item : combos) {
-                item.setComboId(savedCombo.getId());
-                // Set default values if not provided
-                if (item.getQuantity() == null) {
-                    item.setQuantity(1);
-                }
-                // Set name from MenuItem if not provided
-                if (item.getName() == null && item.getMenuItemId() != null) {
-                    MenuItem menuItem = menuItemRepository.findById(item.getMenuItemId())
-                            .orElseThrow(() -> new IllegalArgumentException("Menu item not found: " + item.getMenuItemId()));
-                    item.setName(menuItem.getName());
-                    item.setPrice(menuItem.getPrice());
-                }
-                combosRepository.save(item);
+        // Save menu items if provided
+        List<ComboItemDTO> items = comboDTO.getItems();
+        if (items != null && !items.isEmpty()) {
+            for (ComboItemDTO item : items) {
+                Long itemId = item.getId();
+                Integer quantity = item.getQuantity() != null ? item.getQuantity() : 1;
+
+                Combos combos = new Combos(null, savedCombo.getId(), itemId, quantity);
+                combosRepository.save(combos);
             }
         }
 
         return savedCombo;
     }
+
+    @Override
+    @Transactional
+    public void deleteCombo(Long id) {
+        if (id == null ) {
+            throw new IllegalArgumentException(MessageConstant.ACCOUNT_NOT_FOUND);
+        }
+
+        // Find the combo to get image URL before deletion
+        Combo combo = comboRepository.findById(id).orElse(null);
+        if (combo != null && combo.getImage() != null && !combo.getImage().isEmpty()) {
+            try {
+                // Delete image from S3
+                s3Service.deleteFile(combo.getImage());
+                log.info("Deleted combo image from S3: {}", combo.getImage());
+            } catch (Exception e) {
+                log.error("Failed to delete combo image from S3: {}", combo.getImage(), e);
+                // Continue with deletion even if image deletion fails
+            }
+        }
+
+        // Delete associated menu items first
+        combosRepository.deleteByComboId(id);
+        // Delete combos
+        comboRepository.deleteById(id);
+    }
+
+    @Override
+    @Transactional
+    public void changeComboStatus(Long id, Integer status) {
+        Combo combo = comboRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Combo not found: " + id));
+
+        combo.setStatus(status);
+        comboRepository.save(combo);
+    }
+
+    @Override
+    @Transactional
+    public Combo updateCombo(ComboDTO comboDTO) {
+        return updateCombo(comboDTO, null);
+    }
+
+    @Override
+    @Transactional
+    public Combo updateCombo(ComboDTO comboDTO, MultipartFile imageFile) {
+        if (comboDTO == null || comboDTO.getId() == null) {
+            throw new IllegalArgumentException("DTO or ID cannot be null");
+        }
+        log.info("开始更新combo:{}",comboDTO.toString());
+
+        Combo combo = comboRepository.findById(comboDTO.getId())
+                .orElseThrow(() -> new RuntimeException("Combo not found: " + comboDTO.getId()));
+
+        // Handle image update
+        String oldImageUrl = combo.getImage();
+
+        // If new image file is provided, upload it and delete old image
+        if (imageFile != null && !imageFile.isEmpty()) {
+            try {
+                String newImageUrl = s3Service.uploadFile(imageFile);
+                combo.setImage(newImageUrl);
+
+                // Delete old image from S3 if it exists
+                if (oldImageUrl != null && !oldImageUrl.isEmpty()) {
+                    s3Service.deleteFile(oldImageUrl);
+                    log.info("Deleted old combo image from S3: {}", oldImageUrl);
+                }
+            } catch (Exception e) {
+                log.error("Failed to upload new combo image", e);
+                throw new RuntimeException("Failed to upload image: " + e.getMessage());
+            }
+        } else {
+            // Handle image based on DTO properties
+            if (comboDTO.getImageChanged() != null && comboDTO.getImageChanged()) {
+                // Image was marked as changed in frontend
+                if (comboDTO.getImage() == null || comboDTO.getImage().isEmpty()) {
+                    // Image was removed
+                    if (oldImageUrl != null && !oldImageUrl.isEmpty()) {
+                        try {
+                            s3Service.deleteFile(oldImageUrl);
+                            log.info("Deleted combo image from S3: {}", oldImageUrl);
+                        } catch (Exception e) {
+                            log.error("Failed to delete combo image from S3: {}", oldImageUrl, e);
+                        }
+                    }
+                    combo.setImage("");
+                } else if (comboDTO.getHasExistingImage() == null || !comboDTO.getHasExistingImage()) {
+                    // New image URL provided (not existing one)
+                    combo.setImage(comboDTO.getImage());
+                }
+            } else {
+                // No image change, keep existing image unless new URL provided
+                if (comboDTO.getImage() != null && !comboDTO.getImage().isEmpty()) {
+                    combo.setImage(comboDTO.getImage());
+                }
+            }
+        }
+
+        // Copy other properties
+        BeanUtils.copyProperties(comboDTO, combo, "image"); // Skip image since we handled it above
+
+        // Delete existing combos associated with menu items
+        List<Combos> oldCombos = combosRepository.findByComboId(combo.getId());
+        if (oldCombos !=null && !oldCombos.isEmpty()){
+            combosRepository.deleteByComboId(combo.getId());
+        }
+
+        // Process items - handle ComboItemDTO structure
+        List<ComboItemDTO> items = comboDTO.getItems();
+
+        log.info("Processing update for combo {}: received {} items", combo.getId(),
+                items != null ? items.size() : "null");
+
+        if (items != null && !items.isEmpty()) {
+            log.info("Creating combos records for {} menu items", items.size());
+            items.forEach(item -> {
+                Long itemId = item.getId();
+                Integer quantity = item.getQuantity() != null ? item.getQuantity() : 1;
+
+                log.debug("Creating combo record: combo_id={}, menu_item_id={}, quantity={}", combo.getId(), itemId, quantity);
+                Combos combos = new Combos(null, combo.getId(), itemId, quantity);
+                combosRepository.save(combos);
+            });
+            log.info("Successfully created {} combos records", items.size());
+        } else {
+            log.warn("No items provided for combo update: {}", combo.getId());
+        }
+
+        return comboRepository.save(combo);
+    }
+
+    @Override
+    public ComboVO getComboById(Long id) {
+        Combo combo = comboRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Combo not found: " + id));
+
+        Category category = categoryRepository.findById(combo.getCategoryId())
+                .orElse(null);
+
+        List<Combos> combos = combosRepository.findByComboId(id);
+
+        // Convert combos to ComboItemVO with menu item details
+        List<ComboItemVO> items = combos.stream().map(comboItem -> {
+            try {
+                MenuItem menuItem = menuItemRepository.findById(comboItem.getMenuItemId())
+                        .orElse(null);
+                if (menuItem != null) {
+                    return new ComboItemVO(
+                        comboItem.getId(),
+                        comboItem.getMenuItemId(),
+                        menuItem.getName(),
+                        menuItem.getPrice(),
+                        menuItem.getImage(),
+                        comboItem.getQuantity() != null ? comboItem.getQuantity() : 1
+                    );
+                }
+                return null;
+            } catch (Exception e) {
+                log.error("Error loading menu item for combo item: " + comboItem.getMenuItemId(), e);
+                return null;
+            }
+        }).filter(item -> item != null).collect(Collectors.toList());
+
+        return new ComboVO(
+                combo.getId(),
+                combo.getName(),
+                combo.getCategoryId(),
+                category != null ? category.getName() : "Unknown",
+                combo.getPrice(),
+                combo.getImage(),
+                combo.getDescription(),
+                combo.getStatus(),
+                combo.getUpdateTime(),
+                items
+        );
+    }
+
+    @Override
+    public List<Combo> findAll() {
+        try {
+            return comboRepository.findAll();
+        } catch (Exception e) {
+            log.error("Failed to find combos", e);
+            throw new RuntimeException("Failed to retrieve combos: " + e.getMessage());
+        }
+    }
+
 
     @Override
     public PageResult findAllWithCategory(ComboPageQueryDTO dto) {
@@ -104,6 +303,30 @@ public class ComboServiceImpl implements ComboService {
         List<ComboVO> voList = page.getContent().stream()
                 .map(combo -> {
                     List<Combos> combos = combosRepository.findByComboId(combo.getId());
+                    // Convert Combos to ComboItemVO
+                    List<ComboItemVO> items = combos.stream()
+                            .map(comboRel -> {
+                                try {
+                                    MenuItem menuItem = menuItemRepository.findById(comboRel.getMenuItemId()).orElse(null);
+                                    if (menuItem != null) {
+                                        return new ComboItemVO(
+                                                comboRel.getId(),
+                                                comboRel.getMenuItemId(),
+                                                menuItem.getName(),
+                                                menuItem.getPrice(),
+                                                menuItem.getImage(),
+                                                comboRel.getQuantity() != null ? comboRel.getQuantity() : 1
+                                        );
+                                    }
+                                    return null;
+                                } catch (Exception e) {
+                                    log.error("Error finding menu item for combo relation: {}", comboRel.getMenuItemId(), e);
+                                    return null;
+                                }
+                            })
+                            .filter(item -> item != null)
+                            .collect(Collectors.toList());
+
                     return new ComboVO(
                             combo.getId(),
                             combo.getName(),
@@ -114,7 +337,7 @@ public class ComboServiceImpl implements ComboService {
                             combo.getDescription(),
                             combo.getStatus(),
                             combo.getUpdateTime(),
-                            combos
+                            items
                     );
                 })
                 .toList();
@@ -122,99 +345,6 @@ public class ComboServiceImpl implements ComboService {
         return new PageResult(page.getTotalElements(), voList);
     }
 
-    @Override
-    @Transactional
-    public void deleteCombos(List<Long> idList) {
-        if (idList == null || idList.isEmpty()) {
-            throw new IllegalArgumentException(MessageConstant.ACCOUNT_NOT_FOUND);
-        }
-
-        // Delete associated combo items first
-        for (Long comboId : idList) {
-            // Delete combo items and associated images
-            List<Combos> combos = combosRepository.findByComboId(comboId);
-            for (Combos item : combos) {
-                // If menu items have images, delete them from S3
-                // Note: This assumes ComboItem might have an image field
-                // You may need to adjust based on your actual data model
-            }
-            combosRepository.deleteByComboId(comboId);
-        }
-
-        // Delete combos
-        comboRepository.deleteAllByIdInBatch(idList);
-    }
-
-    @Override
-    @Transactional
-    public void changeComboStatus(Long id, Integer status) {
-        Combo combo = comboRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Combo not found: " + id));
-
-        combo.setStatus(status);
-        comboRepository.save(combo);
-    }
-
-    @Override
-    @Transactional
-    public Combo updateCombo(ComboDTO comboDTO) {
-        if (comboDTO == null || comboDTO.getId() == null) {
-            throw new IllegalArgumentException("DTO or ID cannot be null");
-        }
-
-        Combo combo = comboRepository.findById(comboDTO.getId())
-                .orElseThrow(() -> new RuntimeException("Combo not found: " + comboDTO.getId()));
-
-        BeanUtils.copyProperties(comboDTO, combo);
-
-        // Delete existing combo items
-        combosRepository.deleteByComboId(combo.getId());
-
-        // Save new combo items
-        List<Combos> combos = comboDTO.getCombos();
-        if (combos != null && !combos.isEmpty()) {
-            combos.forEach(item -> {
-                item.setComboId(combo.getId());
-                combosRepository.save(item);
-            });
-        }
-
-        return comboRepository.save(combo);
-    }
-
-    @Override
-    public ComboVO getComboById(Long id) {
-        Combo combo = comboRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Combo not found: " + id));
-
-        Category category = categoryRepository.findById(combo.getCategoryId())
-                .orElse(null);
-
-        List<Combos> combos = combosRepository.findByComboId(id);
-
-        return new ComboVO(
-                combo.getId(),
-                combo.getName(),
-                combo.getCategoryId(),
-                category != null ? category.getName() : "Unknown",
-                combo.getPrice(),
-                combo.getImage(),
-                combo.getDescription(),
-                combo.getStatus(),
-                combo.getUpdateTime(),
-                combos
-        );
-    }
-
-    @Override
-    public List<Combo> findAll() {
-        try {
-            return comboRepository.findAll();
-        } catch (Exception e) {
-            log.error("Failed to find combos", e);
-            throw new RuntimeException("Failed to retrieve combos: " + e.getMessage());
-        }
-    }
 
     @Override
     public List<Map<String, Object>> searchMenuItems(String query) {

@@ -24,6 +24,6 @@ public interface CombosRepository extends JpaRepository<Combos, Long> {
     void deleteByMenuItemIdIn(List<Long> menuItemIds);
 
     @Modifying
-    @Query(value = "DELETE FROM combo_item WHERE combo_id = :comboId", nativeQuery = true)
+    @Query(value = "DELETE FROM combos WHERE combo_id = :comboId", nativeQuery = true)
     void deleteByComboId(@Param("comboId") Long comboId);
 }

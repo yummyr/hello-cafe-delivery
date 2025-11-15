@@ -1,6 +1,5 @@
 package com.yuan.controller.admin;
 
-import com.yuan.constant.FileConstant;
 import com.yuan.dto.ComboDTO;
 import com.yuan.dto.ComboPageQueryDTO;
 import com.yuan.entity.Combo;
@@ -13,8 +12,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-
 @RestController
 @Slf4j
 @RequiredArgsConstructor
@@ -25,10 +22,14 @@ public class ComboController {
     private final S3Service s3Service;
 
     @PostMapping
-    public Result addCombo(@RequestBody ComboDTO comboDTO) {
+    public Result addCombo(@RequestPart("combo") String comboJson, @RequestPart(value = "image", required = false) MultipartFile imageFile) {
         try {
+            // Parse JSON string to ComboDTO
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            ComboDTO comboDTO = objectMapper.readValue(comboJson, ComboDTO.class);
+
             log.info("Adding combo: {}", comboDTO.getName());
-            Combo combo = comboService.addCombo(comboDTO);
+            Combo combo = comboService.addCombo(comboDTO, imageFile);
             return Result.success(combo);
         } catch (Exception e) {
             log.error("Failed to add combo", e);
@@ -59,11 +60,11 @@ public class ComboController {
         }
     }
 
-    @DeleteMapping
-    public Result delete(@RequestParam List<Long> ids) {
+    @DeleteMapping("/{id}")
+    public Result delete(@PathVariable Long id) {
         try {
-            log.info("Deleting combos: {}", ids);
-            comboService.deleteCombos(ids);
+            log.info("Deleting combos: {}", id);
+            comboService.deleteCombo(id);
             return Result.success();
         } catch (Exception e) {
             log.error("Failed to delete combos", e);
@@ -72,10 +73,15 @@ public class ComboController {
     }
 
     @PutMapping
-    public Result updateCombo(@RequestBody ComboDTO comboDTO) {
+    public Result updateCombo(@RequestPart("combo") String comboJson, @RequestPart(value = "image", required = false) MultipartFile imageFile) {
         try {
+            // Parse JSON string to ComboDTO
+            com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            ComboDTO comboDTO = objectMapper.readValue(comboJson, ComboDTO.class);
+
             log.info("Updating combo: {}", comboDTO.getId());
-            Combo combo = comboService.updateCombo(comboDTO);
+
+            Combo combo = comboService.updateCombo(comboDTO, imageFile);
             return Result.success(combo);
         } catch (Exception e) {
             log.error("Failed to update combo", e);
@@ -93,30 +99,7 @@ public class ComboController {
         }
     }
 
-    @PostMapping("/upload")
-    public Result<String> uploadImage(@RequestParam("file") MultipartFile file) {
-        try {
-            if (file.isEmpty()) {
-                return Result.error("Please select a file to upload");
-            }
-
-            // Validate file type
-            String contentType = file.getContentType();
-            if (contentType == null || !contentType.startsWith("image/")) {
-                return Result.error("Only image files are allowed");
-            }
-
-            // Upload file to S3
-            String imageUrl = s3Service.uploadFile(file);
-            log.info("Successfully uploaded combo image: {}", imageUrl);
-
-            return Result.success(imageUrl);
-        } catch (Exception e) {
-            log.error("Failed to upload combo image", e);
-            return Result.error("Failed to upload image: " + e.getMessage());
-        }
-    }
-
+    
     @GetMapping("/menu-items/search")
     public Result searchMenuItems(@RequestParam String query) {
         try {

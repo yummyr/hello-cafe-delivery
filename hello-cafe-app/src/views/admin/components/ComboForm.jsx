@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Upload, X, Search, Plus, DollarSign, Package, ChevronDown } from 'lucide-react';
-import api from '../../api';
+import api from '../../../api';
 
-const EnhancedComboForm = ({
+const ComboForm = ({
   initialData = {},
   onSubmit,
   onCancel,
@@ -11,57 +11,131 @@ const EnhancedComboForm = ({
 }) => {
   const [formData, setFormData] = useState({
     name: '',
-    categoryId: '',
     price: '',
     description: '',
     status: 1,
     image: null,
     imageUrl: '',
-    combos: [],
+    items: [],
     ...initialData,
     // Handle price conversion for edit mode
-    ...(initialData.price && { price: initialData.price.toString() })
+    ...(initialData.price && { price: initialData.price.toString() }),
+    // Ensure imageUrl is set correctly from initialData.image
+    ...(initialData.image && { imageUrl: initialData.image })
   });
 
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedMenuItems, setSelectedMenuItems] = useState(
-    initialData.combos?.map(combo => ({
-      id: combo.menuItemId || Date.now() + Math.random(),
-      menuItemId: combo.menuItemId,
-      name: combo.name,
-      price: combo.price,
-      quantity: combo.quantity || 1,
-      image: combo.image
-    })) || []
-  );
-  const [imagePreview, setImagePreview] = useState(initialData.imageUrl || '');
+  const [selectedMenuItems, setSelectedMenuItems] = useState([]);
+  const [imagePreview, setImagePreview] = useState(initialData.imageUrl || initialData.image || '');
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [hasExistingImage, setHasExistingImage] = useState(!!(initialData.imageUrl || initialData.image));
+  const [imageChanged, setImageChanged] = useState(false);
   const fileInputRef = useRef(null);
   const searchRef = useRef(null);
 
-  // API functions
-  const uploadImage = async (file) => {
-    const formData = new FormData();
-    formData.append('file', file);
+  // Load menu items details when in edit mode
+  useEffect(() => {
+    if (isEditMode && (initialData.items || initialData.combos)) {
+      loadMenuItemsDetails();
+    }
+  }, [isEditMode, initialData.items, initialData.combos]);
+
+  // Function to load full menu item details for edit mode
+  const loadMenuItemsDetails = async () => {
+    try {
+      // Check for new format (items) or old format (combos)
+      const itemsToProcess = initialData.items || initialData.combos;
+      if (!itemsToProcess || itemsToProcess.length === 0) return;
+
+      const menuItemsDetails = await Promise.all(
+        itemsToProcess.map(async (item) => {
+          try {
+            const response = await api.get(`/admin/menu/${item.menuItemId}`);
+            if (response.data.code === 1 && response.data.data) {
+              const menuItem = response.data.data;
+              return {
+                id: item.id || Date.now() + Math.random(),
+                menuItemId: item.menuItemId,
+                name: menuItem.name,
+                price: menuItem.price,
+                quantity: item.quantity || 1,
+                image: menuItem.image
+              };
+            }
+            return null;
+          } catch (error) {
+            console.error(`Error loading menu item ${item.menuItemId}:`, error);
+            return null;
+          }
+        })
+      );
+
+      // Filter out null values and set selected menu items
+      const validItems = menuItemsDetails.filter(item => item !== null);
+      setSelectedMenuItems(validItems);
+    } catch (error) {
+      console.error('Error loading menu items details:', error);
+    }
+  };
+
+  // Handle image change
+  const handleImageChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    // Validate file type
+    if (!file.type.startsWith('image/')) {
+      alert('Please select an image file');
+      return;
+    }
+
+    // Validate file size (max 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+      alert('Image size should be less than 5MB');
+      return;
+    }
 
     try {
-      const response = await api.post('/admin/combo/upload', formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
+      setUploadProgress(0);
 
-      if (response.data.code === 1) {
-        return response.data.data;
-      } else {
-        throw new Error(response.data.msg || 'Upload failed');
-      }
+      // Create preview
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result);
+      };
+      reader.readAsDataURL(file);
+
+      // Mark image as changed and store file
+      setImageChanged(true);
+      setHasExistingImage(false);
+
+      setFormData(prev => ({
+        ...prev,
+        image: file,
+        imageUrl: '' // Clear existing image URL since we're using a new file
+      }));
+
+      setUploadProgress(100);
     } catch (error) {
-      console.error('Error uploading image:', error);
-      throw error;
+      alert('Failed to process image: ' + error.message);
+    }
+  };
+
+  // Handle image removal
+  const handleRemoveImage = () => {
+    setImagePreview('');
+    setHasExistingImage(false);
+    setImageChanged(true);
+    setFormData(prev => ({
+      ...prev,
+      image: null,
+      imageUrl: ''
+    }));
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -101,46 +175,7 @@ const EnhancedComboForm = ({
     return () => clearTimeout(timer);
   }, [searchQuery]);
 
-  // Handle image change
-  const handleImageChange = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      alert('Image size should be less than 5MB');
-      return;
-    }
-
-    try {
-      setUploadProgress(0);
-      const imageUrl = await uploadImage(file);
-
-      // Create preview
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result);
-      };
-      reader.readAsDataURL(file);
-
-      setFormData(prev => ({
-        ...prev,
-        image: file,
-        imageUrl: imageUrl
-      }));
-
-      setUploadProgress(100);
-    } catch (error) {
-      alert('Failed to upload image: ' + error.message);
-    }
-  };
-
+  
   // Handle menu item selection
   const handleSelectMenuItem = (menuItem) => {
     // Check if already selected
@@ -183,17 +218,25 @@ const EnhancedComboForm = ({
 
     // Create clean data object matching ComboDTO structure
     const submissionData = {
+      id: formData.id, // Include id for edit mode
       name: formData.name,
       categoryId: formData.categoryId || null,
       price: parseFloat(formData.price) || 0,
       description: formData.description || '',
       status: formData.status || 1,
-      image: formData.imageUrl || '', // Use imageUrl (the S3 URL) not the file object
-      combos: selectedMenuItems.map(({ id, menuItemId, name, price, quantity, image }) => ({
-        menuItemId,
-        name,
+      image: formData.image || formData.imageUrl || '', // Use file object for new images, URL for existing ones
+      imageUrl: formData.imageUrl || '', // Keep existing image URL reference
+      imageChanged: imageChanged, // Flag to indicate if image was modified
+      hasExistingImage: hasExistingImage, // Flag to indicate if there was an existing image
+      items: selectedMenuItems.map(({ menuItemId, name, price, quantity, image }) => ({
+        id: menuItemId,
+        name: name,
+        categoryId: null, // This will be set by the backend
         price: parseFloat(price) || 0,
-        quantity: parseInt(quantity) || 1
+        image: image,
+        description: '', // This will be set by the backend
+        status: 1, // This will be set by the backend
+        quantity: quantity || 1 // Include quantity field
       }))
     };
 
@@ -331,13 +374,22 @@ const EnhancedComboForm = ({
                 )}
               </div>
 
-              {(imagePreview || formData.imageUrl) && (
-                <div className="w-24 h-24 rounded-lg overflow-hidden border border-gray-300">
-                  <img
-                    src={imagePreview || formData.imageUrl}
-                    alt="Preview"
-                    className="w-full h-full object-cover"
-                  />
+              {(imagePreview || formData.imageUrl || formData.image) && (
+                <div className="relative">
+                  <div className="w-24 h-24 rounded-lg overflow-hidden border border-gray-300">
+                    <img
+                      src={imagePreview || formData.imageUrl || formData.image}
+                      alt="Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveImage}
+                    className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 hover:bg-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 </div>
               )}
             </div>
@@ -486,4 +538,4 @@ const EnhancedComboForm = ({
   );
 };
 
-export default EnhancedComboForm;
+export default ComboForm;

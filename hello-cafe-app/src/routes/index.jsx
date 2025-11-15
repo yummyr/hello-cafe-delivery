@@ -17,8 +17,9 @@ import MenuItemForm from "../views/admin/components/MenuItemForm";
 import UserMenuPage from '../views/user/pages/UserMenuPage';
 import ShoppingCartPage from '../views/user/pages/ShoppingCartPage';
 import CheckoutPage from '../views/user/pages/CheckoutPage';
-import CombosPage from '../views/user/pages/CombosPage';
+import UserComboPage from '../views/user/pages/UserComboPage';
 import FavoritesPage from '../views/user/pages/FavoritesPage';
+import NewMenuPage from '../views/user/pages/NewMenuPage';
 
 function AppRoutes() {
   return (
@@ -49,7 +50,8 @@ function AppRoutes() {
         <Route path="orders" element={<UserOrders />} />
         <Route path="addresses" element={<AddressBookPage />} />
         <Route path="menu" element={<UserMenuPage />} />
-        <Route path="combos" element={<CombosPage />} />
+        <Route path="combos" element={<UserComboPage />} />
+        <Route path="new-menu" element={<NewMenuPage />} />
         <Route path="cart" element={<ShoppingCartPage />} />
         <Route path="checkout" element={<CheckoutPage />} />
         <Route path="favorites" element={<FavoritesPage />} />
