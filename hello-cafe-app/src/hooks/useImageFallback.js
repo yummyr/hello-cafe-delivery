@@ -7,7 +7,9 @@ import { useState } from 'react';
  * @returns {Object} - { src, handleError }
  */
 export const useImageFallback = (initialSrc, fallbackSrc = "/assets/default-no-img.png") => {
-  const [src, setSrc] = useState(initialSrc);
+  // If initialSrc is empty, null, undefined, or just whitespace, use fallback immediately
+  const sanitizedInitialSrc = (!initialSrc || initialSrc.trim() === '') ? fallbackSrc : initialSrc;
+  const [src, setSrc] = useState(sanitizedInitialSrc);
 
   const handleError = () => {
     if (src !== fallbackSrc) {

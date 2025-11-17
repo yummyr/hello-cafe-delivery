@@ -1,12 +1,14 @@
 package com.yuan.controller.user;
 
 import com.yuan.constant.StatusConstant;
+import com.yuan.dto.MenuItemPageQueryDTO;
 import com.yuan.entity.Category;
 import com.yuan.entity.MenuItem;
 import com.yuan.entity.MenuItemFlavor;
 import com.yuan.repository.CategoryRepository;
 import com.yuan.repository.MenuItemFlavorRepository;
 import com.yuan.repository.MenuItemRepository;
+import com.yuan.result.PageResult;
 import com.yuan.result.Result;
 import com.yuan.service.MenuItemService;
 import com.yuan.vo.MenuItemFlavorVO;
@@ -33,24 +35,24 @@ public class UserMenuItemController {
     /**
      * query menu items by category
      */
-    @GetMapping("/list")
-    public Result<List<DishVO>> list(@RequestParam Long categoryId) {
-        try {
-            log.info("Querying menu items by category id: {}", categoryId);
-
-            // only query active menu items
-            List<MenuItem> menuItems = menuItemRepository.findByCategoryIdAndStatus(categoryId, 1);
-
-            List<DishVO> dishVOList = menuItems.stream()
-                    .map(this::convertToDishVO)
-                    .collect(Collectors.toList());
-
-            return Result.success(dishVOList);
-        } catch (Exception e) {
-            log.error("Failed to query menu items", e);
-            return Result.error("Failed to query menu items: " + e.getMessage());
-        }
-    }
+    // @GetMapping("/list")
+    // public Result<List<DishVO>> list(@RequestParam Long categoryId) {
+    //     try {
+    //         log.info("Querying menu items by category id: {}", categoryId);
+    //
+    //         // only query active menu items
+    //         List<MenuItem> menuItems = menuItemRepository.findByCategoryIdAndStatus(categoryId, 1);
+    //
+    //         List<DishVO> dishVOList = menuItems.stream()
+    //                 .map(this::convertToDishVO)
+    //                 .collect(Collectors.toList());
+    //
+    //         return Result.success(dishVOList);
+    //     } catch (Exception e) {
+    //         log.error("Failed to query menu items", e);
+    //         return Result.error("Failed to query menu items: " + e.getMessage());
+    //     }
+    // }
 
     private DishVO convertToDishVO(MenuItem menuItem) {
         DishVO dishVO = new DishVO();
@@ -116,20 +118,20 @@ public class UserMenuItemController {
         }
     }
 
-    /**
-     * get menu items by category
-     */
-    @GetMapping("/category/{categoryId}")
-    public Result<List<MenuItemVO>> getMenuItemsByCategory(@PathVariable Long categoryId) {
-        try {
-            log.info("Fetching menu items for category: {}", categoryId);
-            List<MenuItemVO> menuItems = menuItemService.findByCategoryIdAndStatus(categoryId, StatusConstant.ENABLE);
-            return Result.success(menuItems);
-        } catch (Exception e) {
-            log.error("Failed to fetch menu items for category: {}", categoryId, e);
-            return Result.error("Failed to fetch menu items: " + e.getMessage());
-        }
-    }
+    // /**
+    //  * get menu items by category
+    //  */
+    // @GetMapping("/category/{categoryId}")
+    // public Result<List<MenuItemVO>> getMenuItemsByCategory(@PathVariable Long categoryId) {
+    //     try {
+    //         log.info("Fetching menu items for category: {}", categoryId);
+    //         List<MenuItemVO> menuItems = menuItemService.findByCategoryIdAndStatus(categoryId, StatusConstant.ENABLE);
+    //         return Result.success(menuItems);
+    //     } catch (Exception e) {
+    //         log.error("Failed to fetch menu items for category: {}", categoryId, e);
+    //         return Result.error("Failed to fetch menu items: " + e.getMessage());
+    //     }
+    // }
 
     /**
      * get menu item by id
@@ -149,12 +151,12 @@ public class UserMenuItemController {
     /**
      * get all active menu items list
      */
-    @GetMapping("/all")
-    public Result<List<MenuItemVO>> getAllActiveMenuItems() {
+    @GetMapping("/page")
+    public Result getAllActiveMenuItems(MenuItemPageQueryDTO dto) {
         try {
             log.info("Fetching all active menu items");
-            List<MenuItemVO> menuItems = menuItemService.findAllActive();
-            return Result.success(menuItems);
+            PageResult result = menuItemService.findAllWithCategory(dto);
+            return Result.success(result);
         } catch (Exception e) {
             log.error("Failed to fetch all active menu items", e);
             return Result.error("Failed to fetch menu items: " + e.getMessage());

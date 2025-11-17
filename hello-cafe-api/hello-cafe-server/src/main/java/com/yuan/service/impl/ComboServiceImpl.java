@@ -124,11 +124,6 @@ public class ComboServiceImpl implements ComboService {
         comboRepository.save(combo);
     }
 
-    @Override
-    @Transactional
-    public Combo updateCombo(ComboDTO comboDTO) {
-        return updateCombo(comboDTO, null);
-    }
 
     @Override
     @Transactional
@@ -370,4 +365,6 @@ public class ComboServiceImpl implements ComboService {
             throw new RuntimeException("Failed to search menu items: " + e.getMessage());
         }
     }
+
+
 }

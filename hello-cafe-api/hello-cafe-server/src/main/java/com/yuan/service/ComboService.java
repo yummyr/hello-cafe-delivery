@@ -21,7 +21,6 @@ public interface ComboService {
 
     void changeComboStatus(Long id, Integer status);
 
-    Combo updateCombo(ComboDTO comboDTO);
 
     Combo updateCombo(ComboDTO comboDTO, MultipartFile imageFile);
 
@@ -30,4 +29,6 @@ public interface ComboService {
     List<Combo> findAll();
 
     List<Map<String, Object>> searchMenuItems(String query);
+
+
 }

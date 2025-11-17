@@ -1,6 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search,ChevronLeft } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import api from "../../../api";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
@@ -9,6 +9,7 @@ import MenuItemModal from "../components/MenuItemModal";
 import MenuItemCard from "../components/MenuItemCard";
 import shoppingCartAPI from "../../../api/shoppingCart";
 import favoritesAPI from "../../../api/favorites";
+import Pagination from "../../admin/components/Pagination";
 
 function UserMenuPage() {
   const navigate = useNavigate();
@@ -16,92 +17,87 @@ function UserMenuPage() {
   const categoryId = searchParams.get("category");
 
   const [menuItems, setMenuItems] = useState([]);
-  const [filteredItems, setFilteredItems] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(12); // 3 columns x 4 rows = 12 items per page
+  const [total, setTotal] = useState(1);
   const [toast, setToast] = useState({ message: "", isVisible: false });
   const [selectedItem, setSelectedItem] = useState(null);
   const [showItemModal, setShowItemModal] = useState(false);
   const [favoriteItems, setFavoriteItems] = useState(new Set());
 
-  // Pagination: 3 columns x 4 rows = 12 items per page
-  const ITEMS_PER_PAGE = 12;
+  // Debouncing for search
+  const debounceTimeoutRef = useRef(null);
 
-  // Fetch menu items based on category
-  const fetchMenuItems = async () => {
+  // Fetch menu items based on category with pagination
+  const fetchMenuItems = async (
+    currentPage = page,
+    currentPageSize = pageSize,
+    searchName = null
+  ) => {
     try {
       setLoading(true);
-      let response;
 
-      if (categoryId === "null" || categoryId === null) {
-        // Fetch all menu items
-        response = await api.get("/user/menu/all");
-      } else {
-        // Fetch items by category
-        response = await api.get(`/user/menu/category/${categoryId}`);
+      // Fetch all menu items with pagination
+      const params = {
+        page: currentPage,
+        pageSize: currentPageSize,
+      };
+      if (searchName) {
+        params.name = searchName;
       }
+      if (categoryId) {
+        params.categoryId = categoryId;
+      }
+
+      const response = await api.get("/user/menu/page", { params });
+
+      console.log("menu response:", response);
 
       if (response.data.code === 1) {
         // Transform API data to match frontend format
-        const transformedItems = response.data.data.map((item, index) => ({
-          id: item.id,
-          name: item.name,
-          price: item.price,
-          image: item.image,
-          categoryName: item.categoryName,
-          description: item.description,
-          rating: 4.8 - index * 0.05, // Simulated ratings
-        }));
+        const transformedItems = response.data.data.records.map(
+          (item, index) => ({
+            id: item.id,
+            name: item.name,
+            price: item.price,
+            image: item.image,
+            categoryName: item.categoryName,
+            description: item.description,
+            rating: 4.8 - index * 0.05, // Simulated ratings
+          })
+        );
         setMenuItems(transformedItems);
-        setFilteredItems(transformedItems);
-
-        // Calculate total pages
-        const total = transformedItems.length;
-        setTotalPages(Math.ceil(total / ITEMS_PER_PAGE));
+        console.log("menu items: ",menuItems);
+        
+        setTotal(response.data.data.total);
       }
     } catch (error) {
       console.error("Failed to fetch menu items:", error);
+      setToast({
+        message: "Failed to load menu items",
+        isVisible: true,
+      });
     } finally {
       setLoading(false);
     }
   };
 
-  // Handle search functionality
+  // Handle search functionality with debouncing
   const handleSearch = (query) => {
     setSearchQuery(query);
-    let newFilteredItems;
-    if (query.trim() === "") {
-      newFilteredItems = menuItems;
-    } else {
-      newFilteredItems = menuItems.filter(
-        (item) =>
-          item.name.toLowerCase().includes(query.toLowerCase()) ||
-          item.description?.toLowerCase().includes(query.toLowerCase())
-      );
+
+    // Clear the previous timeout
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
     }
-    setFilteredItems(newFilteredItems);
-    setCurrentPage(1); // Reset to first page when searching
 
-    // Recalculate total pages
-    const total = newFilteredItems.length;
-    setTotalPages(Math.ceil(total / ITEMS_PER_PAGE));
-  };
-
-  // Get items for current page
-  const getCurrentPageItems = () => {
-    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-    const endIndex = startIndex + ITEMS_PER_PAGE;
-    return filteredItems.slice(startIndex, endIndex);
-  };
-
-  // Handle pagination
-  const goToPage = (page) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    // Set a new timeout to fetch data after 500ms of no typing
+    debounceTimeoutRef.current = setTimeout(() => {
+      setPage(1); // Reset to first page when searching
+      fetchMenuItems(1, pageSize, query);
+    }, 500);
   };
 
   const handleItemClick = (item) => {
@@ -177,17 +173,22 @@ function UserMenuPage() {
   };
 
   useEffect(() => {
-    fetchMenuItems();
+    setPage(1); // Reset to first page when category changes
+    fetchMenuItems(1, pageSize, searchQuery);
   }, [categoryId]);
 
   useEffect(() => {
-    // Recalculate total pages when filtered items change
-    const total = filteredItems.length;
-    setTotalPages(Math.ceil(total / ITEMS_PER_PAGE));
-    if (currentPage > totalPages && totalPages > 0) {
-      setCurrentPage(totalPages);
-    }
-  }, [filteredItems, currentPage, totalPages]);
+    fetchMenuItems(page, pageSize, searchQuery);
+  }, [page, pageSize]);
+
+  // Cleanup debounce timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimeoutRef.current) {
+        clearTimeout(debounceTimeoutRef.current);
+      }
+    };
+  }, []);
 
   if (loading) {
     return (
@@ -198,8 +199,6 @@ function UserMenuPage() {
       </UserLayout>
     );
   }
-
-  const currentPageItems = getCurrentPageItems();
 
   return (
     <UserLayout>
@@ -221,8 +220,8 @@ function UserMenuPage() {
                   : "Menu Items"}
               </h1>
               <p className="text-gray-600">
-                {filteredItems.length} item
-                {filteredItems.length !== 1 ? "s" : ""} found
+                {total} item
+                {total !== 1 ? "s" : ""} found
               </p>
             </div>
             <button
@@ -250,10 +249,10 @@ function UserMenuPage() {
         </div>
 
         {/* Menu Items Grid */}
-        {currentPageItems.length > 0 ? (
+        {menuItems.length > 0 ? (
           <>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-              {currentPageItems.map((item) => (
+              {menuItems.map((item) => (
                 <MenuItemCard
                   key={item.id}
                   item={item}
@@ -266,54 +265,21 @@ function UserMenuPage() {
             </div>
 
             {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex justify-center items-center space-x-2">
-                <button
-                  onClick={() => goToPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                  className="p-2 rounded-lg border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronLeft className="w-5 h-5" />
-                </button>
-
-                <div className="flex space-x-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-
-                    return (
-                      <button
-                        key={pageNum}
-                        onClick={() => goToPage(pageNum)}
-                        className={`px-3 py-1 rounded-lg text-sm font-medium transition-colors ${
-                          currentPage === pageNum
-                            ? "bg-blue-600 text-white"
-                            : "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50"
-                        }`}
-                      >
-                        {pageNum}
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <button
-                  onClick={() => goToPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                  className="p-2 rounded-lg border border-gray-300 bg-white text-gray-500 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  <ChevronRight className="w-5 h-5" />
-                </button>
-              </div>
-            )}
+            <Pagination
+              totalItems={total}
+              pageSize={pageSize}
+              currentPage={page}
+              onPageChange={(p) => {
+                setPage(p);
+                fetchMenuItems(p, pageSize, searchQuery);
+              }}
+              onPageSizeChange={(size) => {
+                setPageSize(size);
+                setPage(1); // reset to first page
+                fetchMenuItems(1, size, searchQuery);
+              }}
+              showInfo={true}
+            />
           </>
         ) : (
           <div className="text-center py-12">

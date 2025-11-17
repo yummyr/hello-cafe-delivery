@@ -258,20 +258,20 @@ public class MenuItemServiceImpl implements MenuItemService {
         }
     }
 
-    @Override
-    public List<MenuItemVO> findByCategoryIdAndStatus(Long categoryId, Integer status) {
-        try {
-            log.info("Finding menu items by category {} and status: {}", categoryId, status);
-            List<MenuItem> menuItems = menuItemRepository.findByCategoryIdAndStatus(categoryId, status);
-
-            return menuItems.stream()
-                    .map(this::convertToVO)
-                    .collect(java.util.stream.Collectors.toList());
-        } catch (Exception e) {
-            log.error("Failed to find menu items by category {} and status: {}", categoryId, status, e);
-            throw new RuntimeException("Failed to retrieve menu items: " + e.getMessage());
-        }
-    }
+    // @Override
+    // public List<MenuItemVO> findByCategoryIdAndStatus(Long categoryId, Integer status) {
+    //     try {
+    //         log.info("Finding menu items by category {} and status: {}", categoryId, status);
+    //         List<MenuItem> menuItems = menuItemRepository.findByCategoryIdAndStatus(categoryId, status);
+    //
+    //         return menuItems.stream()
+    //                 .map(this::convertToVO)
+    //                 .collect(java.util.stream.Collectors.toList());
+    //     } catch (Exception e) {
+    //         log.error("Failed to find menu items by category {} and status: {}", categoryId, status, e);
+    //         throw new RuntimeException("Failed to retrieve menu items: " + e.getMessage());
+    //     }
+    // }
 
     @Override
     public MenuItemVO getMenuItemVOById(Long id) {
@@ -287,20 +287,20 @@ public class MenuItemServiceImpl implements MenuItemService {
         }
     }
 
-    @Override
-    public List<MenuItemVO> findAllActive() {
-        try {
-            log.info("Finding all active menu items");
-            List<MenuItem> menuItems = menuItemRepository.findByStatus(StatusConstant.ENABLE);
-
-            return menuItems.stream()
-                    .map(this::convertToVO)
-                    .collect(java.util.stream.Collectors.toList());
-        } catch (Exception e) {
-            log.error("Failed to find all active menu items", e);
-            throw new RuntimeException("Failed to retrieve menu items: " + e.getMessage());
-        }
-    }
+    // @Override
+    // public List<MenuItemVO> findAllActive() {
+    //     try {
+    //         log.info("Finding all active menu items");
+    //         List<MenuItem> menuItems = menuItemRepository.findByStatus(StatusConstant.ENABLE);
+    //
+    //         return menuItems.stream()
+    //                 .map(this::convertToVO)
+    //                 .collect(java.util.stream.Collectors.toList());
+    //     } catch (Exception e) {
+    //         log.error("Failed to find all active menu items", e);
+    //         throw new RuntimeException("Failed to retrieve menu items: " + e.getMessage());
+    //     }
+    // }
 
     private MenuItemVO convertToVO(MenuItem menuItem) {
         MenuItemVO vo = new MenuItemVO();

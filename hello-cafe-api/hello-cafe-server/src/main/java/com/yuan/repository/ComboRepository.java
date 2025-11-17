@@ -1,6 +1,8 @@
 package com.yuan.repository;
 
+import com.yuan.dto.ComboPageQueryDTO;
 import com.yuan.entity.Combo;
+import com.yuan.result.PageResult;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -40,4 +42,6 @@ public interface ComboRepository extends JpaRepository<Combo, Long> {
 
     @Query("SELECT c.name FROM Combo c WHERE c.id = :comboId")
     String findNameById(Long comboId);
+
+
 }

@@ -3,8 +3,8 @@ import { X, Plus, Star, Heart } from "lucide-react";
 import FlavorSelector from "./FlavorSelector";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
 import ToastNotification from "./ToastNotification";
-import api from "../../../api";
 import shoppingCartAPI from "../../../api/shoppingCart";
+import favoritesAPI from "../../../api/favorites";
 
 
 function MenuItemModal({ item, onClose }) {
@@ -89,26 +89,26 @@ function MenuItemModal({ item, onClose }) {
 
   const handleToggleFavorite = async () => {
     try {
-      const response = await fetch(`/api/user/favorites/toggle`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        },
-        body: JSON.stringify({
-          itemType: 'menu_item',
-          itemId: item.id,
-          itemName: item.name,
-          itemImage: item.image,
-          itemPrice: item.price
-        })
-      });
+      const favoriteData = {
+        itemType: 'menu_item',
+        itemId: item.id,
+        itemName: item.name,
+        itemImage: item.image,
+        itemPrice: item.price
+      };
 
-      if (response.ok) {
-        const data = await response.json();
-        setIsFavorite(data.data.isFavorite);
+      const response = await favoritesAPI.toggleFavorite(favoriteData);
+
+      if (response.data.code === 1) {
+        const isFavorite = response.data.data.isFavorite;
+        setIsFavorite(isFavorite);
         setToast({
-          message: data.data.isFavorite ? `${item.name} added to favorites!` : `${item.name} removed from favorites`,
+          message: isFavorite ? `${item.name} added to favorites!` : `${item.name} removed from favorites`,
+          isVisible: true,
+        });
+      } else {
+        setToast({
+          message: "Failed to update favorites",
           isVisible: true,
         });
       }
@@ -125,15 +125,10 @@ function MenuItemModal({ item, onClose }) {
   useEffect(() => {
     const checkFavoriteStatus = async () => {
       try {
-        const response = await fetch(`/api/user/favorites/status?itemType=menu_item&itemId=${item.id}`, {
-          headers: {
-            'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          }
-        });
+        const response = await favoritesAPI.checkFavoriteStatus('menu_item', item.id);
 
-        if (response.ok) {
-          const data = await response.json();
-          setIsFavorite(data.data.isFavorite);
+        if (response.data.code === 1) {
+          setIsFavorite(response.data.data.isFavorite);
         }
       } catch (error) {
         console.error("Error checking favorite status:", error);

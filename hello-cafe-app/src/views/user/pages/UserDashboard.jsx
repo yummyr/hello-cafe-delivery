@@ -15,7 +15,6 @@ import shoppingCartAPI from "../../../api/shoppingCart";
 import favoritesAPI from "../../../api/favorites";
 import api from "../../../api";
 
-
 function UserDashboard() {
   const navigate = useNavigate();
   const storeInfo = {
@@ -36,45 +35,43 @@ function UserDashboard() {
       id: 1,
       name: "Coffees",
       description: "Freshly brewed coffee",
-      image:
-        "/assets/house_coffee.jpeg",
+      image: "/assets/house_coffee.jpeg",
     },
     {
       id: 2,
       name: "Burgers",
-      description: "Juicy, flame-grilled burgers with premium ingredients and bold flavors",
-      image:
-        "/assets/burgers.jpeg",
+      description:
+        "Juicy, flame-grilled burgers with premium ingredients and bold flavors",
+      image: "/assets/burgers.jpeg",
     },
     {
       id: 3,
       name: "Sandwiches",
       description: "Freshly made sandwiches",
-      image:
-        "/assets/sandwiches.jpeg",
+      image: "/assets/sandwiches.jpeg",
     },
     {
       id: 4,
       name: "Bakery",
-      description: "Artisanal breads, pastries, and sweet treats baked fresh daily",
-      image:
-        "/assets/bakery.jpeg",
+      description:
+        "Artisanal breads, pastries, and sweet treats baked fresh daily",
+      image: "/assets/bakery.jpeg",
     },
     {
       id: 8,
       name: "Salads",
-      description: "Vibrant, nutrient-packed salads with crisp greens and flavorful dressings",
-      image:
-        "/assets/salads.jpeg",
+      description:
+        "Vibrant, nutrient-packed salads with crisp greens and flavorful dressings",
+      image: "/assets/salads.jpeg",
     },
 
     {
       id: null,
       name: "All other categories",
-      description: "Explore our full menu with diverse and delicious offerings for every taste",
-      image:
-        "/assets/meal.jpeg",
-    }
+      description:
+        "Explore our full menu with diverse and delicious offerings for every taste",
+      image: "/assets/meal.jpeg",
+    },
   ];
   const [loading, setLoading] = useState(true);
   const handleFindNew = () => {
@@ -95,9 +92,7 @@ function UserDashboard() {
           id: item.id,
           name: item.name,
           price: item.price,
-          image:
-            item.image ||
-            "https://images.unsplash.com/photo-1461023058943-07fcbe16d735?w=400&q=80",
+          image: item.image,
           categoryName: item.categoryName,
           description: item.description,
           badge: index < 3 ? `#${index + 1} Most liked` : null,
@@ -119,7 +114,7 @@ function UserDashboard() {
       if (response.data.code === 1) {
         const favorites = response.data.data || [];
         const favoriteKeys = new Set(
-          favorites.map(fav => `${fav.itemType}-${fav.itemId}`)
+          favorites.map((fav) => `${fav.itemType}-${fav.itemId}`)
         );
         setFavoriteItems(favoriteKeys);
       }
@@ -184,16 +179,16 @@ function UserDashboard() {
 
     try {
       const favoriteData = {
-        itemType: 'menu_item',
+        itemType: "menu_item",
         itemId: item.id,
         itemName: item.name,
         itemImage: item.image,
-        itemPrice: item.price
+        itemPrice: item.price,
       };
 
       const response = await favoritesAPI.toggleFavorite(favoriteData);
       if (response.data.code === 1) {
-        setFavoriteItems(prev => {
+        setFavoriteItems((prev) => {
           const newFavorites = new Set(prev);
           const itemKey = `menu_item-${item.id}`;
 
@@ -296,7 +291,7 @@ function UserDashboard() {
                     alt={item.name}
                     className="w-full h-48 object-cover"
                     onError={(e) => {
-                      e.target.src = '/assets/default-no-img.png';
+                      e.target.src = "/assets/default-no-img.png";
                     }}
                   />
                   {item.badge && (
@@ -311,8 +306,8 @@ function UserDashboard() {
                     <Heart
                       className={`w-5 h-5 ${
                         favoriteItems.has(`menu_item-${item.id}`)
-                          ? 'fill-red-500 text-red-500'
-                          : 'text-gray-400 hover:text-red-500'
+                          ? "fill-red-500 text-red-500"
+                          : "text-gray-400 hover:text-red-500"
                       }`}
                     />
                   </button>

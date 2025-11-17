@@ -32,9 +32,9 @@ public interface MenuItemService {
     // User-facing methods
     List<MenuItemVO> findByStatus(Integer status);
 
-    List<MenuItemVO> findByCategoryIdAndStatus(Long categoryId, Integer status);
+    // List<MenuItemVO> findByCategoryIdAndStatus(Long categoryId, Integer status);
 
-    List<MenuItemVO> findAllActive();
+    // List<MenuItemVO> findAllActive();
 
     MenuItemVO getMenuItemVOById(Long id);
 

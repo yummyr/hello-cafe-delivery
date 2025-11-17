@@ -17,7 +17,12 @@ const menuAPI = {
 
   // Get all combos
   getAllCombos: () => {
-    return api.get("/user/combo/all");
+    return api.get("/user/combo/page",{
+      params: {
+        page: 1,
+        pageSize: 10
+      }
+    });
   },
 };
 
