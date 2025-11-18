@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Edit, Ban, Check, PlusCircle, Trash2 } from "lucide-react";
 import AdminLayout from "../layouts/AdminLayout";
-import Pagination from "../components/Pagination";
+import Pagination from "../../../components/Pagination";
 import AdminImageCard from "../components/AdminImageCard";
 import api from "../../../api";
 import { formatDateTime } from "../../../utils/date";

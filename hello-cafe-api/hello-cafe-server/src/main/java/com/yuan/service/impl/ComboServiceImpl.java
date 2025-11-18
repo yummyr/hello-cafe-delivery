@@ -43,11 +43,6 @@ public class ComboServiceImpl implements ComboService {
     private final MenuItemRepository menuItemRepository;
     private final S3Service s3Service;
 
-    @Override
-    @Transactional
-    public Combo addCombo(ComboDTO comboDTO) {
-        return addCombo(comboDTO, null);
-    }
 
     @Override
     @Transactional
@@ -258,16 +253,6 @@ public class ComboServiceImpl implements ComboService {
                 combo.getUpdateTime(),
                 items
         );
-    }
-
-    @Override
-    public List<Combo> findAll() {
-        try {
-            return comboRepository.findAll();
-        } catch (Exception e) {
-            log.error("Failed to find combos", e);
-            throw new RuntimeException("Failed to retrieve combos: " + e.getMessage());
-        }
     }
 
 

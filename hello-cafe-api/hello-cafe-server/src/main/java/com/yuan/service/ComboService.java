@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 public interface ComboService {
-    Combo addCombo(ComboDTO comboDTO);
+
 
     Combo addCombo(ComboDTO comboDTO, MultipartFile imageFile);
 
@@ -21,14 +21,10 @@ public interface ComboService {
 
     void changeComboStatus(Long id, Integer status);
 
-
     Combo updateCombo(ComboDTO comboDTO, MultipartFile imageFile);
 
     ComboVO getComboById(Long id);
 
-    List<Combo> findAll();
-
     List<Map<String, Object>> searchMenuItems(String query);
-
 
 }

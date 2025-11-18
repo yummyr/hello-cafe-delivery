@@ -9,22 +9,16 @@ import ComboCard from "../components/ComboCard";
 import ComboDetailsModal from "../components/ComboDetailsModal";
 import shoppingCartAPI from "../../../api/shoppingCart";
 import favoritesAPI from "../../../api/favorites";
-import Pagination from "../../admin/components/Pagination";
-
+import Pagination from "../../../components/Pagination";
 
 function UserComboPage() {
   const navigate = useNavigate();
 
   const [combos, setCombos] = useState([]);
-  // const [filteredCombos, setFilteredCombos] = useState([]);
-
-  // Pagination: 3 columns x 4 rows = 12 items per page
-  const ITEMS_PER_PAGE = 12;
-
   const [searchQuery, setSearchQuery] = useState("");
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(ITEMS_PER_PAGE);
+  const [pageSize, setPageSize] = useState(12);
   const [total, setTotal] = useState(1);
   const [toast, setToast] = useState({ message: "", isVisible: false });
   const [selectedCombo, setSelectedCombo] = useState(null);
@@ -32,11 +26,22 @@ function UserComboPage() {
   const [comboMenuItems, setComboMenuItems] = useState([]);
   const [favoriteCombos, setFavoriteCombos] = useState(new Set());
 
-  // Debouncing for search
-  const debounceTimeoutRef = useRef(null);
+  // cancel request controller
+  const abortControllerRef = useRef(null);
 
   // Get all combos
-  const fetchCombos = async (currentPage = page, currentPageSize = pageSize, searchName = null) => {
+  const fetchCombos = async (
+    currentPage = page,
+    currentPageSize = pageSize,
+    searchName = null
+  ) => {
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create a new AbortController
+    abortControllerRef.current = new AbortController();
     try {
       setLoading(true);
       const params = {
@@ -51,21 +56,24 @@ function UserComboPage() {
 
       const response = await api.get("/user/combo/page", {
         params: params,
+        signal: abortControllerRef.current.signal,
       });
       console.log("combo response:", response);
       if (response.data.code === 1) {
         console.log("combo list:", response.data.data.records);
         setCombos(response.data.data.records || []);
         console.log("combo page total:", response.data.total);
-    
+
         setTotal(response.data.data.total);
       }
     } catch (error) {
-      console.error("Failed to fetch combos:", error);
-      setToast({
-        message: "Failed to load combo packages",
-        isVisible: true,
-      });
+      if (!error.name?.includes("Cancel") && error.code !== "ERR_CANCELED") {
+        console.error("Failed to fetch combos:", error);
+        setToast({
+          message: "Failed to load combo packages",
+          isVisible: true,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -78,6 +86,8 @@ function UserComboPage() {
       if (response.data.code === 1) {
         // Use the items array from the new ComboVO structure
         const items = response.data.data.items || [];
+        console.log("combo details items list: ", items);
+
         setComboMenuItems(items);
       }
     } catch (error) {
@@ -89,17 +99,8 @@ function UserComboPage() {
   // Handle search functionality with debouncing
   const handleSearch = (query) => {
     setSearchQuery(query);
-
-    // Clear the previous timeout
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
-    // Set a new timeout to fetch data after 500ms of no typing
-    debounceTimeoutRef.current = setTimeout(() => {
-      setPage(1); // Reset to first page when searching
-      fetchCombos(1, pageSize, query);
-    }, 500);
+    setPage(1); // Reset to first page when searching
+    fetchCombos(1, pageSize, query);
   };
 
   // View combo details
@@ -114,7 +115,7 @@ function UserComboPage() {
     e.stopPropagation();
 
     try {
-      const response = await shoppingCartAPI.addItem(null, null, combo.id); // setmealId for combo
+      const response = await shoppingCartAPI.addItem(null, null, combo.id); 
       if (response.data.code === 1) {
         setToast({
           message: `${combo.name} added to cart!`,
@@ -177,6 +178,12 @@ function UserComboPage() {
     }
   };
 
+  const handleCloseDetailsModal = () => {
+    setShowDetailsModal(false);
+    setSelectedCombo(null);
+    setComboMenuItems([]);
+  };
+
   useEffect(() => {
     fetchCombos(page, pageSize, searchQuery);
   }, [page, pageSize]);
@@ -184,13 +191,13 @@ function UserComboPage() {
   // Cleanup debounce timeout on unmount
   useEffect(() => {
     return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, []);
 
-  if (loading) {
+  if (loading && combos.length === 0) {
     return (
       <UserLayout>
         <div className="flex justify-center items-center h-64">
@@ -217,10 +224,6 @@ function UserComboPage() {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">
                 Combo Packages
               </h1>
-              {/* <p className="text-gray-600">
-                {filteredCombos.length} combo
-                {filteredCombos.length !== 1 ? "s" : ""} available
-              </p> */}
             </div>
             <button
               onClick={() => navigate("/user/dashboard")}
@@ -240,25 +243,38 @@ function UserComboPage() {
               type="text"
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2 focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
+              className="block w-full pl-10 pr-3 py-3 border border-gray-300 rounded-lg leading-5 bg-white
+               placeholder-gray-500 focus:outline-none focus:placeholder-gray-400 focus:ring-2
+                focus:ring-amber-500 focus:border-amber-500 sm:text-sm"
               placeholder="Search combo packages..."
             />
           </div>
         </div>
 
         {/* Combo Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {combos.map((combo) => (
-            <ComboCard
-              key={combo.id}
-              combo={combo}
-              onToggleFavorite={handleToggleFavorite}
-              onAddToCart={handleAddToCart}
-              onViewDetails={handleViewDetails}
-              isFavorite={favoriteCombos.has(combo.id)}
-            />
-          ))}
-        </div>
+        {combos.length === 0 && !loading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-500 text-lg">No combo packages found.</p>
+            {searchQuery && (
+              <p className="text-gray-400 mt-2">
+                Try adjusting your search terms
+              </p>
+            )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {combos.map((combo) => (
+              <ComboCard
+                key={combo.id}
+                combo={combo}
+                onToggleFavorite={handleToggleFavorite}
+                onAddToCart={handleAddToCart}
+                onViewDetails={handleViewDetails}
+                isFavorite={favoriteCombos.has(combo.id)}
+              />
+            ))}
+          </div>
+        )}
 
         {/* pagination */}
         <Pagination
@@ -282,7 +298,7 @@ function UserComboPage() {
           <ComboDetailsModal
             selectedCombo={selectedCombo}
             comboMenuItems={comboMenuItems}
-            onClose={() => setShowDetailsModal(false)}
+            onClose={() =>handleCloseDetailsModal()}
             onAddToCart={(combo) => {
               // Create a synthetic event to match the existing handler signature
               const syntheticEvent = { stopPropagation: () => {} };

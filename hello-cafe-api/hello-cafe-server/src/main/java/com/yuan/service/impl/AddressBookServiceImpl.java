@@ -22,15 +22,22 @@ public class AddressBookServiceImpl implements AddressBookService {
     @Override
     @Transactional
     public void addAddress(AddressBook addressBook) {
-        addressBook.setUserId(UserUtils.getCurrentUserId());
+        Long currentUserId = UserUtils.getCurrentUserId();
+        addressBook.setUserId(currentUserId);
+
+        // Check if user has reached the maximum address limit of 10
+        List<AddressBook> existingAddresses = addressBookRepository.findByUserId(currentUserId);
+        if (existingAddresses.size() >= 10) {
+            throw new IllegalArgumentException("You have reached the maximum limit of 10 addresses. Please delete an existing address to add a new one.");
+        }
 
         // If setting as default, unset other default addresses first
         if (addressBook.getIsDefault() != null && addressBook.getIsDefault().equals(AddressConstant.DEFAULT_ADDRESS)) {
-            addressBookRepository.unsetDefaultAddress(UserUtils.getCurrentUserId());
+            addressBookRepository.unsetDefaultAddress(currentUserId);
         }
 
         addressBookRepository.save(addressBook);
-        log.info("Added new address for user: {}", UserUtils.getCurrentUserId());
+        log.info("Added new address for user: {}", currentUserId);
     }
 
     @Override

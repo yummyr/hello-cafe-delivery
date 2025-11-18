@@ -75,6 +75,12 @@ public class GlobalExceptionHandler {
         return Result.error(MessageConstant.UNKNOWN_ERROR);
     }
 
+    @ExceptionHandler(IllegalArgumentException.class)
+    public Result<String> handleIllegalArgumentException(IllegalArgumentException ex) {
+        log.warn("Illegal argument: {}", ex.getMessage());
+        return Result.error(ex.getMessage());
+    }
+
     @ExceptionHandler(DeletionNotAllowedException.class)
     public Result<String> handleDeletionNotAllowedException(DeletionNotAllowedException ex) {
         log.warn("Deletion not allowed: {}", ex.getMessage());

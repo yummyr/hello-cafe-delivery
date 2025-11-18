@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import AdminLayout from "../layouts/AdminLayout";
-import Pagination from "../components/Pagination";
+import Pagination from "../../../components/Pagination";
 import { Edit, Ban, Check, X, Trash2 } from "lucide-react";
 import api from "../../../api";
 import { formatDateTime } from "../../../utils/date";

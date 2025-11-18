@@ -151,13 +151,21 @@ function AddressBookPage() {
   };
 
   const openAddModal = () => {
+    // Check if user has reached the 10-address limit
+    if (addresses.length >= 10) {
+      alert("You have reached the maximum limit of 10 addresses. Please delete an existing address to add a new one.");
+      return;
+    }
+
     setEditingAddress(null);
     setFormData({
       name: "",
+      gender: "Female",
       phone: "",
-      province: "",
+      address: "",
       city: "",
-      district: "",
+      state: "",
+      zipcode: "",
       detail: "",
       isDefault: false,
     });
@@ -199,17 +207,64 @@ function AddressBookPage() {
                   <MapPin className="w-8 h-8 text-amber-700" />
                   Address Book
                 </h1>
-                <p className="text-amber-700">Manage your delivery addresses</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-amber-700">Manage your delivery addresses</p>
+                  <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    addresses.length >= 10
+                      ? 'bg-red-100 text-red-700'
+                      : addresses.length >= 8
+                        ? 'bg-yellow-100 text-yellow-700'
+                        : 'bg-green-100 text-green-700'
+                  }`}>
+                    {addresses.length}/10 addresses
+                  </span>
+                </div>
               </div>
               <button
                 onClick={openAddModal}
-                className="bg-amber-600 text-white px-6 py-3 rounded-lg hover:bg-amber-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl"
+                disabled={addresses.length >= 10}
+                className={`px-6 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-all ${
+                  addresses.length >= 10
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-amber-600 text-white hover:bg-amber-700 hover:shadow-xl'
+                }`}
               >
                 <Plus className="w-5 h-5" />
-                Add Address
+                {addresses.length >= 10 ? 'Address Limit Reached' : 'Add Address'}
               </button>
             </div>
           </div>
+
+          {/* Address Limit Warning */}
+          {addresses.length >= 8 && (
+            <div className={`mb-6 p-4 rounded-lg border ${
+              addresses.length >= 10
+                ? 'bg-red-50 border-red-200 text-red-800'
+                : 'bg-yellow-50 border-yellow-200 text-yellow-800'
+            }`}>
+              <div className="flex items-center gap-3">
+                {addresses.length >= 10 ? (
+                  <X className="w-5 h-5 text-red-600" />
+                ) : (
+                  <div className="w-5 h-5 text-yellow-600">⚠️</div>
+                )}
+                <div>
+                  <p className="font-medium">
+                    {addresses.length >= 10
+                      ? 'Maximum address limit reached'
+                      : 'Approaching address limit'
+                    }
+                  </p>
+                  <p className="text-sm">
+                    {addresses.length >= 10
+                      ? 'You have reached the maximum of 10 addresses. Please delete an existing address to add a new one.'
+                      : `You have ${addresses.length} addresses. You can add ${10 - addresses.length} more address${10 - addresses.length === 1 ? '' : 'es'}.`
+                    }
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Address List */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -308,10 +363,15 @@ function AddressBookPage() {
               </p>
               <button
                 onClick={openAddModal}
-                className="bg-amber-600 text-white px-8 py-3 rounded-lg hover:bg-amber-700 transition-colors flex items-center gap-2 shadow-lg hover:shadow-xl mx-auto"
+                disabled={addresses.length >= 10}
+                className={`px-8 py-3 rounded-lg flex items-center gap-2 shadow-lg transition-colors mx-auto ${
+                  addresses.length >= 10
+                    ? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                    : 'bg-amber-600 text-white hover:bg-amber-700 hover:shadow-xl'
+                }`}
               >
                 <Plus className="w-5 h-5" />
-                Add Your First Address
+                {addresses.length >= 10 ? 'Address Limit Reached' : 'Add Your First Address'}
               </button>
             </div>
           )}

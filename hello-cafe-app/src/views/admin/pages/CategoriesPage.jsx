@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import AdminLayout from "../layouts/AdminLayout";
-import Pagination from "../components/Pagination";
+import Pagination from "../../../components/Pagination";
 import api from "../../../api";
 import { formatDateTime } from "../../../utils/date";
 

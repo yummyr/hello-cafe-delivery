@@ -10,7 +10,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import api from "../../../api";
 import { formatDateTime } from "../../../utils/date";
-import Pagination from "../components/Pagination";
+import Pagination from "../../../components/Pagination";
 
 function OrdersPage() {
   const tdAndThStyle = "py-3 px-4 text-center";

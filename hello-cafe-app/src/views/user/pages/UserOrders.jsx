@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import UserLayout from "../layouts/UserLayout";
 import api from "../../../api";
 import { formatDateTime } from "@/utils/date";
+import Pagination from "../../../components/Pagination";
 
 // Order status constants
 const ORDER_STATUS = {
@@ -88,8 +89,9 @@ function UserOrders() {
   const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [total, setTotal] = useState(1);
   const [statusFilter, setStatusFilter] = useState(null);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
@@ -98,9 +100,9 @@ function UserOrders() {
   const fetchOrders = async () => {
     try {
       setLoading(true);
-      const result = await getHistoryOrders(currentPage, 10, statusFilter);
+      const result = await getHistoryOrders(page, pageSize, statusFilter);
       setOrders(result.records || []);
-      setTotalPages(Math.ceil(result.total / result.pageSize));
+      setTotal(result.total);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
     } finally {
@@ -231,7 +233,7 @@ function UserOrders() {
 
   useEffect(() => {
     fetchOrders();
-  }, [currentPage, statusFilter]);
+  }, [page, pageSize, statusFilter]);
 
   return (
     <UserLayout>
@@ -252,7 +254,7 @@ function UserOrders() {
                   key={option.value}
                   onClick={() => {
                     setStatusFilter(option.value);
-                    setCurrentPage(1);
+                    setPage(1);
                   }}
                   className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
                     statusFilter === option.value
@@ -334,27 +336,19 @@ function UserOrders() {
           )}
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="mt-8 flex justify-center items-center space-x-4">
-              <button
-                onClick={() => setCurrentPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                className="px-4 py-2 bg-[#F5EDE0] text-[#6B5B4A] rounded-lg border border-[#E5D4C1] disabled:bg-[#E5D4C1] disabled:text-[#A0A0A0] hover:bg-[#E8D5C0] transition-colors duration-200"
-              >
-                Previous
-              </button>
-              <span className="text-sm text-[#6B5B4A] font-medium">
-                Page {currentPage} of {totalPages}
-              </span>
-              <button
-                onClick={() => setCurrentPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                className="px-4 py-2 bg-[#F5EDE0] text-[#6B5B4A] rounded-lg border border-[#E5D4C1] disabled:bg-[#E5D4C1] disabled:text-[#A0A0A0] hover:bg-[#E8D5C0] transition-colors duration-200"
-              >
-                Next
-              </button>
-            </div>
-          )}
+          <Pagination
+            totalItems={total}
+            pageSize={pageSize}
+            currentPage={page}
+            onPageChange={(p) => {
+              setPage(p);
+            }}
+            onPageSizeChange={(size) => {
+              setPageSize(size);
+              setPage(1); // reset to first page
+            }}
+            showInfo={true}
+          />
         </div>
 
         {/* Order Details Modal */}

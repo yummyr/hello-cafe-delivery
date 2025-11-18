@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search,ChevronLeft } from "lucide-react";
+import { Search, ChevronLeft } from "lucide-react";
 import UserLayout from "../layouts/UserLayout";
 import api from "../../../api";
 import { refreshCartCount } from "../../../hooks/useShoppingCart";
@@ -9,7 +9,7 @@ import MenuItemModal from "../components/MenuItemModal";
 import MenuItemCard from "../components/MenuItemCard";
 import shoppingCartAPI from "../../../api/shoppingCart";
 import favoritesAPI from "../../../api/favorites";
-import Pagination from "../../admin/components/Pagination";
+import Pagination from "../../../components/Pagination";
 
 function UserMenuPage() {
   const navigate = useNavigate();
@@ -27,8 +27,8 @@ function UserMenuPage() {
   const [showItemModal, setShowItemModal] = useState(false);
   const [favoriteItems, setFavoriteItems] = useState(new Set());
 
-  // Debouncing for search
-  const debounceTimeoutRef = useRef(null);
+// cancel request controller
+  const abortControllerRef = useRef(null);
 
   // Fetch menu items based on category with pagination
   const fetchMenuItems = async (
@@ -36,6 +36,13 @@ function UserMenuPage() {
     currentPageSize = pageSize,
     searchName = null
   ) => {
+    // Cancel previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+
+    // Create a new AbortController
+    abortControllerRef.current = new AbortController();
     try {
       setLoading(true);
 
@@ -51,7 +58,7 @@ function UserMenuPage() {
         params.categoryId = categoryId;
       }
 
-      const response = await api.get("/user/menu/page", { params });
+      const response = await api.get("/user/menu/page", { params, signal: abortControllerRef.current.signal  });
 
       console.log("menu response:", response);
 
@@ -69,16 +76,18 @@ function UserMenuPage() {
           })
         );
         setMenuItems(transformedItems);
-        console.log("menu items: ",menuItems);
-        
+        console.log("menu items: ", menuItems);
+
         setTotal(response.data.data.total);
       }
     } catch (error) {
-      console.error("Failed to fetch menu items:", error);
-      setToast({
-        message: "Failed to load menu items",
-        isVisible: true,
-      });
+         if (!error.name?.includes("Cancel") && error.code !== "ERR_CANCELED") {
+        console.error("Failed to fetch menu items:", error);
+        setToast({
+          message: "Failed to load menu items",
+          isVisible: true,
+        });
+      }
     } finally {
       setLoading(false);
     }
@@ -88,16 +97,8 @@ function UserMenuPage() {
   const handleSearch = (query) => {
     setSearchQuery(query);
 
-    // Clear the previous timeout
-    if (debounceTimeoutRef.current) {
-      clearTimeout(debounceTimeoutRef.current);
-    }
-
-    // Set a new timeout to fetch data after 500ms of no typing
-    debounceTimeoutRef.current = setTimeout(() => {
-      setPage(1); // Reset to first page when searching
-      fetchMenuItems(1, pageSize, query);
-    }, 500);
+    setPage(1); // Reset to first page when searching
+    fetchMenuItems(1, pageSize, query);
   };
 
   const handleItemClick = (item) => {
@@ -184,13 +185,13 @@ function UserMenuPage() {
   // Cleanup debounce timeout on unmount
   useEffect(() => {
     return () => {
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
       }
     };
   }, []);
 
-  if (loading) {
+  if (loading && menuItems.length === 0) {
     return (
       <UserLayout>
         <div className="flex justify-center items-center h-64">
