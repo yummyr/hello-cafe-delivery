@@ -8,7 +8,7 @@ import com.yuan.entity.MenuItemFlavor;
 import com.yuan.result.PageResult;
 import com.yuan.result.Result;
 import com.yuan.service.MenuItemService;
-import com.yuan.service.impl.S3Service;
+import com.yuan.service.impl.CloudinaryService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -24,7 +24,7 @@ import java.util.List;
 public class MenuItemController {
 
     private final MenuItemService menuItemService;
-    private final S3Service s3Service;
+    private final CloudinaryService cloudinaryService;
 
 
     @GetMapping
@@ -42,7 +42,10 @@ public class MenuItemController {
             for (MenuItem item : items) {
                 // log.info("Deleting menu item: {}", item.getName());
                 if (item.getImage() != null && !item.getImage().isEmpty()) {
-                    s3Service.deleteFile(item.getImage());
+                    String publicId = cloudinaryService.extractPublicIdFromUrl(item.getImage());
+                    if (publicId != null) {
+                        cloudinaryService.deleteImage(publicId);
+                    }
                 }
             }
             menuItemService.deleteIds(idList);
@@ -77,9 +80,9 @@ public class MenuItemController {
             dto.setCategoryId(categoryId);
 
 
-            // upload image to S3 if image is not null
+            // upload image to Cloudinary if image is not null
             if (image != null && !image.isEmpty()) {
-                String imageUrl = s3Service.uploadFile(image);
+                String imageUrl = cloudinaryService.uploadImage(image);
                 dto.setImage(imageUrl);
             }
 
@@ -119,14 +122,17 @@ public class MenuItemController {
             dto.setCategoryId(categoryId);
 
             if (image != null && !image.isEmpty()) {
-                String newImageUrl = s3Service.uploadFile(image);
+                String newImageUrl = cloudinaryService.uploadImage(image);
                 dto.setImage(newImageUrl);
                 if (oldImageUrl != null && !oldImageUrl.isEmpty()) {
                     try {
-                        s3Service.deleteFile(oldImageUrl);
-                        // log.info("Deleted old image from S3: {}", oldImageUrl);
+                        String oldPublicId = cloudinaryService.extractPublicIdFromUrl(oldImageUrl);
+                        if (oldPublicId != null) {
+                            cloudinaryService.deleteImage(oldPublicId);
+                        }
+                        // log.info("Deleted old image from Cloudinary: {}", oldImageUrl);
                     } catch (Exception e) {
-                        log.warn("Failed to delete old image from S3: {}", oldImageUrl, e);
+                        log.warn("Failed to delete old image from Cloudinary: {}", oldImageUrl, e);
                     }
                 }
             } else {

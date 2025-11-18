@@ -6,7 +6,6 @@ import com.yuan.entity.Combo;
 import com.yuan.result.PageResult;
 import com.yuan.result.Result;
 import com.yuan.service.ComboService;
-import com.yuan.service.impl.S3Service;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 public class ComboController {
 
     private final ComboService comboService;
-    private final S3Service s3Service;
 
     @PostMapping
     public Result addCombo(@RequestPart("combo") String comboJson, @RequestPart(value = "image", required = false) MultipartFile imageFile) {

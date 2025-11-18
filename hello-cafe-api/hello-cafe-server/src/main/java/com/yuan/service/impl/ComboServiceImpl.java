@@ -15,6 +15,7 @@ import com.yuan.repository.ComboRepository;
 import com.yuan.repository.MenuItemRepository;
 import com.yuan.result.PageResult;
 import com.yuan.service.ComboService;
+import com.yuan.service.impl.CloudinaryService;
 import com.yuan.vo.ComboItemVO;
 import com.yuan.vo.ComboVO;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +28,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 
 import java.util.List;
 import java.util.Map;
@@ -41,7 +44,7 @@ public class ComboServiceImpl implements ComboService {
     private final CategoryRepository categoryRepository;
     private final CombosRepository combosRepository;
     private final MenuItemRepository menuItemRepository;
-    private final S3Service s3Service;
+    private final CloudinaryService cloudinaryService;
 
 
     @Override
@@ -59,8 +62,12 @@ public class ComboServiceImpl implements ComboService {
 
         // Handle image upload if provided
         if (imageFile != null && !imageFile.isEmpty()) {
-            String imageUrl = s3Service.uploadFile(imageFile);
-            combo.setImage(imageUrl);
+            try {
+                String imageUrl = cloudinaryService.uploadImage(imageFile);
+                combo.setImage(imageUrl);
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to upload image: " + e.getMessage(), e);
+            }
         } else if (comboDTO.getImage() != null && !comboDTO.getImage().isEmpty()) {
             // Handle case where image is passed as URL string
             combo.setImage(comboDTO.getImage());
@@ -94,11 +101,14 @@ public class ComboServiceImpl implements ComboService {
         Combo combo = comboRepository.findById(id).orElse(null);
         if (combo != null && combo.getImage() != null && !combo.getImage().isEmpty()) {
             try {
-                // Delete image from S3
-                s3Service.deleteFile(combo.getImage());
-                log.info("Deleted combo image from S3: {}", combo.getImage());
+                // Delete image from Cloudinary
+                String publicId = cloudinaryService.extractPublicIdFromUrl(combo.getImage());
+                if (publicId != null) {
+                    cloudinaryService.deleteImage(publicId);
+                    log.info("Deleted combo image from Cloudinary: {}", combo.getImage());
+                }
             } catch (Exception e) {
-                log.error("Failed to delete combo image from S3: {}", combo.getImage(), e);
+                log.error("Failed to delete combo image from Cloudinary: {}", combo.getImage(), e);
                 // Continue with deletion even if image deletion fails
             }
         }
@@ -137,13 +147,16 @@ public class ComboServiceImpl implements ComboService {
         // If new image file is provided, upload it and delete old image
         if (imageFile != null && !imageFile.isEmpty()) {
             try {
-                String newImageUrl = s3Service.uploadFile(imageFile);
+                String newImageUrl = cloudinaryService.uploadImage(imageFile);
                 combo.setImage(newImageUrl);
 
-                // Delete old image from S3 if it exists
+                // Delete old image from Cloudinary if it exists
                 if (oldImageUrl != null && !oldImageUrl.isEmpty()) {
-                    s3Service.deleteFile(oldImageUrl);
-                    log.info("Deleted old combo image from S3: {}", oldImageUrl);
+                    String oldPublicId = cloudinaryService.extractPublicIdFromUrl(oldImageUrl);
+                    if (oldPublicId != null) {
+                        cloudinaryService.deleteImage(oldPublicId);
+                        log.info("Deleted old combo image from Cloudinary: {}", oldImageUrl);
+                    }
                 }
             } catch (Exception e) {
                 log.error("Failed to upload new combo image", e);
@@ -157,10 +170,13 @@ public class ComboServiceImpl implements ComboService {
                     // Image was removed
                     if (oldImageUrl != null && !oldImageUrl.isEmpty()) {
                         try {
-                            s3Service.deleteFile(oldImageUrl);
-                            log.info("Deleted combo image from S3: {}", oldImageUrl);
+                            String oldPublicId = cloudinaryService.extractPublicIdFromUrl(oldImageUrl);
+                            if (oldPublicId != null) {
+                                cloudinaryService.deleteImage(oldPublicId);
+                                log.info("Deleted combo image from Cloudinary: {}", oldImageUrl);
+                            }
                         } catch (Exception e) {
-                            log.error("Failed to delete combo image from S3: {}", oldImageUrl, e);
+                            log.error("Failed to delete combo image from Cloudinary: {}", oldImageUrl, e);
                         }
                     }
                     combo.setImage("");

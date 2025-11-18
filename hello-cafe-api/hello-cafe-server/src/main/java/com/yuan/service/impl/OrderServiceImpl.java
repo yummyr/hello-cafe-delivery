@@ -299,7 +299,19 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(1); // Pending payment
         order.setNotes(ordersSubmitDTO.getRemark());
         order.setDeliveryStatus(ordersSubmitDTO.getDeliveryStatus());
-        order.setEstimatedDeliveryTime(LocalDateTime.parse(ordersSubmitDTO.getEstimatedDeliveryTime()));
+        // Parse estimated delivery time safely
+        try {
+            if (ordersSubmitDTO.getEstimatedDeliveryTime() != null) {
+                order.setEstimatedDeliveryTime(LocalDateTime.parse(ordersSubmitDTO.getEstimatedDeliveryTime()));
+            } else {
+                // Default to 40 minutes from now if not provided
+                order.setEstimatedDeliveryTime(LocalDateTime.now().plusMinutes(40));
+            }
+        } catch (Exception e) {
+            log.error("Error parsing estimated delivery time: {}", ordersSubmitDTO.getEstimatedDeliveryTime(), e);
+            // Default to 40 minutes from now if parsing fails
+            order.setEstimatedDeliveryTime(LocalDateTime.now().plusMinutes(40));
+        }
         order.setTablewareNumber(ordersSubmitDTO.getTablewareNumber());
         order.setTablewareStatus(ordersSubmitDTO.getTablewareStatus());
 

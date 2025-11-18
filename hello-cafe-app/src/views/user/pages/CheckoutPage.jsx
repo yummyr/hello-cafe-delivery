@@ -113,6 +113,15 @@ function CheckoutPage() {
       return;
     }
 
+    // Additional validation
+    if (tablewareNumber < 0 || !Number.isInteger(tablewareNumber)) {
+      setToast({
+        message: "Please enter a valid number of tableware",
+        isVisible: true,
+      });
+      return;
+    }
+
     setProcessing(true);
     try {
       // Create order data

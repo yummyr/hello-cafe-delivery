@@ -56,12 +56,19 @@ hello-cafe:
     user-secret-key: ${hello-cafe.jwt.userSecretKey}
     user-ttl: ${hello-cafe.jwt.userTtl}
     user-token-name: ${hello-cafe.jwt.userTokenName}
-  aws:
-    s3:
-      bucket-name: ${hello-cafe.aws.s3.bucket-name}
-      region: ${hello-cafe.aws.s3.region}
-      access-key: ${hello-cafe.aws.s3.accessKey}
-      secret-key: ${hello-cafe.aws.s3.secretKey}
+
+  cloudinary:
+    cloud-name: ${hello-cafe.cloudinary.cloud-name}
+    api-key: ${hello-cafe.cloudinary.api-key}
+    api-secret: ${hello-cafe.cloudinary.api-secret}
+    secure: ${hello-cafe.cloudinary.secure}
+#  aws:
+#    s3:
+#      bucket-name: ${hello-cafe.aws.s3.bucket-name}
+#      region: ${hello-cafe.aws.s3.region}
+#      access-key: ${hello-cafe.aws.s3.accessKey}
+#      secret-key: ${hello-cafe.aws.s3.secretKey}
+
 
 logging:
   level:
