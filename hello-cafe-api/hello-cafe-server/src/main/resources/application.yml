@@ -62,13 +62,6 @@ hello-cafe:
     api-key: ${hello-cafe.cloudinary.api-key}
     api-secret: ${hello-cafe.cloudinary.api-secret}
     secure: ${hello-cafe.cloudinary.secure}
-#  aws:
-#    s3:
-#      bucket-name: ${hello-cafe.aws.s3.bucket-name}
-#      region: ${hello-cafe.aws.s3.region}
-#      access-key: ${hello-cafe.aws.s3.accessKey}
-#      secret-key: ${hello-cafe.aws.s3.secretKey}
-
 
 logging:
   level:
@@ -80,9 +73,11 @@ logging:
 
 # Stripe Configuration
 stripe:
-  secret-key: ${STRIPE_SECRET_KEY:sk_test_example}
-  publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_example}
-  webhook-secret: ${STRIPE_WEBHOOK_SECRET:whsec_example}
+  secret-key: sk_test_default_key
+  publishable-key: pk_test_default_key
+  webhook:
+    secret: whsec_test_default_secret
+
 
 # Request/Response Logging Configuration
 request-logging:

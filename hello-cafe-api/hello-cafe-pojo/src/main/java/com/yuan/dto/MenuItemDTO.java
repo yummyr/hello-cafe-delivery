@@ -20,7 +20,7 @@ public class MenuItemDTO implements Serializable {
     private Long id;
     private String name;
     private Long categoryId;
-    private BigDecimal price;
+    private Double price;
     private String image;
     private String description;
     private Integer status;         //0 not sell ,1 sell

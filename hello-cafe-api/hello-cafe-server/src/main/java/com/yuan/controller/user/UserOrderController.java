@@ -12,6 +12,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -54,9 +55,9 @@ public class UserOrderController {
     }
 
     @PutMapping("/cancel/{id}")
-    public Result cancel(@PathVariable Long id) {
-        log.info("User cancel order by id：{}", id);
-        orderService.cancelOrder(id);
+    public Result cancel(@PathVariable Long id, @RequestParam String reason) {
+        log.info("User cancel order by id：{}，, reason: {}", id, reason);
+        orderService.cancelOrder(id, reason);
         return Result.success();
     }
 

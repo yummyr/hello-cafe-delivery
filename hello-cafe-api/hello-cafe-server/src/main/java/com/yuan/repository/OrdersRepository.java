@@ -10,6 +10,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface OrdersRepository extends JpaRepository<Orders, Long> {
@@ -90,4 +91,6 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
 
     @Query("SELECT o FROM Orders o WHERE o.status IN :integers")
     List<Orders> findByStatusIn(List<Integer> integers);
+
+    Optional<Orders> findByStripeSessionId(String stripeSessionId);
 }

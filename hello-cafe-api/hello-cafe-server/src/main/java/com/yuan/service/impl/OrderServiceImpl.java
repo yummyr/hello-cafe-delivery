@@ -6,6 +6,7 @@ import com.yuan.entity.*;
 import com.yuan.repository.*;
 import com.yuan.result.PageResult;
 import com.yuan.service.OrderService;
+import com.yuan.service.ShoppingCartService;
 import com.yuan.service.StripeService;
 import com.yuan.utils.UserUtils;
 import com.yuan.vo.*;
@@ -21,6 +22,7 @@ import com.stripe.exception.StripeException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.UUID;
@@ -36,10 +38,10 @@ public class OrderServiceImpl implements OrderService {
     private final ComboRepository comboRepository;
     private final MenuItemFlavorRepository menuItemFlavorRepository;
     private final ShoppingCartRepository shoppingCartRepository;
+    private final ShoppingCartService shoppingCartService;
     private final AddressBookRepository addressBookRepository;
     private final MenuItemRepository menuItemRepository;
     private final StripeService stripeService;
-
 
 
     @Override
@@ -101,6 +103,12 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return orderDetailVO;
+    }
+
+    @Override
+    public Orders getOrderById(Long id) {
+        return ordersRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Order not found: " + id));
     }
 
     @Override
@@ -263,7 +271,6 @@ public class OrderServiceImpl implements OrderService {
         return summary;
     }
 
-    // ========== Unified Helper Methods ==========
 
     @Override
     @Transactional
@@ -280,8 +287,8 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Unauthorized address book");
         }
 
-        // 2. Get shopping cart items
-        List<ShoppingCart> cartItems = shoppingCartRepository.findByUserId(currentUserId);
+        // 2. Get shopping cart items using ShoppingCartService (supports Redis cache)
+        List<ShoppingCartVO> cartItems = shoppingCartService.listCart();
         if (cartItems.isEmpty()) {
             throw new RuntimeException("Shopping cart is empty");
         }
@@ -301,8 +308,17 @@ public class OrderServiceImpl implements OrderService {
         order.setDeliveryStatus(ordersSubmitDTO.getDeliveryStatus());
         // Parse estimated delivery time safely
         try {
-            if (ordersSubmitDTO.getEstimatedDeliveryTime() != null) {
-                order.setEstimatedDeliveryTime(LocalDateTime.parse(ordersSubmitDTO.getEstimatedDeliveryTime()));
+            if (ordersSubmitDTO.getEstimatedDeliveryTime() != null && !ordersSubmitDTO.getEstimatedDeliveryTime().trim().isEmpty()) {
+                String estimatedTime = ordersSubmitDTO.getEstimatedDeliveryTime();
+                // Parse ISO 8601 format with 'Z' timezone indicator
+                if (estimatedTime.endsWith("Z")) {
+                    // Convert UTC ZonedDateTime to LocalDateTime
+                    ZonedDateTime utcTime = ZonedDateTime.parse(estimatedTime);
+                    order.setEstimatedDeliveryTime(utcTime.toLocalDateTime());
+                } else {
+                    // Parse as LocalDateTime for non-timezoned strings
+                    order.setEstimatedDeliveryTime(LocalDateTime.parse(estimatedTime));
+                }
             } else {
                 // Default to 40 minutes from now if not provided
                 order.setEstimatedDeliveryTime(LocalDateTime.now().plusMinutes(40));
@@ -376,8 +392,6 @@ public class OrderServiceImpl implements OrderService {
         // Query order detail items
         List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(id);
 
-        // Convert order detail items (can be extended to more detailed VO)
-        // orderVO.setOrderItems(convertToOrderItemVOs(orderDetails));
 
         OrderVO orderVO = new OrderVO();
         orderVO.setId(order.getId());
@@ -404,7 +418,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public PageResult historyOrders(Integer page, Integer pageSize, Integer status) {
         Long currentUserId = UserUtils.getCurrentUserId();
-        Pageable pageable = PageRequest.of(page - 1, pageSize);
+        Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.DESC, "orderTime"));
 
         Page<Orders> orderPage;
         if (status != null) {
@@ -423,7 +437,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public void cancelOrder(Long id) {
+    public void cancelOrder(Long id,String reason) {
         Long currentUserId = UserUtils.getCurrentUserId();
         Orders order = findOrderAndValidateUser(id, currentUserId, "cancel");
 
@@ -433,6 +447,11 @@ public class OrderServiceImpl implements OrderService {
 
         order.setStatus(OrderStatusConstant.CANCELED);
         order.setCancelTime(LocalDateTime.now());
+        order.setEstimatedDeliveryTime(null);
+        order.setCancelReason(reason);
+        order.setAmount(0.0);
+        order.setDeliveryFee(0.0);
+
         ordersRepository.save(order);
 
         log.info("Order cancelled: {}", id);
@@ -458,7 +477,6 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order reminder sent: {}", id);
     }
 
-    // ========== Unified Helper Methods ==========
 
     private Orders findOrderAndValidateStatus(Long orderId, Integer expectedStatus, String operation) {
         Orders order = ordersRepository.findById(orderId)
@@ -484,7 +502,8 @@ public class OrderServiceImpl implements OrderService {
 
     private boolean canCancelOrder(Integer status) {
         return status == OrderStatusConstant.AWAITING_ACCEPTANCE ||
-               status == OrderStatusConstant.ACCEPTED;
+                status == OrderStatusConstant.PENDING_PAYMENT ||
+                status == OrderStatusConstant.ACCEPTED;
     }
 
     private void addToCartFromOrderDetail(OrderDetail detail, Long userId) {
@@ -512,11 +531,48 @@ public class OrderServiceImpl implements OrderService {
     /**
      * Save order details
      */
-    private void saveOrderDetails(Long orderId, List<ShoppingCart> cartItems) {
+    private void saveOrderDetails(Long orderId, List<?> cartItems) {
         cartItems.forEach(cartItem -> {
-            OrderDetail orderDetail = createOrderDetailFromCart(cartItem, orderId);
+            // Handle case where Redis returns LinkedHashMap instead of ShoppingCartVO
+            ShoppingCartVO cartVO;
+            Object item = cartItem;
+            if (item instanceof java.util.LinkedHashMap) {
+                // Convert LinkedHashMap to ShoppingCartVO manually
+                @SuppressWarnings("unchecked")
+                java.util.LinkedHashMap<String, Object> map = (java.util.LinkedHashMap<String, Object>) item;
+                cartVO = convertLinkedHashMapToShoppingCartVO(map);
+            } else {
+                cartVO = (ShoppingCartVO) item;
+            }
+
+            OrderDetail orderDetail = createOrderDetailFromCartVO(cartVO, orderId);
             orderDetailRepository.save(orderDetail);
         });
+    }
+
+    private OrderDetail createOrderDetailFromCartVO(ShoppingCartVO cartItem, Long orderId) {
+        OrderDetail orderDetail = new OrderDetail();
+        orderDetail.setOrderId(orderId);
+        if (cartItem.getMenuItemId() != null) {
+            MenuItem menuItem = menuItemRepository.findById(cartItem.getMenuItemId())
+                    .orElseThrow(() -> new RuntimeException("Menu item not found: " + cartItem.getMenuItemId()));
+            orderDetail.setMenuItemId(cartItem.getMenuItemId());
+            orderDetail.setName(menuItem.getName());
+            orderDetail.setImage(menuItem.getImage());
+            orderDetail.setUnitPrice(menuItem.getPrice());
+        } else if (cartItem.getComboId() != null) {
+            Combo combo = comboRepository.findById(cartItem.getComboId())
+                    .orElseThrow(() -> new RuntimeException("Combo not found: " + cartItem.getComboId()));
+            orderDetail.setComboId(cartItem.getComboId());
+            orderDetail.setName(combo.getName());
+            orderDetail.setImage(combo.getImage());
+            orderDetail.setUnitPrice(combo.getPrice());
+        } else {
+            throw new RuntimeException("Cart item must have either menuItemId or comboId");
+        }
+        orderDetail.setQuantity(cartItem.getQuantity());
+
+        return orderDetail;
     }
 
     private OrderDetail createOrderDetailFromCart(ShoppingCart cartItem, Long orderId) {
@@ -545,6 +601,51 @@ public class OrderServiceImpl implements OrderService {
         orderDetail.setTax(0.0);
 
         return orderDetail;
+    }
+
+    /**
+     * Convert LinkedHashMap to ShoppingCartVO (for Redis deserialization issues)
+     */
+    private ShoppingCartVO convertLinkedHashMapToShoppingCartVO(java.util.LinkedHashMap<String, Object> map) {
+        ShoppingCartVO cartVO = new ShoppingCartVO();
+
+        if (map.containsKey("id")) {
+            cartVO.setId(((Number) map.get("id")).longValue());
+        }
+        if (map.containsKey("userId")) {
+            cartVO.setUserId(((Number) map.get("userId")).longValue());
+        }
+        if (map.containsKey("menuItemId")) {
+            Object menuItemId = map.get("menuItemId");
+            if (menuItemId != null) {
+                cartVO.setMenuItemId(((Number) menuItemId).longValue());
+            }
+        }
+        if (map.containsKey("comboId")) {
+            Object comboId = map.get("comboId");
+            if (comboId != null) {
+                cartVO.setComboId(((Number) comboId).longValue());
+            }
+        }
+        if (map.containsKey("quantity")) {
+            cartVO.setQuantity(((Number) map.get("quantity")).intValue());
+        }
+        if (map.containsKey("name")) {
+            cartVO.setName((String) map.get("name"));
+        }
+        if (map.containsKey("image")) {
+            cartVO.setImage((String) map.get("image"));
+        }
+        if (map.containsKey("unitPrice")) {
+            Object unitPrice = map.get("unitPrice");
+            if (unitPrice instanceof Number) {
+                cartVO.setUnitPrice(new java.math.BigDecimal(((Number) unitPrice).doubleValue()));
+            } else if (unitPrice instanceof String) {
+                cartVO.setUnitPrice(new java.math.BigDecimal((String) unitPrice));
+            }
+        }
+
+        return cartVO;
     }
 
     /**

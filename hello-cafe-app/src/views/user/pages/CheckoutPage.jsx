@@ -124,7 +124,7 @@ function CheckoutPage() {
 
     setProcessing(true);
     try {
-      // Create order data
+      // Create order data first (without payment)
       const orderData = {
         addressBookId: selectedAddress,
         amount: total,
@@ -137,32 +137,45 @@ function CheckoutPage() {
         estimatedDeliveryTime: new Date(Date.now() + 40 * 60000).toISOString() // 40 minutes from now
       };
 
-      // Submit order
+      // Submit order to get order ID
       const response = await api.post("/user/order/submit", orderData);
 
       if (response.data.code === 1) {
-        // Clear cart after successful order
-        await shoppingCartAPI.clearCart();
+        const orderId = response.data.data.id;
+
+        // Get selected address details for payment page
+        const selectedAddressData = addresses.find(addr => addr.id === selectedAddress);
+
+        // Prepare payment data
+        const paymentData = {
+          orderId: orderId,
+          amount: total,
+          deliveryAddress: `${selectedAddressData?.address || ''}, ${selectedAddressData?.city || ''}, ${selectedAddressData?.state || ''} ${selectedAddressData?.zipcode || ''}`,
+          customerName: selectedAddressData?.name || '',
+          customerPhone: selectedAddressData?.phone || '',
+          customerEmail: '', // You might want to get this from user profile
+          orderItems: cartItems,
+        };
 
         setToast({
-          message: "Order placed successfully!",
+          message: "Order created! Please complete payment.",
           isVisible: true,
         });
 
-        // Navigate to order confirmation or orders page
+        // Navigate to payment page with order data
         setTimeout(() => {
-          navigate("/user/orders");
-        }, 2000);
+          navigate("/user/payment", { state: { orderData: paymentData } });
+        }, 1500);
       } else {
         setToast({
-          message: response.data.message || "Failed to place order",
+          message: response.data.message || "Failed to create order",
           isVisible: true,
         });
       }
     } catch (error) {
       console.error("Checkout failed:", error);
       setToast({
-        message: "Failed to place order. Please try again.",
+        message: "Failed to create order. Please try again.",
         isVisible: true,
       });
     } finally {

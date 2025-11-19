@@ -5,7 +5,7 @@ function HomePage() {
   const navigate = useNavigate();
 
   const handleLoginClick = () => navigate("/login");
-  const handleGuestClick = () => navigate("/customer-dashboard");
+
 
   return (
     <div
@@ -29,14 +29,7 @@ function HomePage() {
             Continue to login
           </button>
 
-          <button
-            type="button"
-            onClick={handleGuestClick}
-            className="w-56 bg-[#b08968] text-white py-3 rounded-lg text-lg shadow-md 
-                       hover:bg-[#8d6e52] transition-all duration-200"
-          >
-            Continue as a guest
-          </button>
+         
         </div>
       </div>
     </div>

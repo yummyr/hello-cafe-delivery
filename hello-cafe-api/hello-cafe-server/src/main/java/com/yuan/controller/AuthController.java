@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.yuan.dto.LoginRequestDTO;
 import com.yuan.dto.LoginResponseDTO;
 import com.yuan.dto.RegisterRequestDTO;
+import com.yuan.entity.User;
 import com.yuan.result.Result;
 import com.yuan.service.AuthService;
 import jakarta.servlet.http.HttpServletRequest;
@@ -11,6 +12,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @RestController
@@ -40,6 +42,49 @@ public class AuthController {
     @PostMapping("/register")
     public void registerUser(@RequestBody RegisterRequestDTO req) {
         authService.registerUser(req);
+    }
+
+    @PostMapping("/register-with-avatar")
+    public Result<User> registerUserWithAvatar(
+            @RequestPart("userData") RegisterRequestDTO registerRequest,
+            @RequestPart(value = "avatar", required = false) MultipartFile avatarFile) {
+        try {
+            log.info("Registration request with avatar received - username: {}",
+                    registerRequest.getUsername());
+
+            return authService.registerUserWithAvatar(registerRequest, avatarFile);
+
+        } catch (Exception e) {
+            log.error("Registration with avatar failed for user: {}, error: {}",
+                    registerRequest.getUsername(), e.getMessage());
+            return Result.error(e.getMessage());
+        }
+    }
+
+    @PostMapping("/update-avatar")
+    public Result<String> updateUserAvatar(@RequestParam("avatar") MultipartFile avatarFile) {
+        try {
+            log.info("Avatar update request received");
+
+            return authService.updateUserAvatar(avatarFile);
+
+        } catch (Exception e) {
+            log.error("Avatar update failed, error: {}", e.getMessage());
+            return Result.error(e.getMessage());
+        }
+    }
+
+    @GetMapping("/profile")
+    public Result<User> getUserProfile() {
+        try {
+            log.info("User profile request received");
+
+            return authService.getUserProfile();
+
+        } catch (Exception e) {
+            log.error("Failed to get user profile, error: {}", e.getMessage());
+            return Result.error(e.getMessage());
+        }
     }
 
 

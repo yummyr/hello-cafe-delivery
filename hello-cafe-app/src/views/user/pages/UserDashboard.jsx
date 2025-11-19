@@ -76,6 +76,7 @@ function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const handleFindNew = () => {
     navigate("/user/new-menu");
+
   };
 
   const handleMustHave = () => {
@@ -140,7 +141,11 @@ function UserDashboard() {
   }, []);
 
   const handleCategoryClick = (categoryId) => {
-    navigate(`/user/menu?category=${categoryId}`);
+   const url = categoryId !== null && categoryId !== undefined
+    ? `/user/menu?category=${categoryId}`
+    : '/user/menu';
+  navigate(url);
+
   };
 
   const handleItemClick = (itemId) => {
@@ -384,9 +389,7 @@ function UserDashboard() {
 
           {/* Regular Categories (List) */}
           <div className="space-y-4">
-            {categories
-              .filter((cat) => !cat.special)
-              .map((category) => (
+            {categories .map((category) => (
                 <div
                   key={category.id}
                   onClick={() => handleCategoryClick(category.id)}

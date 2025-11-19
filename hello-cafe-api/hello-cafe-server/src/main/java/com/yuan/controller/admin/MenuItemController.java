@@ -75,7 +75,7 @@ public class MenuItemController {
             //  convert to MenuItem DTO
             MenuItemDTO dto = new MenuItemDTO();
             dto.setName(name);
-            dto.setPrice(BigDecimal.valueOf(price));
+            dto.setPrice(price);
             dto.setDescription(description);
             dto.setCategoryId(categoryId);
 
@@ -117,7 +117,7 @@ public class MenuItemController {
             MenuItemDTO dto = new MenuItemDTO();
             dto.setId(id);
             dto.setName(name);
-            dto.setPrice(BigDecimal.valueOf(price));
+            dto.setPrice(price);
             dto.setDescription(description);
             dto.setCategoryId(categoryId);
 

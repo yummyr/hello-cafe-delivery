@@ -19,8 +19,9 @@ public class UserPaymentController {
 
     private final OrdersRepository ordersRepository;
 
-    @Value("${stripe.webhook-secret}")
-    private String webhookSecret;
+    // Using a default webhook secret for testing
+    // In production, this should be configured via environment variables
+    private String webhookSecret = "whsec_test_default_secret";
 
     @PostMapping("/webhook")
     @Operation(summary = "Stripe payment webhook")

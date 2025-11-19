@@ -5,6 +5,7 @@ import lombok.Data;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
 
 @Data
 @Entity
@@ -71,4 +72,40 @@ public class Orders implements Serializable {
 
     @Column(name = "tableware_status")
     private Integer tablewareStatus; // 1 provide per meal, 0 custom quantity
+
+    @Column(name = "stripe_session_id", length = 255)
+    private String stripeSessionId;
+
+    @Column(name = "stripe_payment_intent_id", length = 255)
+    private String stripePaymentIntentId;
+
+    @Column(name = "payment_time")
+    private Date paymentTime;
+
+    // Getter and Setter for stripeSessionId
+    public String getStripeSessionId() {
+        return stripeSessionId;
+    }
+
+    public void setStripeSessionId(String stripeSessionId) {
+        this.stripeSessionId = stripeSessionId;
+    }
+
+    // Getter and Setter for stripePaymentIntentId
+    public String getStripePaymentIntentId() {
+        return stripePaymentIntentId;
+    }
+
+    public void setStripePaymentIntentId(String stripePaymentIntentId) {
+        this.stripePaymentIntentId = stripePaymentIntentId;
+    }
+
+    // Getter and Setter for paymentTime
+    public Date getPaymentTime() {
+        return paymentTime;
+    }
+
+    public void setPaymentTime(Date paymentTime) {
+        this.paymentTime = paymentTime;
+    }
 }

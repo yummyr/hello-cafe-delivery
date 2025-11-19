@@ -6,6 +6,7 @@ import com.yuan.dto.LoginResponseDTO;
 import com.yuan.dto.RegisterRequestDTO;
 import com.yuan.entity.User;
 import com.yuan.result.Result;
+import org.springframework.web.multipart.MultipartFile;
 
 public interface AuthService {
 
@@ -19,6 +20,20 @@ public interface AuthService {
 
    Result<User> registerUser(RegisterRequestDTO registerRequest);
 
+    /**
+     * Register user with avatar upload
+     */
+    Result<User> registerUserWithAvatar(RegisterRequestDTO registerRequest, MultipartFile avatarFile);
+
+    /**
+     * Update user avatar
+     */
+    Result<String> updateUserAvatar(MultipartFile avatarFile);
+
+    /**
+     * Get user profile including avatar
+     */
+    Result<User> getUserProfile();
 
     LoginResponseDTO refreshToken(String oldToken) throws JsonProcessingException;
 }

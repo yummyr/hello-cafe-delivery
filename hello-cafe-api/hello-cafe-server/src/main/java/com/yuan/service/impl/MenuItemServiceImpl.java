@@ -86,6 +86,7 @@ public class MenuItemServiceImpl implements MenuItemService {
         Page<MenuItem> page = menuItemRepository.findAllWithCategory(
                 dto.getName(),
                 dto.getCategoryName(),
+                dto.getCategoryId(),
                 dto.getStatus(),
                 pageable
         );
@@ -259,7 +260,6 @@ public class MenuItemServiceImpl implements MenuItemService {
     }
 
 
-
     @Override
     public MenuItemVO getMenuItemVOById(Long id) {
         try {
@@ -319,6 +319,15 @@ public class MenuItemServiceImpl implements MenuItemService {
             log.error("Failed to find newest menu items", e);
             throw new RuntimeException("Failed to retrieve newest menu items: " + e.getMessage());
         }
+    }
+
+    @Override
+    public List<MenuItemVO> findByCategoryIdAndStatus(Long categoryId, Integer enable) {
+        List<MenuItem> byCategoryIdAndStatus = menuItemRepository.findByCategoryIdAndStatus(categoryId, enable);
+
+        return byCategoryIdAndStatus.stream()
+                .map(this::convertToVO)
+                .collect(Collectors.toList());
     }
 
 }

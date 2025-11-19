@@ -25,12 +25,14 @@ public interface MenuItemRepository extends JpaRepository<MenuItem, Long> {
         JOIN Category c ON mi.categoryId = c.id
         WHERE (:name IS NULL OR mi.name LIKE %:name%)
           AND (:categoryName IS NULL OR c.name LIKE %:categoryName%)
+          And (:categoryId IS NULL OR c.id = :categoryId)
           AND (:status IS NULL OR mi.status = :status)
         ORDER BY mi.updateTime DESC
     """)
     Page<MenuItem> findAllWithCategory(
             @Param("name") String name,
             @Param("categoryName") String categoryName,
+            @Param("categoryId") Long categoryId,
             @Param("status") Integer status,
             Pageable pageable
     );

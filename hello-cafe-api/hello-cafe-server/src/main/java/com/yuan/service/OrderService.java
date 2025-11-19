@@ -20,6 +20,11 @@ public interface OrderService {
     OrderDetailVO getOrderDetails(Long id);
 
     /**
+     * get order by id
+     */
+    Orders getOrderById(Long id);
+
+    /**
      * order statistics query
      */
     OrderStatisticsVO statistics();
@@ -81,7 +86,7 @@ public interface OrderService {
     /**
      * Cancel order (user side)
      */
-    void cancelOrder(Long id);
+    void cancelOrder(Long id,String reason);
 
     /**
      * Order again

@@ -83,7 +83,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         if (shoppingCartDTO.getMenuItemId() != null) {
             // handle menu item case
             MenuItem menuItem = menuItemRepository.findById(shoppingCartDTO.getMenuItemId())
-                    .orElseThrow(() -> new RuntimeException("Dish not found"));
+                    .orElseThrow(() -> new RuntimeException("MenuItem not found"));
 
             shoppingCart.setName(menuItem.getName());
             shoppingCart.setImage(menuItem.getImage());
@@ -99,7 +99,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
             shoppingCart.setComboId(shoppingCartDTO.getComboId());
             shoppingCart.setUnitPrice(combo.getPrice());
         } else {
-            throw new RuntimeException("Either dishId or setmealId must be provided");
+            throw new RuntimeException("Either menuItemId or comboId must be provided");
         }
 
         shoppingCart.setUserId(UserUtils.getCurrentUserId());

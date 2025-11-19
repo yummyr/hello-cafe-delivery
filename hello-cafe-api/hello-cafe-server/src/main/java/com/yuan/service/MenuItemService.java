@@ -35,4 +35,6 @@ public interface MenuItemService {
     MenuItemVO getMenuItemVOById(Long id);
 
     List<MenuItemVO> findNewestItems(Integer limit);
+
+    List<MenuItemVO> findByCategoryIdAndStatus(Long categoryId, Integer enable);
 }

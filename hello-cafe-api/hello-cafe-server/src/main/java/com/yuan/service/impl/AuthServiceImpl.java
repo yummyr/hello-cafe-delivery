@@ -12,13 +12,16 @@ import com.yuan.repository.EmployeeRepository;
 import com.yuan.repository.UserRepository;
 import com.yuan.result.Result;
 import com.yuan.service.AuthService;
+import com.yuan.service.impl.CloudinaryService;
 import com.yuan.utils.JwtUtil;
 import io.jsonwebtoken.Claims;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.Map;
@@ -35,6 +38,7 @@ public class AuthServiceImpl implements AuthService {
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder passwordEncoder;
     private final JwtProperties jwtProperties;
+    private final CloudinaryService cloudinaryService;
 
 
     @Override
@@ -167,6 +171,100 @@ public class AuthServiceImpl implements AuthService {
         log.info("newUser: {}", newUser);
         userRepository.save(newUser);
         return Result.success(newUser);
+    }
+
+    /**
+     * Register user with avatar upload
+     */
+    @Override
+    public Result<User> registerUserWithAvatar(RegisterRequestDTO registerRequest, MultipartFile avatarFile) {
+        User existingUser = (User) userRepository.findByUsername(registerRequest.getUsername()).orElse(null);
+        log.info("existingUser: {}", existingUser);
+        if (existingUser != null) {
+            return Result.error("Username already exists");
+        }
+
+        String avatarUrl = registerRequest.getAvatar();
+
+        // Upload avatar to Cloudinary if file is provided
+        if (avatarFile != null && !avatarFile.isEmpty()) {
+            try {
+                avatarUrl = cloudinaryService.uploadImage(avatarFile);
+                log.info("Avatar uploaded successfully: {}", avatarUrl);
+            } catch (IOException e) {
+                log.error("Failed to upload avatar: {}", e.getMessage());
+                return Result.error("Failed to upload avatar: " + e.getMessage());
+            }
+        }
+
+        User newUser = new User(null, registerRequest.getName(), registerRequest.getEmail(), registerRequest.getUsername(), passwordEncoder.encode(registerRequest.getPassword()),
+                registerRequest.getPhone(), registerRequest.getGender(), avatarUrl, LocalDate.now());
+        log.info("newUser: {}", newUser);
+        userRepository.save(newUser);
+        return Result.success(newUser);
+    }
+
+    /**
+     * Update user avatar
+     */
+    @Override
+    public Result<String> updateUserAvatar(MultipartFile avatarFile) {
+        Long currentUserId = com.yuan.utils.UserUtils.getCurrentUserId();
+
+        if (avatarFile == null || avatarFile.isEmpty()) {
+            return Result.error("No avatar file provided");
+        }
+
+        try {
+            // Upload new avatar to Cloudinary
+            String avatarUrl = cloudinaryService.uploadImage(avatarFile);
+            log.info("New avatar uploaded successfully: {}", avatarUrl);
+
+            // Find user and update avatar
+            User user = userRepository.findById(currentUserId)
+                    .orElseThrow(() -> new RuntimeException("User not found"));
+
+            // Delete old avatar from Cloudinary if it exists
+            if (user.getAvatar() != null && !user.getAvatar().isEmpty()) {
+                try {
+                    String publicId = cloudinaryService.extractPublicIdFromUrl(user.getAvatar());
+                    if (publicId != null) {
+                        cloudinaryService.deleteImage(publicId);
+                        log.info("Old avatar deleted: {}", publicId);
+                    }
+                } catch (Exception e) {
+                    log.warn("Failed to delete old avatar: {}", e.getMessage());
+                    // Continue with avatar update even if deletion fails
+                }
+            }
+
+            // Update user avatar in database
+            user.setAvatar(avatarUrl);
+            userRepository.save(user);
+
+            log.info("User avatar updated for user ID: {}", currentUserId);
+            return Result.success(avatarUrl);
+
+        } catch (IOException e) {
+            log.error("Failed to upload avatar: {}", e.getMessage());
+            return Result.error("Failed to upload avatar: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Failed to update user avatar: {}", e.getMessage());
+            return Result.error("Failed to update avatar: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get user profile including avatar
+     */
+    @Override
+    public Result<User> getUserProfile() {
+        Long currentUserId = com.yuan.utils.UserUtils.getCurrentUserId();
+
+        User user = userRepository.findById(currentUserId)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        return Result.success(user);
     }
 
     /**

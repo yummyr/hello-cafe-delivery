@@ -14,7 +14,7 @@ function LoginPage() {
     "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b08968]";
   const labelStyle = "block text-sm font-medium text-gray-700 mb-1";
 
-  const handleGuestClick = () => navigate("/user/dashboard");
+
 
   const handleLogin = async (selectedRole) => {
     if (!username || !password) {
@@ -147,15 +147,7 @@ function LoginPage() {
               </button>
             </div>
           </form>
-          <div className="mt-6">
-            <button
-              type="button"
-              onClick={handleGuestClick}
-              className="w-full bg-[#956c49] text-white py-2 rounded-lg font-medium hover:bg-[#8d6e52] transition-all duration-200 shadow-md"
-            >
-              Continue as a guest
-            </button>
-          </div>
+      
           <p className="text-sm text-center mt-6 text-gray-600">
             Don’t have an account?{" "}
             <button

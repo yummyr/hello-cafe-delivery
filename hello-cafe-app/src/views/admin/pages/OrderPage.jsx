@@ -292,7 +292,7 @@ function OrdersPage() {
                     <td className={tdAndThStyle}>{order.userName}</td>
                     <td className={tdAndThStyle}>{order.phone}</td>
                     <td className="p-3 text-center font-semibold text-[#b08968]">
-                      ${order.amount}
+                      ${(order.amount).toFixed(2)}
                     </td>
                     <td className="p-3 text-center text-sm">
                       {formatDateTime(order.orderTime)}

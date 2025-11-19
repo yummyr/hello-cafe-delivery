@@ -118,20 +118,20 @@ public class UserMenuItemController {
         }
     }
 
-    // /**
-    //  * get menu items by category
-    //  */
-    // @GetMapping("/category/{categoryId}")
-    // public Result<List<MenuItemVO>> getMenuItemsByCategory(@PathVariable Long categoryId) {
-    //     try {
-    //         log.info("Fetching menu items for category: {}", categoryId);
-    //         List<MenuItemVO> menuItems = menuItemService.findByCategoryIdAndStatus(categoryId, StatusConstant.ENABLE);
-    //         return Result.success(menuItems);
-    //     } catch (Exception e) {
-    //         log.error("Failed to fetch menu items for category: {}", categoryId, e);
-    //         return Result.error("Failed to fetch menu items: " + e.getMessage());
-    //     }
-    // }
+    /**
+     * get menu items by category
+     */
+    @GetMapping("/category/{categoryId}")
+    public Result<List<MenuItemVO>> getMenuItemsByCategory(@PathVariable Long categoryId) {
+        try {
+            log.info("Fetching menu items for category: {}", categoryId);
+            List<MenuItemVO> menuItems = menuItemService.findByCategoryIdAndStatus(categoryId, StatusConstant.ENABLE);
+            return Result.success(menuItems);
+        } catch (Exception e) {
+            log.error("Failed to fetch menu items for category: {}", categoryId, e);
+            return Result.error("Failed to fetch menu items: " + e.getMessage());
+        }
+    }
 
     /**
      * get menu item by id

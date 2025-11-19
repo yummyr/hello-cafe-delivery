@@ -56,9 +56,9 @@ const getOrderDetail = async (orderId) => {
 };
 
 // Cancel order
-const cancelOrder = async (orderId) => {
+const cancelOrder = async (orderId, reason) => {
   try {
-    await api.put(`/user/order/cancel/${orderId}`);
+    await api.put(`/user/order/cancel/${orderId}?reason=${encodeURIComponent(reason)}`);
   } catch (error) {
     console.error("Failed to cancel order:", error);
     throw error;
@@ -125,7 +125,8 @@ function UserOrders() {
   const handleCancelOrder = async (orderId) => {
     if (window.confirm("Are you sure you want to cancel this order?")) {
       try {
-        await cancelOrder(orderId);
+        const reason = prompt("Please enter cancellation reason:");
+        await cancelOrder(orderId,reason);
         alert("Order has been cancelled");
         fetchOrders();
       } catch (error) {

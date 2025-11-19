@@ -20,6 +20,7 @@ import CheckoutPage from '../views/user/pages/CheckoutPage';
 import UserComboPage from '../views/user/pages/UserComboPage';
 import FavoritesPage from '../views/user/pages/FavoritesPage';
 import NewMenuPage from '../views/user/pages/NewMenuPage';
+import PaymentPage from '../views/user/pages/PaymentPage';
 
 function AppRoutes() {
   return (
@@ -54,6 +55,7 @@ function AppRoutes() {
         <Route path="new-menu" element={<NewMenuPage />} />
         <Route path="cart" element={<ShoppingCartPage />} />
         <Route path="checkout" element={<CheckoutPage />} />
+        <Route path="payment" element={<PaymentPage />} />
         <Route path="favorites" element={<FavoritesPage />} />
       </Route>
 
