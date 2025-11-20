@@ -41,6 +41,8 @@ public class AuthController {
 
     @PostMapping("/register")
     public void registerUser(@RequestBody RegisterRequestDTO req) {
+        log.info("register info:{}",req);
+
         authService.registerUser(req);
     }
 

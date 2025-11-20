@@ -58,12 +58,8 @@ function UserComboPage() {
         params: params,
         signal: abortControllerRef.current.signal,
       });
-      console.log("combo response:", response);
       if (response.data.code === 1) {
-        console.log("combo list:", response.data.data.records);
         setCombos(response.data.data.records || []);
-        console.log("combo page total:", response.data.total);
-
         setTotal(response.data.data.total);
       }
     } catch (error) {
@@ -86,8 +82,6 @@ function UserComboPage() {
       if (response.data.code === 1) {
         // Use the items array from the new ComboVO structure
         const items = response.data.data.items || [];
-        console.log("combo details items list: ", items);
-
         setComboMenuItems(items);
       }
     } catch (error) {

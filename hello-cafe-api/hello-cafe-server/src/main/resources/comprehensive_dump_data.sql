@@ -33,29 +33,19 @@ INSERT INTO employee (name, username, password, phone, gender, status, create_ti
 -- =============================================
 -- 2. CATEGORY TABLE (20 records)
 # -- =============================================
-# INSERT INTO category (name, type, sort, status, create_time, update_time, create_employee, update_employee) VALUES
-# ('Coffee', 1, 1, 1, '2024-01-01 11:00:00', '2024-01-01 11:00:00', 1, 1),
-# ('Tea', 1, 2, 1, '2024-01-01 11:05:00', '2024-01-01 11:05:00', 1, 1),
-# ('Pastries', 1, 3, 1, '2024-01-01 11:10:00', '2024-01-01 11:10:00', 1, 1),
-# ('Sandwiches', 1, 4, 1, '2024-01-01 11:15:00', '2024-01-01 11:15:00', 1, 1),
-# ('Salads', 1, 5, 1, '2024-01-01 11:20:00', '2024-01-01 11:20:00', 1, 1),
-# ('Smoothies', 1, 6, 1, '2024-01-01 11:25:00', '2024-01-01 11:25:00', 1, 1),
-# ('Breakfast Combos', 2, 1, 1, '2024-01-01 11:30:00', '2024-01-01 11:30:00', 1, 1),
-# ('Lunch Combos', 2, 2, 1, '2024-01-01 11:35:00', '2024-01-01 11:35:00', 1, 1),
-# ('Desserts', 1, 7, 1, '2024-01-01 11:40:00', '2024-01-01 11:40:00', 1, 1),
-# ('Juices', 1, 8, 1, '2024-01-01 11:45:00', '2024-01-01 11:45:00', 1, 1),
-# ('Snacks', 1, 9, 1, '2024-01-01 11:50:00', '2024-01-01 11:50:00', 1, 1),
-# ('Specialty Drinks', 1, 10, 1, '2024-01-01 11:55:00', '2024-01-01 11:55:00', 1, 1),
-# ('Soups', 1, 11, 1, '2024-01-01 12:00:00', '2024-01-01 12:00:00', 1, 1),
-# ('Wraps', 1, 12, 1, '2024-01-01 12:05:00', '2024-01-01 12:05:00', 1, 1),
-# ('Dinner Combos', 2, 3, 1, '2024-01-01 12:10:00', '2024-01-01 12:10:00', 1, 1),
-# ('Family Combos', 2, 4, 1, '2024-01-01 12:15:00', '2024-01-01 12:15:00', 1, 1),
-# ('Healthy Options', 1, 13, 1, '2024-01-01 12:20:00', '2024-01-01 12:20:00', 1, 1),
-# ('Kids Menu', 1, 14, 1, '2024-01-01 12:25:00', '2024-01-01 12:25:00', 1, 1),
-# ('Seasonal Specials', 1, 15, 1, '2024-01-01 12:30:00', '2024-01-01 12:30:00', 1, 1),
-# ('Beverages', 1, 16, 1, '2024-01-01 12:35:00', '2024-01-01 12:35:00', 1, 1);
-
--- =============================================
+INSERT INTO category (name, type, sort, status, create_time, update_time, create_employee, update_employee)
+VALUES
+    ('Coffee', 1, 1, 0, NOW(), NOW(), 1, 1),
+    ('Burgers', 1, 2, 0, NOW(), NOW(), 1, 1),
+    ('Sandwiches', 1, 3, 0, NOW(), NOW(), 1, 1),
+    ('Bread', 1, 4, 0, NOW(), NOW(), 1, 1),
+    ('Cake', 1, 5, 0, NOW(), NOW(), 1, 1),
+    ('Soup', 1, 6, 0, NOW(), NOW(), 1, 1),
+    ('Fries', 1, 7, 0, NOW(), NOW(), 1, 1),
+    ('Salad', 1, 8, 0, NOW(), NOW(), 1, 1),
+    ('Pizza', 1, 9, 0, NOW(), NOW(), 1, 1),
+    ('Pasta', 1, 10, 0, NOW(), NOW(), 1, 1),
+    ('Combo Meals', 2, 11, 0, NOW(), NOW(), 1, 1);
 
 -- =============================================
 -- 4. MENU_ITEM TABLE (20 records)
@@ -131,27 +121,27 @@ INSERT INTO combo (name, category_id, price, image, description, status, create_
 -- =============================================
 -- 7. COMBO_ITEM TABLE (20 records)
 -- =============================================
-INSERT INTO combos (combo_id, menu_item_id, name, price, quantity) VALUES
-(1, 1, 'Espresso', 2.50, 1),
-(1, 7, 'Croissant', 3.50, 1),
-(1, 9, 'Seasonal Fruit Cup', 4.50, 1),
-(2, 1, 'Espresso', 2.50, 1),
-(2, 14, 'Bagel with Cream Cheese', 3.75, 1),
-(2, 17, 'Greek Yogurt', 4.50, 1),
-(3, 9, 'Club Sandwich', 8.50, 1),
-(3, 10, 'Caesar Salad', 7.25, 1),
-(3, 4, 'Americano', 3.25, 1),
-(4, 18, 'Quinoa Bowl', 8.25, 1),
-(4, 5, 'Green Tea', 3.00, 1),
-(4, 9, 'Seasonal Fruit Cup', 4.50, 1),
-(5, 2, 'Cappuccino', 4.25, 2),
-(5, 8, 'Blueberry Muffin', 3.25, 2),
-(6, 1, 'Espresso', 2.50, 4),
-(6, 7, 'Croissant', 3.50, 4),
-(7, 1, 'Espresso', 2.50, 1),
-(7, 20, 'Chocolate Chip Cookie', 2.50, 1),
-(8, 2, 'Earl Grey Tea', 2.75, 2),
-(8, 8, 'Blueberry Muffin', 3.25, 2);
+INSERT INTO combos (combo_id, menu_item_id, quantity) VALUES
+(1, 1,  1),
+(1, 7, 1),
+(1, 9,  1),
+(2, 1,  1),
+(2, 14,  1),
+(2, 17, 1),
+(3, 9,  1),
+(3, 10,  1),
+(3, 4, 1),
+(4, 18, 1),
+(4, 5,  1),
+(4, 9,  1),
+(5, 2,  2),
+(5, 8,  2),
+(6, 1,  4),
+(6, 7, 4),
+(7, 1,  1),
+(7, 20, 1),
+(8, 2,  2),
+(8, 8,  2);
 
 -- =============================================
 -- 8. USER TABLE (20 records)
@@ -232,27 +222,27 @@ INSERT INTO shopping_cart (name, image, user_id, menu_item_id, combo_id, quantit
 -- =============================================
 -- 11. ORDERS TABLE (20 records)
 -- =============================================
-INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes, phone, address, user_name, name, cancel_reason, rejection_reason, cancel_time, estimated_delivery_time, delivery_status, delivery_time, pack_amount, tableware_number, tableware_status) VALUES
-('ORD2024011509001', 5, 1, 1, '2024-01-15 09:00:00', '2024-01-15 09:05:00', 1, 1, 9.25, 'Extra hot please', '555-2001', '123 Wall Street, Apt 4B', 'Alice Cooper', 'Alice Cooper', NULL, NULL, NULL, '2024-01-15 09:30:00', 1, '2024-01-15 09:25:00', 2, 1, 1),
-('ORD2024011507302', 5, 2, 3, '2024-01-15 07:30:00', '2024-01-15 07:35:00', 1, 1, 12.99, 'No onions please', '555-2002', '789 Sunset Blvd', 'Bob Smith', 'Bob Smith', NULL, NULL, NULL, '2024-01-15 08:00:00', 1, '2024-01-15 07:55:00', 3, 2, 1),
-('ORD2024011508153', 5, 3, 5, '2024-01-15 08:15:00', '2024-01-15 08:20:00', 2, 1, 3.00, 'Extra napkins', '555-2003', '321 Michigan Avenue', 'Carol Davis', 'Carol Davis', NULL, NULL, NULL, '2024-01-15 08:45:00', 0, '2024-01-15 09:15:00', 1, 1, 1),
-('ORD2024011512304', 5, 4, 7, '2024-01-15 12:30:00', '2024-01-15 12:35:00', 1, 1, 8.50, 'No pickles', '555-2004', '555 Main Street, Apt 2A', 'David Wilson', 'David Wilson', NULL, NULL, NULL, '2024-01-15 13:00:00', 1, '2024-01-15 12:50:00', 2, 1, 1),
-('ORD2024011514005', 4, 5, 9, '2024-01-15 14:00:00', '2024-01-15 14:05:00', 1, 1, 11.00, 'Delivery to front desk', '555-2005', '999 Ocean Drive', 'Emma Brown', 'Emma Brown', NULL, NULL, NULL, '2024-01-15 14:30:00', 1, NULL, 1, 1, 1),
-('ORD2024011506456', 5, 6, 11, '2024-01-15 06:45:00', '2024-01-15 06:50:00', 1, 1, 4.75, 'Extra vanilla', '555-2006', '777 Pike Street', 'Frank Miller', 'Frank Miller', NULL, NULL, NULL, '2024-01-15 07:15:00', 1, '2024-01-15 07:10:00', 1, 1, 1),
-('ORD2024011510207', 5, 7, 13, '2024-01-15 10:20:00', '2024-01-15 10:25:00', 2, 1, 10.50, 'Lightly toasted', '555-2007', '444 Larimer Street', 'Grace Taylor', 'Grace Taylor', NULL, NULL, NULL, '2024-01-15 10:50:00', 1, '2024-01-15 10:45:00', 2, 1, 1),
-('ORD2024011511458', 3, 8, 15, '2024-01-15 11:45:00', '2024-01-15 11:50:00', 1, 1, 15.99, 'No onions in sandwich', '555-2008', '222 Camelback Road', 'Henry Anderson', 'Henry Anderson', NULL, NULL, NULL, '2024-01-15 12:30:00', 1, NULL, 3, 2, 1),
-('ORD2024011515309', 2, 9, 17, '2024-01-15 15:30:00', NULL, 1, 1, 3.75, 'Less ice', '555-2009', '111 NW 23rd Avenue', 'Isabella Thomas', 'Isabella Thomas', NULL, NULL, NULL, '2024-01-15 16:00:00', 1, NULL, 1, 1, 1),
-('ORD20240115131510', 5, 10, 19, '2024-01-15 13:15:00', '2024-01-15 13:20:00', 2, 1, 10.25, 'Dressing on side', '555-2010', '333 Boylston Street', 'Jack Jackson', 'Jack Jackson', NULL, NULL, NULL, '2024-01-15 13:45:00', 1, '2024-01-15 13:40:00', 2, 1, 1),
-('ORD20240115164511', 1, 11, 20, '2024-01-15 16:45:00', NULL, 1, 0, 5.25, 'Birthday treat!', '555-2011', '666 Las Vegas Blvd', 'Kate White', 'Kate White', NULL, NULL, NULL, '2024-01-15 17:15:00', 1, NULL, 1, 1, 1),
-('ORD20240115120012', 5, 12, 1, '2024-01-15 12:00:00', '2024-01-15 12:05:00', 1, 1, 13.99, 'Extra protein', '555-2012', '123 Wall Street, Apt 4B', 'Liam Harris', 'Liam Harris', NULL, NULL, NULL, '2024-01-15 12:30:00', 0, '2024-01-15 13:00:00', 2, 1, 1),
-('ORD20240115070013', 5, 13, 3, '2024-01-15 07:00:00', '2024-01-15 07:05:00', 1, 1, 6.50, 'Strong coffee', '555-2013', '789 Sunset Blvd', 'Maya Martin', 'Maya Martin', NULL, NULL, NULL, '2024-01-15 07:30:00', 1, '2024-01-15 07:25:00', 2, 2, 1),
-('ORD20240115093014', 5, 14, 5, '2024-01-15 09:30:00', '2024-01-15 09:35:00', 2, 1, 6.50, 'Warm muffins', '555-2014', '321 Michigan Avenue', 'Noah Thompson', 'Noah Thompson', NULL, NULL, NULL, '2024-01-15 10:00:00', 1, '2024-01-15 09:55:00', 2, 1, 1),
-('ORD20240115143015', 5, 15, 7, '2024-01-15 14:30:00', '2024-01-15 14:35:00', 1, 1, 2.75, 'No sugar added', '555-2015', '555 Main Street, Apt 2A', 'Olivia Garcia', 'Olivia Garcia', NULL, NULL, NULL, '2024-01-15 15:00:00', 1, '2024-01-15 14:50:00', 1, 1, 1),
-('ORD20240115124516', 6, 16, 9, '2024-01-15 12:45:00', NULL, 1, 0, 7.75, 'Changed mind', '555-2016', '999 Ocean Drive', 'Peter Martinez', 'Peter Martinez', 'Customer requested cancellation', NULL, '2024-01-15 13:00:00', NULL, 1, NULL, 1, 1, 1),
-('ORD20240115080017', 5, 17, 11, '2024-01-15 08:00:00', '2024-01-15 08:05:00', 1, 1, 11.99, 'Office delivery', '555-2017', '777 Pike Street', 'Quinn Robinson', 'Quinn Robinson', NULL, NULL, NULL, '2024-01-15 08:30:00', 1, '2024-01-15 08:25:00', 3, 2, 1),
-('ORD20240115104518', 5, 18, 13, '2024-01-15 10:45:00', '2024-01-15 10:50:00', 2, 1, 4.00, 'Fresh squeezed', '555-2018', '444 Larimer Street', 'Rachel Clark', 'Rachel Clark', NULL, NULL, NULL, '2024-01-15 11:15:00', 1, '2024-01-15 11:10:00', 1, 1, 1),
-('ORD20240115193019', 2, 19, 15, '2024-01-15 19:30:00', '2024-01-15 19:35:00', 1, 1, 8.99, 'Study fuel', '555-2019', '222 Camelback Road', 'Sam Rodriguez', 'Sam Rodriguez', NULL, NULL, NULL, '2024-01-15 20:00:00', 1, NULL, 1, 1, 1),
-('ORD20240115080020', 5, 20, 17, '2024-01-15 08:00:00', '2024-01-15 08:05:00', 1, 1, 9.25, 'Breakfast meeting', '555-2020', '333 North Broadway', 'Tina Lewis', 'Tina Lewis', NULL, NULL, NULL, '2024-01-15 08:30:00', 1, '2024-01-15 08:25:00', 2, 1, 1);
+INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes, cancel_reason,  cancel_time, estimated_delivery_time, delivery_status, delivery_time, tableware_number, tableware_status) VALUES
+('ORD2024011509001', 5, 1, 1, '2024-01-15 09:00:00', '2024-01-15 09:05:00', 1, 1, 9.25, 'Extra hot please',  NULL, NULL, '2024-01-15 09:30:00', 1, '2024-01-15 09:25:00',  1, 1),
+('ORD2024011507302', 5, 2, 3, '2024-01-15 07:30:00', '2024-01-15 07:35:00', 1, 1, 12.99, 'No onions please', NULL, NULL, '2024-01-15 08:00:00', 1, '2024-01-15 07:55:00',  2, 1),
+('ORD2024011508153', 5, 3, 5, '2024-01-15 08:15:00', '2024-01-15 08:20:00', 2, 1, 3.00, 'Extra napkins',  NULL, NULL, '2024-01-15 08:45:00', 0, '2024-01-15 09:15:00',  1, 1),
+('ORD2024011512304', 5, 4, 7, '2024-01-15 12:30:00', '2024-01-15 12:35:00', 1, 1, 8.50, 'No pickles',  NULL, NULL, '2024-01-15 13:00:00', 1, '2024-01-15 12:50:00',  1, 1),
+('ORD2024011514005', 4, 5, 9, '2024-01-15 14:00:00', '2024-01-15 14:05:00', 1, 1, 11.00, 'Delivery to front desk',  NULL, NULL, '2024-01-15 14:30:00', 1, NULL,  1, 1),
+('ORD2024011506456', 5, 6, 11, '2024-01-15 06:45:00', '2024-01-15 06:50:00', 1, 1, 4.75, 'Extra vanilla', NULL, NULL, '2024-01-15 07:15:00', 1, '2024-01-15 07:10:00', 1, 1, 1),
+('ORD2024011510207', 5, 7, 13, '2024-01-15 10:20:00', '2024-01-15 10:25:00', 2, 1, 10.50, 'Lightly toasted',  NULL, NULL, NULL, '2024-01-15 10:50:00', 1, '2024-01-15 10:45:00',  1, 1),
+('ORD2024011511458', 3, 8, 15, '2024-01-15 11:45:00', '2024-01-15 11:50:00', 1, 1, 15.99, 'No onions in sandwich',  NULL, NULL, '2024-01-15 12:30:00', 1, NULL, 2, 1),
+('ORD2024011515309', 2, 9, 17, '2024-01-15 15:30:00', NULL, 1, 1, 3.75, 'Less ice', NULL, '2024-01-15 16:00:00', 1, NULL, 1, 1, 1),
+('ORD20240115131510', 5, 10, 19, '2024-01-15 13:15:00', '2024-01-15 13:20:00', 2, 1, 10.25, 'Dressing on side', NULL, NULL, '2024-01-15 13:45:00', 1, '2024-01-15 13:40:00',  1, 1),
+('ORD20240115164511', 1, 11, 20, '2024-01-15 16:45:00', NULL, 1, 0, 5.25, 'Birthday treat!',  NULL, '2024-01-15 17:15:00', 1, NULL, 1, 1, 1),
+('ORD20240115120012', 5, 12, 1, '2024-01-15 12:00:00', '2024-01-15 12:05:00', 1, 1, 13.99, 'Extra protein', NULL, NULL, '2024-01-15 12:30:00', 0, '2024-01-15 13:00:00',  1, 1),
+('ORD20240115070013', 5, 13, 3, '2024-01-15 07:00:00', '2024-01-15 07:05:00', 1, 1, 6.50, 'Strong coffee', NULL, NULL, '2024-01-15 07:30:00', 1, '2024-01-15 07:25:00',  2, 1),
+('ORD20240115093014', 5, 14, 5, '2024-01-15 09:30:00', '2024-01-15 09:35:00', 2, 1, 6.50, 'Warm muffins',  NULL, NULL, '2024-01-15 10:00:00', 1, '2024-01-15 09:55:00',  1, 1),
+('ORD20240115143015', 5, 15, 7, '2024-01-15 14:30:00', '2024-01-15 14:35:00', 1, 1, 2.75, 'No sugar added',  NULL, NULL, '2024-01-15 15:00:00', 1, '2024-01-15 14:50:00', 1, 1),
+('ORD20240115124516', 6, 16, 9, '2024-01-15 12:45:00', NULL, 1, 0, 7.75, 'Changed mind', 'Customer requested cancellation',  '2024-01-15 13:00:00', NULL, 1, NULL, 1, 1),
+('ORD20240115080017', 5, 17, 11, '2024-01-15 08:00:00', '2024-01-15 08:05:00', 1, 1, 11.99, 'Office delivery',  NULL, NULL, '2024-01-15 08:30:00', 1, '2024-01-15 08:25:00',  2, 1),
+('ORD20240115104518', 5, 18, 13, '2024-01-15 10:45:00', '2024-01-15 10:50:00', 2, 1, 4.00, 'Fresh squeezed',  NULL, NULL, '2024-01-15 11:15:00', 1, '2024-01-15 11:10:00',  1, 1),
+('ORD20240115193019', 2, 19, 15, '2024-01-15 19:30:00', '2024-01-15 19:35:00', 1, 1, 8.99, 'Study fuel',  NULL, NULL, '2024-01-15 20:00:00', 1, NULL,  1, 1),
+('ORD20240115080020', 5, 20, 17, '2024-01-15 08:00:00', '2024-01-15 08:05:00', 1, 1, 9.25, 'Breakfast meeting',  NULL, NULL, '2024-01-15 08:30:00', 1, '2024-01-15 08:25:00',  1, 1);
 
 -- =============================================
 -- 12. ORDER_DETAIL TABLE (20 records)
@@ -279,32 +269,54 @@ INSERT INTO order_detail (name, image, order_id, menu_item_id, combo_id, quantit
 ('Orange Juice', 'https://example.com/images/orange-juice.jpg', 18, 13, NULL, 1, 4.00, 0.40),
 ('Study Break Combo', 'https://example.com/images/study-break.jpg', 19, NULL, 7, 1, 8.99, 0.90);
 
+
+-- This file contains 10 realistic order records for today's business operations
+-- All timestamps use NOW() for current time insertion
+
+-- =============================================
+-- TODAY'S ORDERS - 10 Realistic Order Records with Dynamic Timestamps to test statistic
+-- =============================================
+
+-- Order 1: Early morning coffee rush - Completed
+INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes, cancel_reason, cancel_time, estimated_delivery_time, delivery_status, delivery_time,  tableware_number, tableware_status) VALUES
+    ('ORD2024110607001', 5, 1, 1, NOW(), DATE_SUB(NOW(), INTERVAL 3 MINUTE), 1, 1, 6.50, 'Strong espresso, double shot please',  NULL, NULL, DATE_ADD(NOW(), INTERVAL 25 MINUTE), 1, DATE_ADD(NOW(), INTERVAL 20 MINUTE),  1, 1);
+
+-- Order 2: Morning breakfast combo - Completed
+INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes,  cancel_reason,cancel_time, estimated_delivery_time, delivery_status, delivery_time,  tableware_number, tableware_status) VALUES
+    ('ORD2024110607452', 5, 2, 3, NOW(), DATE_SUB(NOW(), INTERVAL 3 MINUTE), 2, 1, 12.99, 'No bacon, extra fruit please',  NULL, NULL, DATE_ADD(NOW(), INTERVAL 25 MINUTE), 1, DATE_ADD(NOW(), INTERVAL 20 MINUTE), 2, 1);
+
+-- Order 3: Mid-morning office order - Currently delivering
+INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes, cancel_reason,  cancel_time, estimated_delivery_time, delivery_status, delivery_time,tableware_number, tableware_status) VALUES
+    ('ORD2024110609303', 4, 3, 5, NOW(), DATE_SUB(NOW(), INTERVAL 3 MINUTE), 1, 1, 15.99, 'Office meeting for 10 people, deliver to conference room',  NULL, NULL, DATE_ADD(NOW(), INTERVAL 30 MINUTE), 1, NULL, 3, 1);
+
+-- Order 4: Late morning tea order - Completed
+INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes, cancel_reason, cancel_time, estimated_delivery_time, delivery_status, delivery_time, tableware_number, tableware_status) VALUES
+    ('ORD2024110610154', 5, 4, 7, NOW(), DATE_SUB(NOW(), INTERVAL 3 MINUTE), 2, 1, 5.75, 'Green tea with honey, no sugar',NULL, NULL, DATE_ADD(NOW(), INTERVAL 25 MINUTE), 1, DATE_ADD(NOW(), INTERVAL 20 MINUTE),  1, 1);
+
+-- Order 5: Lunch time sandwich order - Currently being prepared
+INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes,  cancel_reason,  cancel_time, estimated_delivery_time, delivery_status, delivery_time,  tableware_number, tableware_status) VALUES
+    ('ORD2024110612005', 3, 5, 9, NOW(), DATE_SUB(NOW(), INTERVAL 3 MINUTE), 1, 1, 11.50, 'No onions, extra tomatoes, gluten-free bread if possible', NULL, NULL, DATE_ADD(NOW(), INTERVAL 30 MINUTE), 0,  2, 1, 1);
+
+-- Order 6: Afternoon coffee break - Pending payment
+INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes, cancel_reason,  cancel_time, estimated_delivery_time, delivery_status, delivery_time, tableware_number, tableware_status) VALUES
+    ('ORD2024110614306', 1, 6, 11, NOW(), NULL, 2, 0, 4.25, 'Iced latte with oat milk, caramel drizzle', NULL, NULL, DATE_ADD(NOW(), INTERVAL 30 MINUTE), 1, 1, 1, 1);
+
+-- Order 7: Healthy afternoon snack - Completed
+INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes,  cancel_reason,  cancel_time, estimated_delivery_time, delivery_status, delivery_time,  tableware_number, tableware_status) VALUES
+    ('ORD2024110615007', 5, 7, 13, NOW(), DATE_SUB(NOW(), INTERVAL 3 MINUTE), 1, 1, 7.25, 'Quinoa bowl with extra avocado, dressing on side',  NULL, NULL, DATE_ADD(NOW(), INTERVAL 25 MINUTE), 1, DATE_ADD(NOW(), INTERVAL 20 MINUTE), 1, 1);
+
+-- Order 8: Study session fuel - Awaiting acceptance
+INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes, cancel_reason,  cancel_time, estimated_delivery_time, delivery_status, delivery_time,  tableware_number, tableware_status) VALUES
+    ('ORD2024110615308', 2, 8, 15, NOW(), DATE_SUB(NOW(), INTERVAL 3 MINUTE), 2, 1, 8.99, 'Study break coffee and cookie, need caffeine!',  NULL, NULL, DATE_ADD(NOW(), INTERVAL 30 MINUTE), 1, NULL,  1, 1);
+
+-- Order 9: Business client order - Completed
+INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes, cancel_reason, cancel_time, estimated_delivery_time, delivery_status, delivery_time, tableware_number, tableware_status) VALUES
+    ('ORD2024110611009', 5, 9, 17, NOW(), DATE_SUB(NOW(), INTERVAL 3 MINUTE), 1, 1, 18.75, 'Client meeting - 3 coffees, 3 pastries, make it look professional', NULL, NULL, DATE_ADD(NOW(), INTERVAL 30 MINUTE), 1, DATE_ADD(NOW(), INTERVAL 25 MINUTE), 3, 1);
+
+-- Order 10: Evening treat - Canceled by customer
+INSERT INTO orders (number, status, user_id, address_book_id, order_time, checkout_time, pay_method, pay_status, amount, notes,  cancel_reason, cancel_time, estimated_delivery_time, delivery_status, delivery_time,tableware_number, tableware_status) VALUES
+    ('ORD20241106173010', 6, 10, 19, NOW(), NULL, 1, 0, 6.50, 'Hot chocolate with whipped cream',  'Customer cancelled - meeting ran late',  DATE_ADD(NOW(), INTERVAL 15 MINUTE), NULL, 1, NULL, 1, 1);
+
 -- Re-enable foreign key checks
 SET FOREIGN_KEY_CHECKS = 1;
 
--- Summary of inserted records:
--- Employee: 20 records
--- Category: 20 records
--- Shop: 5 records
--- MenuItem: 20 records
--- MenuItemFlavors: 20 records
--- Combo: 20 records
--- ComboItem: 20 records
--- User: 20 records
--- AddressBook: 20 records
--- ShoppingCart: 20 records
--- Orders: 20 records
--- OrderDetail: 20 records
---
--- Total: 225 records across all tables
-
--- This dump data provides comprehensive test coverage for:
--- - Employee management with audit trails
--- - Menu categories and items with flavor options
--- - Shop locations with different operating hours
--- - User accounts and address management
--- - Shopping cart functionality
--- - Order processing with various statuses
--- - Combo deals and their components
--- - Payment and delivery tracking
--- - Realistic business scenarios and data relationships

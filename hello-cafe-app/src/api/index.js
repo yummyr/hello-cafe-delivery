@@ -14,8 +14,7 @@ const pendingRequests = new Map();
 
 api.interceptors.request.use(
   (config) => {
-    console.log("🔍 Request URL:", config.baseURL + config.url);
-    //initilize headers
+      //initilize headers
     if (!config.headers) {
       config.headers = {};
     }
@@ -31,12 +30,7 @@ api.interceptors.request.use(
       }
 
       config.headers["Authorization"] = `Bearer ${token}`;
-      console.log("🟢 Token attached:", config.headers["Authorization"]);
-    } else {
-      console.warn("⚠️ No token found");
     }
-
-    console.log("🟢 Axios final headers before send:", config.headers);
 
     // avoid duplicate request（only for POST / PUT）
     if (
@@ -87,7 +81,6 @@ api.interceptors.response.use(
       window.location.href = "/login";
     }
     if (axios.isCancel(error)) {
-      console.log("Request cancelled:", error.message);
     } else if (error.config) {
       const requestKey = `${error.config.method}-${
         error.config.url

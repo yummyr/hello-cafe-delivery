@@ -160,11 +160,13 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public Result<User> registerUser(RegisterRequestDTO registerRequest) {
+
         User existingUser = (User) userRepository.findByUsername(registerRequest.getUsername()).orElse(null);
         log.info("existingUser: {}", existingUser);
         if (existingUser != null) {
             return Result.error("Username already exists");
         }
+
 
         User newUser = new User(null, registerRequest.getName(), registerRequest.getEmail(), registerRequest.getUsername(), passwordEncoder.encode(registerRequest.getPassword()),
                 registerRequest.getPhone(), registerRequest.getGender(), registerRequest.getAvatar(), LocalDate.now());

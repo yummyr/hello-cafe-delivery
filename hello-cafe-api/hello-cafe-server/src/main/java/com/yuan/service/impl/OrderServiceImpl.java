@@ -72,7 +72,7 @@ public class OrderServiceImpl implements OrderService {
     public OrderDetailVO getOrderDetails(Long id) {
         Orders order = ordersRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + id));
-
+        log.info("order detail from order",id);
 
         // check order details
         List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(id);
@@ -87,6 +87,7 @@ public class OrderServiceImpl implements OrderService {
         orderDetailVO.setPayStatus(order.getPayStatus());
         orderDetailVO.setStatus(order.getStatus());
         orderDetailVO.setPayMethod(order.getPayMethod());
+        orderDetailVO.setCancelReason(order.getCancelReason());
         orderDetailVO.setAmount(order.getAmount());
         orderDetailVO.setDeliveryFee(order.getDeliveryFee());
 
@@ -140,16 +141,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("Order confirmed: {}", order.getId());
     }
 
-    @Override
-    @Transactional
-    public void rejection(OrdersOperateDTO ordersRejectionDTO) {
-        Orders order = findOrderAndValidateStatus(ordersRejectionDTO.getId(), OrderStatusConstant.AWAITING_ACCEPTANCE, "rejection");
-        order.setStatus(OrderStatusConstant.CANCELED);
-        order.setRejectionReason(ordersRejectionDTO.getReason());
-        order.setCancelTime(LocalDateTime.now());
-        ordersRepository.save(order);
-        log.info("Order rejected: {}, reason: {}", order.getId(), ordersRejectionDTO.getReason());
-    }
+
 
     @Override
     @Transactional
@@ -207,7 +199,7 @@ public class OrderServiceImpl implements OrderService {
         orderItemVO.setComboName(comboName);
         orderItemVO.setQuantity(orderDetail.getQuantity());
         orderItemVO.setUnitPrice(orderDetail.getUnitPrice());
-        orderItemVO.setTax(orderDetail.getTax());
+        orderItemVO.setTax(orderDetail.getTax() == null? 0.0: orderDetail.getTax());
         orderItemVO.setFlavor(flavorList);
 
         return orderItemVO;
@@ -331,6 +323,7 @@ public class OrderServiceImpl implements OrderService {
         order.setTablewareNumber(ordersSubmitDTO.getTablewareNumber());
         order.setTablewareStatus(ordersSubmitDTO.getTablewareStatus());
 
+
         // 4. Save order
         Orders savedOrder = ordersRepository.save(order);
 
@@ -385,37 +378,6 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
-    public OrderVO getOrderDetail(Long id) {
-        Long currentUserId = UserUtils.getCurrentUserId();
-        Orders order = findOrderAndValidateUser(id, currentUserId, "view");
-
-        // Query order detail items
-        List<OrderDetail> orderDetails = orderDetailRepository.findByOrderId(id);
-
-
-        OrderVO orderVO = new OrderVO();
-        orderVO.setId(order.getId());
-        orderVO.setNumber(order.getNumber());
-        orderVO.setStatus(order.getStatus());
-        orderVO.setOrderTime(order.getOrderTime());
-        orderVO.setAmount(order.getAmount());
-        orderVO.setDeliveryFee(order.getDeliveryFee());
-
-        // Get address information from AddressBook
-        if (order.getAddressBookId() != null) {
-            AddressBook addressBook = addressBookRepository.findById(order.getAddressBookId()).orElse(null);
-            if (addressBook != null) {
-                orderVO.setAddressBookId(order.getAddressBookId());
-                orderVO.setAddressName(addressBook.getName());
-                orderVO.setAddressPhone(addressBook.getPhone());
-                orderVO.setAddress(addressBook.getAddress() + ", " + addressBook.getCity() + ", " + addressBook.getState() + " " + addressBook.getZipcode());
-            }
-        }
-
-        return orderVO;
-    }
-
-    @Override
     public PageResult historyOrders(Integer page, Integer pageSize, Integer status) {
         Long currentUserId = UserUtils.getCurrentUserId();
         Pageable pageable = PageRequest.of(page - 1, pageSize, Sort.by(Sort.Direction.DESC, "orderTime"));
@@ -459,6 +421,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public void repetitionOrder(Long id) {
+
         Long currentUserId = UserUtils.getCurrentUserId();
         findOrderAndValidateUser(id, currentUserId, "repeat");
 
@@ -466,16 +429,14 @@ public class OrderServiceImpl implements OrderService {
         orderDetails.forEach(detail -> addToCartFromOrderDetail(detail, currentUserId));
 
         log.info("Repeating order: {}", id);
+        try {
+            shoppingCartService.clearCartCache();
+        } catch (Exception e) {
+            log.warn("Failed to clear cart cache after repeating order: {}", e.getMessage());
+        }
     }
 
-    @Override
-    public void reminderOrder(Long id) {
-        Long currentUserId = UserUtils.getCurrentUserId();
-        findOrderAndValidateUser(id, currentUserId, "remind");
 
-        // TODO: Implement notification logic to merchant
-        log.info("Order reminder sent: {}", id);
-    }
 
 
     private Orders findOrderAndValidateStatus(Long orderId, Integer expectedStatus, String operation) {
@@ -507,6 +468,7 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void addToCartFromOrderDetail(OrderDetail detail, Long userId) {
+        log.info("Adding order detail to cart: {}", detail);
         ShoppingCart cartItem = new ShoppingCart();
         cartItem.setUserId(userId);
 
@@ -516,11 +478,16 @@ public class OrderServiceImpl implements OrderService {
             cartItem.setComboId(detail.getComboId());
         }
 
+        cartItem.setName(detail.getName());
+        cartItem.setImage(detail.getImage());
         cartItem.setQuantity(detail.getQuantity());
+        cartItem.setUnitPrice(detail.getUnitPrice());
+        cartItem.setFlavor(""); // Reset flavor for now
         cartItem.setCreateTime(LocalDateTime.now());
         cartItem.setUpdateTime(LocalDateTime.now());
 
         shoppingCartRepository.save(cartItem);
+        log.info("Successfully added item to cart: {}", cartItem);
     }
 
     private String generateOrderNumber() {
@@ -672,5 +639,38 @@ public class OrderServiceImpl implements OrderService {
         }
 
         return orderVO;
+    }
+
+    @Override
+    @Transactional
+    public OrderPaymentVO continuePayment(Long id) throws Exception {
+        Long currentUserId = UserUtils.getCurrentUserId();
+        Orders order = findOrderAndValidateUser(id, currentUserId, "continue payment");
+
+        // Check if order is in pending payment status
+        if (order.getStatus() != OrderStatusConstant.PENDING_PAYMENT) {
+            throw new RuntimeException("Order is not in pending payment status");
+        }
+
+
+        // Check if order already has a Stripe payment intent
+        if (order.getStripePaymentIntentId() == null) {
+            throw new RuntimeException("No payment session found for this order");
+        }
+
+        // Create a new payment session using Stripe service
+        String paymentUrl = stripeService.createPaymentSession(
+            order.getId(),
+            BigDecimal.valueOf(order.getAmount()),
+            order.getNumber()
+        );
+
+        // Create payment response
+        OrderPaymentVO orderPaymentVO = new OrderPaymentVO();
+        orderPaymentVO.setPaymentUrl(paymentUrl);
+
+
+        log.info("Payment session continued for order: {}", id);
+        return orderPaymentVO;
     }
 }

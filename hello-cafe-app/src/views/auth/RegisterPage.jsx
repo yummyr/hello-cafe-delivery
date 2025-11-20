@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { register } from "@/api/auth"; // connect to backend api/auth.js
 import registerBg from "/assets/register-bg.png"; // background image
 import defaultAvatar from "/assets/default-avatar.png"; // default avatar image
+import { useNavigate } from "react-router-dom";
 
 function RegisterPage() {
   const [userData, setUserData] = useState({
@@ -18,7 +19,7 @@ function RegisterPage() {
   const [passwordError, setPasswordError] = useState("");
   const [loading, setLoading] = useState(false);
   const [formError, setFormError] = useState("");
-
+  const Navigate = useNavigate();
   const inputBoxStyle =
     "w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#b08968] focus:border-transparent";
   const labelBoxStyle = "block text-sm font-medium text-gray-700 mb-1";
@@ -33,7 +34,6 @@ function RegisterPage() {
     }
   };
 
- 
   // submit registration form
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,7 +54,7 @@ function RegisterPage() {
     }
 
     // prepare user data for submission
-    setUserData({
+    const submitData = {
       email: form.email.value,
       username: form.username.value,
       password: password,
@@ -62,15 +62,25 @@ function RegisterPage() {
       phone: form.phone.value || "",
       gender: form.gender.value,
       avatar: form.avatar.files[0]?.name || "default-avatar.png",
-    });
+    };
 
     try {
       setLoading(true);
-      const res = await register(userData); // call backend register API
+      const res = await register(submitData); // call backend register API
       console.log("✅ Register success:", res.data);
       alert("Registration successful! You can now log in.");
       form.reset();
       setPreview(defaultAvatar);
+      setUserData({
+        name: "",
+        email: "",
+        username: "",
+        password: "",
+        phone: "",
+        gender: "m",
+        avatar: null,
+      });
+      Navigate("/login", { replace: true });
     } catch (err) {
       console.error("❌ Register failed:", err);
       setFormError(

@@ -23,6 +23,7 @@ public class OrderDetailVO {
     private Integer status;
     private Integer payStatus;
     private Integer payMethod;
+    private String cancelReason;
     private List<OrderItemVO> orderItems;
 
 

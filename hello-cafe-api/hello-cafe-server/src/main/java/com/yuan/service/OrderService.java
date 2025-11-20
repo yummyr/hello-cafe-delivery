@@ -34,10 +34,6 @@ public interface OrderService {
      */
     void confirm(OrdersOperateDTO ordersOperateDTO);
 
-    /**
-     * reject order
-     */
-    void rejection(OrdersOperateDTO ordersRejectionDTO);
 
     /**
      * cancel order
@@ -73,10 +69,7 @@ public interface OrderService {
      */
     OrderPaymentVO payment(OrdersPaymentDTO ordersPaymentDTO) throws StripeException;
 
-    /**
-     * Get order details (user side)
-     */
-    OrderVO getOrderDetail(Long id);
+
 
     /**
      * Historical order query (user side)
@@ -93,9 +86,10 @@ public interface OrderService {
      */
     void repetitionOrder(Long id);
 
+
     /**
-     * Remind order
+     * Continue payment for pending payment order
      */
-    void reminderOrder(Long id);
+    OrderPaymentVO continuePayment(Long id) throws Exception;
 
 }

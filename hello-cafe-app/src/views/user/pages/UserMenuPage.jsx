@@ -60,8 +60,6 @@ function UserMenuPage() {
 
       const response = await api.get("/user/menu/page", { params, signal: abortControllerRef.current.signal  });
 
-      console.log("menu response:", response);
-
       if (response.data.code === 1) {
         // Transform API data to match frontend format
         const transformedItems = response.data.data.records.map(
@@ -76,8 +74,6 @@ function UserMenuPage() {
           })
         );
         setMenuItems(transformedItems);
-        console.log("menu items: ", menuItems);
-
         setTotal(response.data.data.total);
       }
     } catch (error) {

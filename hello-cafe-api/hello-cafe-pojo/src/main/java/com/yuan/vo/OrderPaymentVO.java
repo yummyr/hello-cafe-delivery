@@ -13,4 +13,5 @@ public class OrderPaymentVO {
     private String signType;     // signature algorithm
     private String timeStamp;    // timestamp
     private String paySign;      // signature
+    private String paymentUrl;   // Stripe payment session URL
 }

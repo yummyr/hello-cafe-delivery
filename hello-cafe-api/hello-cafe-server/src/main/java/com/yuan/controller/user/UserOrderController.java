@@ -5,14 +5,11 @@ import com.yuan.dto.OrdersSubmitDTO;
 import com.yuan.result.PageResult;
 import com.yuan.result.Result;
 import com.yuan.service.OrderService;
+import com.yuan.vo.OrderDetailVO;
 import com.yuan.vo.OrderPaymentVO;
 import com.yuan.vo.OrderSubmitVO;
-import com.yuan.vo.OrderVO;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.repository.query.Param;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -38,11 +35,18 @@ public class UserOrderController {
     }
 
     @GetMapping("/orderDetail/{id}")
-    public Result<OrderVO> orderDetail(@PathVariable Long id) {
-        log.info("check order detail by id：{}", id);
-        OrderVO orderVO = orderService.getOrderDetail(id);
-        return Result.success(orderVO);
+    public Result<OrderDetailVO> orderDetail(@PathVariable Long id) {
+        try {
+            log.info("Getting order details for id on the user end: {}", id);
+            OrderDetailVO orderDetail= orderService.getOrderDetails(id);
+            log.info("Order details: {}", orderDetail);
+            return Result.success(orderDetail);
+        } catch (Exception e) {
+            log.error("Failed to get order details on the user end", e);
+            return Result.error("Failed to get order details: " + e.getMessage());
+        }
     }
+
 
     @GetMapping("/historyOrders")
     public Result<PageResult> historyOrders(
@@ -55,23 +59,24 @@ public class UserOrderController {
     }
 
     @PutMapping("/cancel/{id}")
-    public Result cancel(@PathVariable Long id, @RequestParam String reason) {
+    public Result<Long> cancel(@PathVariable Long id, @RequestParam String reason) {
         log.info("User cancel order by id：{}，, reason: {}", id, reason);
         orderService.cancelOrder(id, reason);
-        return Result.success();
+        return Result.success(id);
     }
 
     @PostMapping("/repetition/{id}")
-    public Result repetition(@PathVariable Long id) {
+    public Result<Long> repetition(@PathVariable Long id) {
         log.info("User repetition order by id：{}", id);
         orderService.repetitionOrder(id);
-        return Result.success();
+        return Result.success(id);
     }
 
-    @GetMapping("/reminder/{id}")
-    public Result reminder(@PathVariable Long id) {
-        log.info("User reminder order by id：{}", id);
-        orderService.reminderOrder(id);
-        return Result.success();
+
+    @PostMapping("/continuePayment/{id}")
+    public Result<OrderPaymentVO> continuePayment(@PathVariable Long id) throws Exception {
+        log.info("User continue payment for order: {}", id);
+        OrderPaymentVO orderPaymentVO = orderService.continuePayment(id);
+        return Result.success(orderPaymentVO);
     }
 }

@@ -49,8 +49,6 @@ public class Orders implements Serializable {
     @Column(name = "cancel_reason", length = 255)
     private String cancelReason;
 
-    @Column(name = "rejection_reason", length = 255)
-    private String rejectionReason;
 
     @Column(name = "cancel_time")
     private LocalDateTime cancelTime;
@@ -82,30 +80,4 @@ public class Orders implements Serializable {
     @Column(name = "payment_time")
     private Date paymentTime;
 
-    // Getter and Setter for stripeSessionId
-    public String getStripeSessionId() {
-        return stripeSessionId;
-    }
-
-    public void setStripeSessionId(String stripeSessionId) {
-        this.stripeSessionId = stripeSessionId;
-    }
-
-    // Getter and Setter for stripePaymentIntentId
-    public String getStripePaymentIntentId() {
-        return stripePaymentIntentId;
-    }
-
-    public void setStripePaymentIntentId(String stripePaymentIntentId) {
-        this.stripePaymentIntentId = stripePaymentIntentId;
-    }
-
-    // Getter and Setter for paymentTime
-    public Date getPaymentTime() {
-        return paymentTime;
-    }
-
-    public void setPaymentTime(Date paymentTime) {
-        this.paymentTime = paymentTime;
-    }
 }

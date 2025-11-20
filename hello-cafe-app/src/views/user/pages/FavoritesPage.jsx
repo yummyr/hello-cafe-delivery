@@ -52,8 +52,6 @@ function FavoritesPage() {
           ).values()
         );
 
-        console.log("Favorites data:", uniqueFavorites); // Debug log to see the data structure
-
         // Fetch current prices and images for items without them
         const itemsNeedingUpdate = uniqueFavorites.filter(
           (item) =>
@@ -61,12 +59,6 @@ function FavoritesPage() {
         );
 
         if (itemsNeedingUpdate.length > 0) {
-          console.log(
-            "Fetching prices and images for items needing updates:",
-            itemsNeedingUpdate.map(
-              (item) => `${item.itemName} (${item.itemType}-${item.itemId})`
-            )
-          );
           try {
             // Get menu items and combos to update prices
             const [menuResponse, comboResponse] = await Promise.all([
@@ -74,18 +66,12 @@ function FavoritesPage() {
               menuAPI.getAllCombos(),
             ]);
 
-            console.log("Menu API response:", menuResponse.data);
-            console.log("Combo API response:", comboResponse.data);
-
             const menuItems =
               menuResponse.data.code === 1 ? menuResponse.data.data || [] : [];
             const combos =
               comboResponse.data.code === 1
                 ? comboResponse.data.data || []
                 : [];
-
-            console.log("Menu items:", menuItems);
-            console.log("Combos:", combos);
 
             // Create price and image lookup maps
             const menuInfoMap = new Map(
@@ -101,9 +87,6 @@ function FavoritesPage() {
               ])
             );
 
-            console.log("Menu info map:", menuInfoMap);
-            console.log("Combo info map:", comboInfoMap);
-
             // Update favorites with current prices and images
             uniqueFavorites = uniqueFavorites.map((item) => {
               let updatedItem = { ...item };
@@ -114,15 +97,9 @@ function FavoritesPage() {
               ) {
                 const menuInfo = menuInfoMap.get(item.itemId);
                 if (!item.itemPrice && !item.price) {
-                  console.log(
-                    `Updating price for ${item.itemName}: ${menuInfo.price}`
-                  );
                   updatedItem.itemPrice = menuInfo.price;
                 }
                 if (!item.itemImage && !item.image) {
-                  console.log(
-                    `Updating image for ${item.itemName}: ${menuInfo.image}`
-                  );
                   updatedItem.itemImage = menuInfo.image;
                 }
               } else if (
@@ -131,21 +108,11 @@ function FavoritesPage() {
               ) {
                 const comboInfo = comboInfoMap.get(item.itemId);
                 if (!item.itemPrice && !item.price) {
-                  console.log(
-                    `Updating price for combo ${item.itemName}: ${comboInfo.price}`
-                  );
                   updatedItem.itemPrice = comboInfo.price;
                 }
                 if (!item.itemImage && !item.image) {
-                  console.log(
-                    `Updating image for combo ${item.itemName}: ${comboInfo.image}`
-                  );
                   updatedItem.itemImage = comboInfo.image;
                 }
-              } else {
-                console.warn(
-                  `Info not found for ${item.itemName} (${item.itemType}-${item.itemId})`
-                );
               }
 
               return updatedItem;

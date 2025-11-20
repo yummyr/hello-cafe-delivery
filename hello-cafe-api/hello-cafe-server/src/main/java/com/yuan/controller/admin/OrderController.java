@@ -81,20 +81,7 @@ public class OrderController {
         }
     }
 
-    /**
-     * reject order
-     */
-    @PutMapping("/rejection")
-    public Result rejection(@RequestBody OrdersOperateDTO dto) {
-        try {
-            log.info("Rejecting order: {}, reason: {}", dto.getId(), dto.getReason());
-            orderService.rejection(dto);
-            return Result.success();
-        } catch (Exception e) {
-            log.error("Failed to reject order", e);
-            return Result.error("Failed to reject order: " + e.getMessage());
-        }
-    }
+
 
     /**
      * cancel order

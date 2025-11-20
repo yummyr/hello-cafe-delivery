@@ -47,10 +47,7 @@ function MenuPage() {
         params.status = selectedStatus;
       }
 
-      console.log("Fetching menu with params:", params);
-
       const res = await api.get("/admin/menu", { params });
-      console.log("Successfully fetched menu items:", res.data.data.records);
       setMenuItems(res.data.data.records);
       setTotal(res.data.data.total);
     } catch (err) {
@@ -91,9 +88,8 @@ function MenuPage() {
     );
   };
   const deleteCheckedItems = async (ids) => {
-    // fomate params,if single id, convert it to list
+    // Format params, if single id, convert it to list
     const idList = Array.isArray(ids) ? ids : [ids];
-    console.log("try to delete id list", idList);
 
     const confirmMessage =
       idList.length === 1
@@ -117,13 +113,12 @@ function MenuPage() {
   };
 
   const toggleStatus = async (id) => {
-    console.log(`going to toggle ${id} status~~~~`);
     try {
       await api.put(`/admin/menu/status/${id}`);
       alert(`${id} status updated successfully!`);
       await fetchMenu();
     } catch (error) {
-      console.warn(`something wrong to update ${id} status`, error);
+      console.warn(`Failed to update ${id} status`, error);
       alert("Failed to update status. Please try again.");
     }
   };

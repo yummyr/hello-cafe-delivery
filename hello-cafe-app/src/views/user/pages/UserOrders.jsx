@@ -7,21 +7,12 @@ import Pagination from "../../../components/Pagination";
 
 // Order status constants
 const ORDER_STATUS = {
-  PENDING_PAYMENT: 1,
-  PENDING: 2,
-  PROCESSING: 3,
-  DELIVERED: 4,
-  COMPLETED: 5,
-  CANCELLED: 6,
-};
-
-const ORDER_STATUS_TEXT = {
-  [ORDER_STATUS.PENDING_PAYMENT]: "Pending Payment",
-  [ORDER_STATUS.PENDING]: "Pending",
-  [ORDER_STATUS.PROCESSING]: "Processing",
-  [ORDER_STATUS.DELIVERED]: "Delivered",
-  [ORDER_STATUS.COMPLETED]: "Completed",
-  [ORDER_STATUS.CANCELLED]: "Cancelled",
+  1: "Pending Payment",
+  2: "Awaiting Acceptance",
+  3: "Accepted",
+  4: "Delivering",
+  5: "Completed",
+  6: "Cancelled",
 };
 
 // Get history orders
@@ -58,7 +49,9 @@ const getOrderDetail = async (orderId) => {
 // Cancel order
 const cancelOrder = async (orderId, reason) => {
   try {
-    await api.put(`/user/order/cancel/${orderId}?reason=${encodeURIComponent(reason)}`);
+    await api.put(
+      `/user/order/cancel/${orderId}?reason=${encodeURIComponent(reason)}`
+    );
   } catch (error) {
     console.error("Failed to cancel order:", error);
     throw error;
@@ -68,19 +61,10 @@ const cancelOrder = async (orderId, reason) => {
 // Repeat order
 const repeatOrder = async (orderId) => {
   try {
-    await api.post(`/user/order/repetition/${orderId}`);
+    const url = `/user/order/repetition/${orderId}`;
+      await api.post(url);
   } catch (error) {
     console.error("Failed to repeat order:", error);
-    throw error;
-  }
-};
-
-// Send reminder for order
-const reminderOrder = async (orderId) => {
-  try {
-    await api.get(`/user/order/reminder/${orderId}`);
-  } catch (error) {
-    console.error("Failed to send reminder:", error);
     throw error;
   }
 };
@@ -101,7 +85,8 @@ function UserOrders() {
     try {
       setLoading(true);
       const result = await getHistoryOrders(page, pageSize, statusFilter);
-      setOrders(result.records || []);
+      const ordersData = result.records || [];
+      setOrders(ordersData);
       setTotal(result.total);
     } catch (error) {
       console.error("Failed to fetch orders:", error);
@@ -124,9 +109,13 @@ function UserOrders() {
   // Cancel order
   const handleCancelOrder = async (orderId) => {
     if (window.confirm("Are you sure you want to cancel this order?")) {
-      try {
-        const reason = prompt("Please enter cancellation reason:");
-        await cancelOrder(orderId,reason);
+      try {if (isPaymentValid(orderId)) {
+         const reason = prompt("Please enter cancellation reason:");
+        await cancelOrder(orderId, reason);
+      }else{
+        await cancelOrder(orderId,"payment timeout");
+      }
+       
         alert("Order has been cancelled");
         fetchOrders();
       } catch (error) {
@@ -140,10 +129,15 @@ function UserOrders() {
 
   // Repeat order
   const handleRepeatOrder = async (orderId) => {
+    if (!orderId) {
+      console.error("Order ID is missing. Cannot repeat order.");
+      alert("Order ID is missing. Cannot repeat order.");
+      return;
+    }
     try {
       await repeatOrder(orderId);
       alert("Items have been added to your cart");
-      navigate("/cart");
+      navigate("/user/cart", { replace: true });
     } catch (error) {
       alert(
         "Failed to repeat order: " +
@@ -152,81 +146,90 @@ function UserOrders() {
     }
   };
 
-  // Reminder order
-  const handleReminderOrder = async (orderId) => {
+  // Continue payment
+  const handleContinuePayment = async (orderId) => {
     try {
-      await reminderOrder(orderId);
-      alert("Reminder sent successfully, please wait patiently");
+      console.log("🚀 Continuing payment for order:", orderId);
+
+      const orderDetail = await getOrderDetail(orderId);
+
+      const paymentData = {
+        orderId: orderId,
+        amount: orderDetail.amount,
+        deliveryAddress: orderDetail.address || "",
+        customerName: orderDetail.addressName || "",
+        customerPhone: orderDetail.addressPhone || "",
+      };
+      console.log("get payment data: ", paymentData);
+
+      navigate("/user/payment", { state: { orderData: paymentData } });
+
     } catch (error) {
-      alert(
-        "Failed to send reminder: " +
-          (error.response?.data?.msg || error.message)
-      );
+      console.error("❌ Failed to continue payment:", error);
+      console.error("❌ Error config:", error.config);
+      console.error("❌ Error URL:", error.config?.baseURL + error.config?.url);
+
+      throw error;
     }
+  };
+
+  // Check if payment is still valid (within 30 minutes)
+  const isPaymentValid = (orderTime) => {
+    if (!orderTime) return false;
+    const orderDateTime = new Date(orderTime);
+    const now = new Date();
+    const diffInMinutes = (now - orderDateTime) / (1000 * 60);
+    return diffInMinutes < 30;
   };
 
   // Status filter options
   const statusOptions = [
     { value: null, label: "All" },
-    { value: ORDER_STATUS.PENDING_PAYMENT, label: "Pending Payment" },
-    { value: ORDER_STATUS.PENDING, label: "Pending" },
-    { value: ORDER_STATUS.PROCESSING, label: "Processing" },
-    { value: ORDER_STATUS.DELIVERED, label: "Delivered" },
-    { value: ORDER_STATUS.COMPLETED, label: "Completed" },
-    { value: ORDER_STATUS.CANCELLED, label: "Cancelled" },
+    { value: 1, label: "Pending Payment" },
+    { value: 2, label: "Awaiting to Acceptance" },
+    { value: 3, label: "Accepted" },
+    { value: 4, label: "Delivering" },
+    { value: 5, label: "Completed" },
+    { value: 6, label: "Cancelled" },
   ];
 
   // Get action buttons
   const getActionButtons = (order) => {
     const buttons = [];
 
-    // View details button
-    buttons.push(
-      <button
-        key="detail"
-        onClick={() => viewOrderDetail(order.id)}
-        className="text-[#8B6F47] hover:text-[#6B5637] text-sm font-medium transition-colors"
-      >
-        View Details
-      </button>
-    );
-
     // Different operations based on order status
-    switch (order.status) {
-      case ORDER_STATUS.PENDING_PAYMENT:
-      case ORDER_STATUS.PENDING:
-        buttons.push(
-          <button
-            key="cancel"
-            onClick={() => handleCancelOrder(order.id)}
-            className="text-[#A67B5B] hover:text-[#8B5A3C] text-sm font-medium ml-3 transition-colors"
-          >
-            Cancel Order
-          </button>
-        );
-        break;
-      case ORDER_STATUS.PROCESSING:
-        buttons.push(
-          <button
-            key="reminder"
-            onClick={() => handleReminderOrder(order.id)}
-            className="text-[#D4A574] hover:text-[#B8935F] text-sm font-medium ml-3 transition-colors"
-          >
-            Send Reminder
-          </button>
-        );
-        break;
-      case ORDER_STATUS.COMPLETED:
-        buttons.push(
-          <button
-            key="repeat"
-            onClick={() => handleRepeatOrder(order.id)}
-            className="text-[#8B7355] hover:text-[#6B5637] text-sm font-medium ml-3 transition-colors"
-          >
-            Order Again
-          </button>
-        );
-        break;
+
+    // Add continue payment button if within 30 minutes
+    if (isPaymentValid(order.orderTime) && order.status === 1) {
+      buttons.push(
+        <button
+          key="continuePayment"
+          onClick={() => handleContinuePayment(order.id)}
+          className="text-[#2E7D32] hover:text-[#1B5E20] text-sm font-medium ml-3 transition-colors"
+        >
+          Continue Payment
+        </button>
+      );
+    } else if (order.status === 1 || order.status === 2) {
+      buttons.push(
+        <button
+          key="cancel"
+          onClick={() => handleCancelOrder(order.id)}
+          className="text-[#A67B5B] hover:text-[#8B5A3C] text-sm font-medium ml-3 transition-colors"
+        >
+          Cancel Order
+        </button>
+      );
+    } else if (order.status === 4 || order.status === 5) {
+      buttons.push(
+        <button
+          key="repeat"
+          onClick={() => handleRepeatOrder(order.id)}
+          className="text-[#8B7355] hover:text-[#6B5637] text-sm font-medium ml-3 transition-colors"
+        >
+          Order Again
+        </button>
+      );
     }
 
     return buttons;
@@ -280,7 +283,10 @@ function UserOrders() {
             </div>
           ) : (
             <div className="space-y-4">
-              {orders.map((order) => (
+              {orders.map((order) => {
+                console.log("🚀 Rendering order:", order);
+                console.log("🚀 Order ID:", order.id, "Type:", typeof order.id);
+                return (
                 <div
                   key={order.id}
                   className="bg-[#FDFBF7] rounded-lg border border-[#E5D4C1] p-6 hover:shadow-md transition-shadow duration-200"
@@ -288,7 +294,7 @@ function UserOrders() {
                   <div className="flex justify-between items-start mb-4">
                     <div>
                       <div className="text-sm text-[#6B5B4A] font-medium">
-                        Order #: {order.number}
+                        Order #: {order.number} 
                       </div>
                       <div className="text-sm text-[#8B7355] mt-1">
                         Order Time: {formatDateTime(order.orderTime)}
@@ -297,17 +303,18 @@ function UserOrders() {
                     <div className="text-right">
                       <span
                         className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${
-                          order.status === ORDER_STATUS.COMPLETED
+                          order.status === 5
                             ? "bg-[#D4E4D4] text-[#2D5016]"
-                            : order.status === ORDER_STATUS.CANCELLED
+                            : order.status === 6
                             ? "bg-[#F5D6D6] text-[#8B2A2A]"
-                            : order.status === ORDER_STATUS.DELIVERED
+                            : order.status === 4
                             ? "bg-[#D6E5F5] text-[#1E3A8A]"
                             : "bg-[#F4E4D4] text-[#8B4513]"
                         }`}
                       >
-                        {ORDER_STATUS_TEXT[order.status] || "Unknown Status"}
+                        {ORDER_STATUS[order.status] || "Unknown Status"}
                       </span>
+                    
                       <div className="mt-2 text-xl font-bold text-[#4A4A4A]">
                         ${order.amount?.toFixed(2) || "0.00"}
                       </div>
@@ -318,7 +325,8 @@ function UserOrders() {
                     <div className="text-sm text-[#6B5B4A]">
                       <span className="font-medium">Delivery Address:</span>{" "}
                       {order.address} |
-                      <span className="font-medium"> Phone:</span> {order.addressPhone}
+                      <span className="font-medium"> Phone:</span>{" "}
+                      {order.addressPhone}
                     </div>
                     {order.estimatedDeliveryTime && (
                       <div className="text-sm text-[#8B7355] mt-1">
@@ -327,12 +335,19 @@ function UserOrders() {
                       </div>
                     )}
                   </div>
-
                   <div className="flex justify-end items-center space-x-3">
+                    <button
+                      key="detail"
+                      onClick={() => viewOrderDetail(order.id)}
+                      className="text-[#8B6F47] hover:text-[#6B5637] text-sm font-medium transition-colors"
+                    >
+                      View Details
+                    </button>
                     {getActionButtons(order)}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
@@ -380,13 +395,13 @@ function UserOrders() {
                       <span className="font-medium text-[#6B5B4A]">
                         Order #:
                       </span>{" "}
-                      {selectedOrder.number}
+                      {selectedOrder.orderNo}
                     </div>
                     <div>
                       <span className="font-medium text-[#6B5B4A]">
                         Status:
                       </span>{" "}
-                      {ORDER_STATUS_TEXT[selectedOrder.status]}
+                      {ORDER_STATUS[selectedOrder.status]}
                     </div>
                     <div>
                       <span className="font-medium text-[#6B5B4A]">
@@ -404,13 +419,17 @@ function UserOrders() {
                       <span className="font-medium text-[#6B5B4A]">
                         Payment Method:
                       </span>{" "}
-                      {selectedOrder.payMethod === 1 ? "WeChat Pay" : "Alipay"}
+                      {selectedOrder.payMethod === 1 ? "Credit Card" : "PayPal"}
                     </div>
                     <div>
                       <span className="font-medium text-[#6B5B4A]">
                         Payment Status:
                       </span>{" "}
-                      {selectedOrder.payStatus === 1 ? "Paid" : "Unpaid"}
+                      {selectedOrder.payStatus === 0
+                        ? "Unpaid"
+                        : selectedOrder.payStatus === 1
+                        ? "Paid"
+                        : "Refunded"}
                     </div>
                   </div>
                 </div>
@@ -444,27 +463,29 @@ function UserOrders() {
                     <span className="mr-2">🍽️</span> Order Items
                   </h3>
                   <div className="space-y-3">
-                    {selectedOrder.orderDetailList?.map((item, index) => (
+                    {selectedOrder.orderItems?.map((item, index) => (
                       <div
                         key={index}
                         className="flex justify-between items-center text-sm p-3 bg-white rounded-lg border border-[#E5D4C1]"
                       >
                         <div className="flex-1">
-                          <div className="font-medium text-[#4A4A4A]">
-                            {item.name}
-                          </div>
-                          {item.dishFlavor && (
-                            <div className="text-[#8B7355] mt-1">
-                              Flavor: {item.dishFlavor}
+                          {item.name && (
+                            <div className="font-medium text-[#4A4A4A]">
+                              {item.name}
                             </div>
                           )}
+                          {item.flavor && Array.isArray(item.flavor) && item.flavor.length > 0 && (
+                            <div className="text-[#8B7355] mt-1">
+                              Flavors: {item.flavor.map(f => f.name || f.value || '').filter(Boolean).join(', ')}
+                            </div>
+                        )}
                           <div className="text-[#8B7355] mt-1">
-                            Quantity: {item.number}
+                            Quantity: {item.quantity}
                           </div>
                         </div>
                         <div className="text-right">
                           <div className="font-medium text-[#4A4A4A]">
-                            ${item.amount?.toFixed(2)}
+                            ${item.quantity * item.unitPrice?.toFixed(2)}
                           </div>
                           <div className="text-[#8B7355] text-xs">
                             Unit Price: ${item.unitPrice?.toFixed(2)}
@@ -474,17 +495,6 @@ function UserOrders() {
                     ))}
                   </div>
                 </div>
-
-                {selectedOrder.rejectionReason && (
-                  <div className="bg-[#F5D6D6] rounded-lg p-4 border border-[#D4A5A5]">
-                    <h3 className="font-semibold text-[#8B2A2A] mb-2 flex items-center">
-                      <span className="mr-2">❌</span> Rejection Reason
-                    </h3>
-                    <div className="text-sm text-[#8B2A2A]">
-                      {selectedOrder.rejectionReason}
-                    </div>
-                  </div>
-                )}
 
                 {selectedOrder.cancelReason && (
                   <div className="bg-[#F5D6D6] rounded-lg p-4 border border-[#D4A5A5]">
@@ -499,13 +509,42 @@ function UserOrders() {
               </div>
 
               <div className="sticky bottom-0 bg-white border-t border-[#E5D4C1] p-6 rounded-b-xl">
-                <div className="flex justify-end">
-                  <button
-                    onClick={() => setShowDetailModal(false)}
-                    className="px-6 py-2 bg-[#8B6F47] text-white rounded-lg hover:bg-[#6B5637] transition-colors duration-200 font-medium"
-                  >
-                    Close
-                  </button>
+                <div className="flex justify-between items-center">
+                  <div className="flex space-x-3">
+                    {selectedOrder.status === 1 &&
+                      isPaymentValid(selectedOrder.orderTime) && (
+                        <button
+                          onClick={() => {
+                            handleContinuePayment(selectedOrder.id);
+                            setShowDetailModal(false);
+                          }}
+                          className="px-6 py-2 bg-[#2E7D32] text-white rounded-lg hover:bg-[#1B5E20] transition-colors duration-200 font-medium"
+                        >
+                          Continue Payment
+                        </button>
+                      )}
+                    {(selectedOrder.status === 1 ||
+                      selectedOrder.status === 2) && (
+                      <button
+                        onClick={() => {
+                          handleCancelOrder(selectedOrder.id);
+                          setShowDetailModal(false);
+                        }}
+                        className="px-6 py-2 bg-[#A67B5B] text-white rounded-lg hover:bg-[#8B5A3C] transition-colors duration-200 font-medium"
+                      >
+                        Cancel Order
+                      </button>
+                    )}
+                  </div>
+                  <div className="flex space-x-3">
+                  
+                    <button
+                      onClick={() => setShowDetailModal(false)}
+                      className="px-6 py-2 bg-[#8B6F47] text-white rounded-lg hover:bg-[#6B5637] transition-colors duration-200 font-medium"
+                    >
+                      Close
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

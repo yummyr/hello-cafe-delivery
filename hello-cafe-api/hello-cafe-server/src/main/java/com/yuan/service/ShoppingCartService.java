@@ -25,4 +25,9 @@ public interface ShoppingCartService {
      * Clear shopping cart
      */
     void cleanCart();
+
+    /**
+     * Clear shopping cart cache only (without deleting database records)
+     */
+    void clearCartCache();
 }

@@ -93,4 +93,8 @@ public interface OrdersRepository extends JpaRepository<Orders, Long> {
     List<Orders> findByStatusIn(List<Integer> integers);
 
     Optional<Orders> findByStripeSessionId(String stripeSessionId);
+
+    // TODO: Temporarily commented - will enable after database schema is updated
+    // @Query("SELECT o FROM Orders o WHERE o.status = :status AND o.paymentExpiryTime < :currentTime AND (o.paymentTimeoutCancelled IS NULL OR o.paymentTimeoutCancelled = false)")
+    // List<Orders> findExpiredUnpaidOrders(@Param("status") Integer status, @Param("currentTime") LocalDateTime currentTime);
 }

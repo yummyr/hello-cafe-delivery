@@ -103,40 +103,25 @@ function AdminDashboard() {
 
   const fetchBusinessData = async () => {
     try {
-      console.log("🔄 Fetching business data from /admin/report/businessData");
       const response = await api.get("/admin/report/businessData");
-      console.log("📊 Business data response:", response.data);
 
       if (response.data.code === 1 && response.data.data) {
-        console.log(
-          "✅ Business data loaded successfully:",
-          response.data.data
-        );
         setBusinessData(response.data.data);
       } else {
-        console.warn("⚠️ Failed to fetch business data:", response.data.msg);
         setError(
           `Business data error: ${response.data.msg || "Unknown error"}`
         );
       }
     } catch (error) {
-      console.error("❌ Error fetching business data:", error);
       if (error.response) {
-        console.error(
-          "Response error:",
-          error.response.status,
-          error.response.data
-        );
         setError(
           `Server error: ${error.response.status} - ${
             error.response.data?.msg || error.response.statusText
           }`
         );
       } else if (error.request) {
-        console.error("Request error - no response received:", error.request);
         setError("Network error: Unable to reach server");
       } else {
-        console.error("Request setup error:", error.message);
         setError(`Request error: ${error.message}`);
       }
     }
@@ -146,9 +131,7 @@ function AdminDashboard() {
     try {
       setLoading(true);
       setError(null);
-      // console.log("Fetching menu item info...");
       const response = await api.get("/admin/menu/status");
-      // console.log("Menu item info response:", response.data);
       if (response.data.code === 1) {
         const items = response.data.data;
 

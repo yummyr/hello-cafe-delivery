@@ -38,56 +38,6 @@ function OrderDetailPage() {
     reason:""
   });
 
-  const getActionButtons = (order) => {
-    switch (order.status) {
-      case 2: // awaiting acceptance
-        return (
-          <>
-            <button
-              onClick={() => handleConfirm(id)}
-              className="text-green-600 hover:text-green-800 mr-2"
-              title="Confirm"
-            >
-              <CheckCircle className="w-5 h-5" />
-            </button>
-            <button
-              onClick={() => handleReject(id)}
-              className="text-red-600 hover:text-red-800 mr-2"
-              title="Reject"
-            >
-              <XCircle className="w-5 h-5" />
-            </button>
-          </>
-        );
-      case 3: // Accepted
-        return (
-          <button
-            onClick={() => handleDeliver(id)}
-            className="text-blue-600 hover:text-blue-800"
-            title="Start Delivery"
-          >
-            <Truck className="w-5 h-5" />
-          </button>
-        );
-      case 4: // Delivering
-        return (
-          <button
-            onClick={() => handleComplete(id)}
-            className="text-green-600 hover:text-green-800"
-            title="Complete"
-          >
-            <CheckSquare className="w-5 h-5" />
-          </button>
-        );
-      default:
-        return null;
-    }
-  };
-
-
-
-
-
   useEffect(() => {
     fetchOrderDetails();
   }, [id]);
@@ -150,26 +100,7 @@ function OrderDetailPage() {
     }
   };
 
-  const handleReject = async () => {
-    const reason = prompt("Please enter rejection reason:");
-    if (!reason) return;
 
-    try {
-      setOperation({...operation,reason:reason});
-
-      const response = await api.put("/admin/orders/rejection", operation);
-      if (response.data.code === 1) {
-        await fetchOrderDetails();
-        alert("✅ Order rejected successfully!");
-          setOperation({...operation,reason:""});
-      } else {
-        alert("Failed to reject order: " + response.msg);
-      }
-    } catch (err) {
-      console.error("❌ Failed to reject order:", err);
-      alert("Failed to reject order. Please try again.");
-    }
-  };
 
   const handleCancel = async () => {
     const reason = prompt("Please enter cancellation reason:");
@@ -283,7 +214,7 @@ function OrderDetailPage() {
               Confirm Order
             </button>
             <button
-              onClick={handleReject}
+              onClick={handleCancel}
               className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition flex items-center justify-center gap-2"
             >
               <XCircle className="w-5 h-5" />

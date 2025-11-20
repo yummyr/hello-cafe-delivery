@@ -18,6 +18,7 @@ import {
   useStripe,
   useElements,
 } from "@stripe/react-stripe-js";
+import shoppingCartAPI from "../../../api/shoppingCart";
 
 // Initialize Stripe 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY );
@@ -77,6 +78,7 @@ function PaymentForm({ orderData, onSuccess, onError }) {
           paymentIntentId: paymentIntent.id,
           status: paymentIntent.status,
         });
+        shoppingCartAPI.clearCart();
       } else {
         throw new Error(`Payment status: ${paymentIntent.status}`);
       }

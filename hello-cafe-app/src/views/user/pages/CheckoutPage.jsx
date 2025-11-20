@@ -17,6 +17,7 @@ import shoppingCartAPI from "../../../api/shoppingCart";
 import api from "../../../api";
 
 
+
 function CheckoutPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -91,7 +92,7 @@ function CheckoutPage() {
     return total + (item.unitPrice * item.quantity);
   }, 0);
 
-  const tax = subtotal * 0.08; // 8% tax
+  const tax = subtotal * 0.1; // 10% tax
   const deliveryFee = 2.99;
   const total = subtotal + tax + deliveryFee;
 
@@ -161,7 +162,7 @@ function CheckoutPage() {
           message: "Order created! Please complete payment.",
           isVisible: true,
         });
-
+        
         // Navigate to payment page with order data
         setTimeout(() => {
           navigate("/user/payment", { state: { orderData: paymentData } });

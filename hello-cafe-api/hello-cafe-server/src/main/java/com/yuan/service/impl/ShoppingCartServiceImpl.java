@@ -216,4 +216,11 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
         // clear cart cache after successful addition, as it may have changed for public
         clearCartCache(UserUtils.getCurrentUserId());
     }
+
+    @Override
+    public void clearCartCache() {
+        Long userId = UserUtils.getCurrentUserId();
+        clearCartCache(userId);
+        log.info("Cleared cart cache for user: {}", userId);
+    }
 }

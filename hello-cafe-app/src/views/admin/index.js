@@ -1,7 +1,7 @@
 
 // Components
 export { default as AdminTopBar } from "./components/AdminTopBar.jsx";
-export { default as AdminSidebar } from "./components/AdminSidebar.jsx";
+export { default as AdminSidebar } from "./components/AdminSideBar.jsx";
 
 // Layout
 export { default as AdminLayout } from "./layouts/AdminLayout.jsx"; 
